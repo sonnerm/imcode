@@ -1,0 +1,2 @@
+- Remove Blip site from mps
+- Write tests mps/shallow/ed

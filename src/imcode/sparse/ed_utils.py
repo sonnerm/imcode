@@ -1,7 +1,11 @@
 import numpy as np
 import gmpy
 import numpy.linalg as la
+import functools
 import scipy.sparse as sp
+
+def dense_outer(Ms):
+    return np.ravel(functools.reduce(np.outer,Ms))
 def get_product_state(sector):
     st=np.zeros((len(sector[2]),))
     num="10"*(sector[0]//2)+("1" if (sector[0]%2) else "")

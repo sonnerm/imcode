@@ -7,11 +7,7 @@ import numpy as np
 import scipy.sparse.linalg as sla
 import numpy.linalg as la
 import scipy.linalg as scla
-from ed_utils import *
-h=np.random.random(5)
-g=np.random.random(5)
-J=np.random.random(5)
-T=1.0
+from .ed_utils import *
 def get_imbrie_F_p(h,g,J,T):
     F0=np.diag(np.exp(np.diag(-0.5j*T*np.array(get_imbrie_p(h,np.zeros_like(g),J).todense()))))
     U1=scla.hadamard(2**len(h))
@@ -19,8 +15,6 @@ def get_imbrie_F_p(h,g,J,T):
     D1=np.array(np.diag(get_imbrie_p(g,np.zeros_like(h),np.zeros_like(J)).todense()))
     F1=(U1.T@np.diag(np.exp(-0.5j*T*D1))@U1)/2**len(h)
     return F0@F1
-def apply_imbrie_F_p(D1,D2,vec):
-    pass
 def naive_apply_imbrie_F_p(D1,D2,vec):
     U1=scla.hadamard(D1.shape[0])
     V1=U1@vec/2**(len(h))

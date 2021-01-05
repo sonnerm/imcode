@@ -1,12 +1,6 @@
 import scipy.sparse as sp
-import functools
 import numpy as np
-
-def dense_kron(Ms):
-    return functools.reduce(np.kron,Ms)
-
-def dense_outer(Ms):
-    return np.ravel(functools.reduce(np.outer,Ms))
+from .ed_utils import dense_kron,dense_outer
 
 def get_dense_floquet(x,y,Jx,Jy,g,h):
     U1d=np.zeros((2**(x*y)))
