@@ -42,14 +42,16 @@ def ising_T(T,J,g,h):
     # U1=np.diag(np.exp(-1.0j*np.array(get_imbrie_p(h,np.zeros_like(h),Jt).diagonal())))
     # U1*=np.exp(eta1.real*(2*T))
 
-    U1=
+
     Pm=np.array([[1,1],[1,1]])
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*J)],[np.exp(-1.0j*J),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
     U2=dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))/2
     return U1@U2
+def hr(T,compress=False):
+    pass
 
-def ising_hr_T(T,J,g):
+def ising_hr_T(T,J,g,compressed=False):
     '''
         Calculate a dense spatial transfer matrix for the disorder averaged
         influence matrix formalism described in arXiv:2012.00777. The averaging
