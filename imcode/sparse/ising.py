@@ -25,3 +25,6 @@ def ising_F(J,g,h):
     '''
 def ising_T(T,J,g,h):
     pass
+
+def ising_SFF(T,J,g,h):
+    pass
