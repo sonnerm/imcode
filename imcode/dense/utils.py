@@ -7,11 +7,11 @@ def dense_kron(Ms):
     return reduce(np.kron,Ms)
 #Defining primitive pauli matrices
 SY=np.array([[0,-1.0j],[1.0j,0]])
-SM=np.array([[0,0],[1,0]])
-SP=np.array([[0,1],[0,0]])
-SX=np.array([[0,1],[1,0]])
-SZ=np.array([[1,0],[0,-1]])
-ID=np.array([[1,0],[0,1]])
+SM=np.array([[0,0],[1.0,0]])
+SP=np.array([[0,1.0],[0,0]])
+SX=np.array([[0,1.0],[1.0,0]])
+SZ=np.array([[1.0,0],[0,-1.0]])
+ID=np.array([[1.0,0],[0,1.0]])
 
 def sx(L,i):
     return dense_kron([ID]*i+[SX]+[ID]*(L-i-1))

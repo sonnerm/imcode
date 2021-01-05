@@ -1,5 +1,6 @@
 from .utils import dense_kron,SX,SZ,ID
 import numpy as np
+import scipy.linalg as scla
 def ising_H(J,g,h):
     '''
         Construct a dense Hamiltonian of a spin 1/2 Ising ring with parameters given by the arrays J,g,h.
@@ -9,7 +10,10 @@ def ising_H(J,g,h):
         (open boundary condition) or one element shorter (periodic boundary conditions).
     '''
     L=len(h) # maybe change to explicit length?
-    ret=one(L)
+    J=np.array(J)
+    g=np.array(J)
+    h=np.array(J)
+    ret=np.zeros((2**L,2**L),dtype=np.common_type(J,g,h,np.array(1.0)))
     for i,Jv in enumerate(J[:L-1]):
         ret+=Jv*dense_kron([ID]*i+[SZ]+[SZ]+[ID]*(L-i-2))
     if len(J)==L:
@@ -28,7 +32,7 @@ def ising_F(J,g,h):
         (open boundary condition) or one element shorter (periodic boundary conditions).
     '''
     L=len(h) #maybe change to explicit length
-    return la.expm(1.0j*ising_H(J,[0.0]*L,h))@la.expm(1.0j*ising_H([0.0]*L,g,[0.0]*L))
+    return scla.expm(1.0j*ising_H(J,[0.0]*L,h))@scla.expm(1.0j*ising_H([0.0]*L,g,[0.0]*L))
 
 
 def ising_T(T,J,g,h):
@@ -41,7 +45,7 @@ def ising_T(T,J,g,h):
     # Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
     # U1=np.diag(np.exp(-1.0j*np.array(get_imbrie_p(h,np.zeros_like(h),Jt).diagonal())))
     # U1*=np.exp(eta1.real*(2*T))
-
+    raise Exception("")
 
     Pm=np.array([[1,1],[1,1]])
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*J)],[np.exp(-1.0j*J),np.exp(1.0j*J)]])
