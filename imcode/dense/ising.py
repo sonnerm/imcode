@@ -11,8 +11,8 @@ def ising_H(J,g,h):
     '''
     L=len(h) # maybe change to explicit length?
     J=np.array(J)
-    g=np.array(J)
-    h=np.array(J)
+    g=np.array(g)
+    h=np.array(h)
     ret=np.zeros((2**L,2**L),dtype=np.common_type(J,g,h,np.array(1.0)))
     for i,Jv in enumerate(J[:L-1]):
         ret+=Jv*dense_kron([ID]*i+[SZ]+[SZ]+[ID]*(L-i-2))
@@ -41,18 +41,18 @@ def ising_T(T,J,g,h):
         chain. See arXiv:2009.10105 for details. The sites are ordered as
         follows: [s_0 forward s_T backward].
     '''
-    # h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
-    # Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
-    # U1=np.diag(np.exp(-1.0j*np.array(get_imbrie_p(h,np.zeros_like(h),Jt).diagonal())))
-    # U1*=np.exp(eta1.real*(2*T))
-    raise Exception("")
-
+    h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
+    Jt=-np.pi/4-np.log(np.tan(g))*0.5j
+    eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
+    Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
+    U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(Jt,np.zeros_like(h),h).diagonal())))
+    U1*=np.exp(eta.real*(2*T))
     Pm=np.array([[1,1],[1,1]])
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*J)],[np.exp(-1.0j*J),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
     U2=dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))/2
     return U1@U2
-def hr(T,compress=False):
+def hr_operator(T,compress=False):
     pass
 
 def ising_hr_T(T,J,g,compressed=False):
@@ -61,8 +61,14 @@ def ising_hr_T(T,J,g,compressed=False):
         influence matrix formalism described in arXiv:2012.00777. The averaging
         is performed over parameter h. Site ordering as in ising_T.
     '''
-    pass
+    ret=ising_T(T,J,0.0,g)
+    if compressed:
+        return compress(ret)
+    else:
+        return ret@hr(T,False)
 
+def Jr_operator(T,compress=False):
+    pass
 def ising_Jr_T(T,g,h):
 
     '''

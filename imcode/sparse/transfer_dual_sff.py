@@ -21,55 +21,6 @@ def write_dict_to_hdfobj(hdfobj,pre,d):
     elif not isinstance(d,dict):
         # print((type(d),pre))
         hdfobj[pre]=d
-@functools.lru_cache(None)
-def disorder_sector(L):
-    cn=0
-    sec={}
-    invsec=[]
-    for i in range(2**(2*L)):
-        if gmpy.popcount(i>>L)==gmpy.popcount(i^((i>>L)<<L)):
-            sec[i]=cn
-            invsec.append(i)
-            cn+=1
-    return (2*L,sec,invsec)
-def get_imbrie(h,g,J):
-    h=h[::-1]
-    g=g[::-1]
-    J=J[::-1]
-    print("h,g,J: %s %s %s"%(str(h),str(g),str(J)))
-    mat=sp.dok_matrix((2**len(h),2**len(h)),dtype=complex)
-    pm_mask=0b01
-    mp_mask=0b10
-    xor_mask=0b11
-    for i in range(2**len(h)):
-        cdiag=0
-        for p in range(len(h)-1):
-            if (i&(pm_mask<<p)==0) != (i&(mp_mask<<p)==0):
-                cdiag-=J[p]/2
-            cdiag+=J[p]/4
-            cdiag+=((i&(1<<p))==0)*h[p]
-            mat[(i,i^(1<<p))]+=g[p]/2
-        mat[(i,i)]=cdiag+((i&(1<<(len(h)-1)))==0)*h[-1]-sum(h)/2
-        mat[(i,i^(1<<(len(h)-1)))]=g[-1]/2
-    return mat
-
-def get_imbrie_p(h,g,J):
-    mat=get_imbrie(h,g,J[:-1])
-    L=h.shape[0]
-    for v in range(2**L):
-        cdiag=0
-        if (v&1==0) != (v&(1<<(L-1))==0):
-            cdiag-=J[-1]/2
-        cdiag+=J[-1]/4
-        mat[(v,v)]+=cdiag
-    return mat
-def get_imbrie_F_p(h,g,J,T):
-    F0=np.diag(np.exp(np.diag(-0.5j*T*np.array(get_imbrie_p(h,np.zeros_like(g),J).todense()))))
-    U1=scla.hadamard(2**len(h))
-    # D1=np.diag((U1@get_imbrie_p(np.zeros_like(h),g,np.zeros_like(J)).todense()@U1.T)/2**len(h))
-    D1=np.array(np.diag(get_imbrie_p(g,np.zeros_like(h),np.zeros_like(J)).todense()))
-    F1=(U1.T@np.diag(np.exp(-0.5j*T*D1))@U1)/2**len(h)
-    return F0@F1
 
 def etat(g):
     return np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
@@ -83,8 +34,6 @@ def dualU(eta,J,g):
     Jn=Jt(g)
     etan=eta+etat(g)-etat(gn)
     return (etan,Jn,gn)
-def get_F(N,eta,J,g,h=0.0):
-    return get_imbrie_F_p(np.array([2*h]*N,dtype=complex),np.array([2*g]*N,dtype=complex),np.array([4*J]*N,dtype=complex),2.0)*np.exp(N*eta)
 def apply_F_dual(N,F,sector,vec):
     v=np.zeros((2**(2*N),),dtype=complex)
     v[sector[2]]=vec

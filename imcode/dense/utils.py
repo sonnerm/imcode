@@ -38,3 +38,8 @@ def disorder_sector(L):
             invsec.append(i)
             cn+=1
     return (2*L,sec,invsec)
+def entropy(sites,vec):
+    '''
+        Calculates the bipartite entanglement entropy between ``sites`` and the complement
+    '''
+    pass
