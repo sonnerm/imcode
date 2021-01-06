@@ -25,11 +25,14 @@ def test_ising_diag():
     assert np.diag(sdi)==pytest.approx(dense.ising_H(J,[0.0]*L,h))
 def test_ising_linear_operator():
     #Test the linear operator class
-    np.random.seed(hash("sparse_test_ising_linear_operator")%2**32)
+    np.random.seed(hash("sparse_ising_linop")%2**32)
     L=2**5
     D1=np.random.normal(size=L)+1.0j*np.random.normal(size=L)
     D2=np.random.normal(size=L)+1.0j*np.random.normal(size=L)
+    rv=np.random.normal(size=L)+1.0j*np.random.normal(size=L)
     op_sp=sparse.IsingLinearOperator(D1,D2)
     op_de=op_sp.to_dense()
+    assert op_sp@rv==pytest.approx(op_de@rv)
+    assert rv@op_sp==pytest.approx(rv@op_de)
     assert (op_de == op_sp@np.eye(L)).all() # should work exactly, no tolerances
     assert (np.eye(L) == sparse.IsingLinearOperator(np.ones(L),np.ones(L)).to_dense()).all()
