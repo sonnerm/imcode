@@ -9,6 +9,16 @@ def mpo_to_dense():
     pass
 def mps_to_dense():
     pass
+def normalize_im():
+    pass
+def _multiply_W(w1,w2):
+    pre=npc.tensordot(w1,w2,axes=[("p*",),("p",)])
+    pre=pre.combine_legs([(0,3),(1,4)])
+    pre.ireplace_labels(["(?0.?3)","(?1.?4)"],["wL","wR"])
+    return pre
+def multiply_mpos(mpolist):
+    Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
+    return MPO(mpolist[0].sites,[functools.reduce(_multiply_W,Wp) for Wp in Wps])
 
 def apply_all(mps,h_mpo,W_mpo,J_mpo,chi_max=128):
     options={"trunc_params":{"chi_max":chi_max},"verbose":False,"compression_method":"SVD"}

@@ -49,21 +49,8 @@ def check_iter_var():
 
 
 
-def multiply_W(w1,w2):
-    pre=npc.tensordot(w1,w2,axes=[("p*",),("p",)])
-    pre=pre.combine_legs([(0,3),(1,4)])
-    pre.ireplace_labels(["(?0.?3)","(?1.?4)"],["wL","wR"])
-    return pre
 
-def multiply_mpos(mpolist):
-    Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
-    return MPO(mpolist[0].sites,[functools.reduce(multiply_W,Wp) for Wp in Wps])
 
-def get_full_mpo_hr(J,g,T):
-    sites=[mdt.BlipSite(False) for _ in range(T+1)]
-    W_mpo=mdt.get_W_mpo(sites,g)
-    J_mpo_p=mdt.get_J_mpo_proj(sites,J)
-    return multiply_mpos([J_mpo_p,W_mpo])
 # import datastore
 # doc=datastore.cl.mps_unit.find_one({"T":20,"chi":64,"g":{"$gt":0.2},"J":{"$gt":0.2},"campaign_all.mps_hr_lowchi":"D"})
 # !cp baobab_scratch/mps_hr_lowchi/out/{str(doc["_id"])}.h5 in

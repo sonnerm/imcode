@@ -1,1 +1,6 @@
-import mps_dis_tenpy as mdt
+
+def ising_dephase(t,gamma):
+    pass
+
+def ising_depolarize(t,gamma):
+    pass

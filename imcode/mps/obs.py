@@ -81,3 +81,30 @@ def get_magsec(mps,W_mpo,options):
         msuu.append(MPOEnvironment(mpc,msp,mpcuu).full_contraction(0)*normuu)
         msud.append(MPOEnvironment(mpc,msp,mpcud).full_contraction(0)*normud)
     return msuu,msud#,normuu,normud,normuue,normude
+
+def get_zz_mpo(sites):
+    T=len(sites)-1
+    leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
+    leg_p=sites[0].leg
+    Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
+    Za=np.einsum("ab,cd->abcd",np.eye(1),np.diag([1.0,-1.0,0.0,0.0]))
+    Z=npc.Array.from_ndarray(Za,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+    Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+    return MPO(sites,[Z]+[Id]*(T-1)+[Z])
+
+def magsec_proj(T,M,branch="fw"):
+    chinfo=ChargeInfo([1],[branch])
+    if branch=="fw":
+        leg_p=LegCharge.from_qflat(chinfo,[1,0,1,0])
+    else:
+        leg_p=LegCharge.from_qflat(chinfo,[1,0,0,1])
+    leg_t=LegCharge.from_trivial(1,chinfo)
+    leg_pt=LegCharge.from_trivial(4,chinfo)
+    leg_rt=LegCharge.from_qflat(chinfo,[M])
+    legr=[(max(0,i-T+M+2),min(i+1,M)+1) for i in range(T-2)]
+    legs=[leg_t]+[LegCharge.from_qflat(chinfo,list(range(*x))) for x in legr]+[leg_rt]
+    Id_a=np.eye(4)
+    Id_m=[get_proj(Id_a,ll,lr.conj(),leg_pt,leg_p).drop_charge() for ll,lr in zip(legs[:-1],legs[1:])]
+    Id_l=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_t,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex)
+    Id_r=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_rt,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex,qtotal=[M])
+    return MPO([BlipSite(False) for t in range(T+1)],[Id_l.drop_charge()]+Id_m+[Id_r.drop_charge()])

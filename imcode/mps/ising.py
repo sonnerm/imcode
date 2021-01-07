@@ -1,6 +1,8 @@
-
-def get_W_mpo(sites,g):
-    T=len(sites)-1
+def ising_F(J,g,h):
+    pass
+def ising_H(J,g,h):
+    pass
+def ising_W(t,g):
     leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
     leg_p=sites[0].leg
     leg_m=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0]*4)
@@ -21,7 +23,7 @@ def get_W_mpo(sites,g):
     W_T=npc.Array.from_ndarray(W_Ta,[leg_m,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[W_0]+[W_i]*(T-1)+[W_T])
 
-def get_h_mpo(sites,h):
+def ising_h(t,h):
     T=len(sites)-1
     leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
     leg_p=sites[0].leg
@@ -30,17 +32,8 @@ def get_h_mpo(sites,h):
     H=npc.Array.from_ndarray(Ha,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[Id]+[H]*(T-1)+[Id])
-def get_zz_mpo(sites):
-    T=len(sites)-1
-    leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
-    leg_p=sites[0].leg
-    Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
-    Za=np.einsum("ab,cd->abcd",np.eye(1),np.diag([1.0,-1.0,0.0,0.0]))
-    Z=npc.Array.from_ndarray(Za,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    return MPO(sites,[Z]+[Id]*(T-1)+[Z])
 
-def get_J_mpo(sites,J):
+def ising_J(t,J):
     T=len(sites)-1
     leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
     leg_p=sites[0].leg
@@ -60,82 +53,5 @@ def get_J_mpo(sites,J):
     J=npc.Array.from_ndarray(Ja,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[Id]+[J]*(T-1)+[Id])
-
-def get_proj(op,left,right,p,ps):
-    preop=np.einsum("ab,cd->abcd",np.ones((left.ind_len,right.ind_len)),op)
-    return npc.Array.from_ndarray(preop,[left,right,p,ps],labels=["wL","wR","p","p*"],dtype=complex,qtotal=[0],raise_wrong_sector=False)
-def get_J_mpo_proj(sites,J):
-    if sites[0].conserve: #violates conservation
-        raise ValueError()
-    T=len(sites)-1
-    tarr=[0]+list(range(T//2+T%2))+list(range(T//2))[::-1]+[0]
-    Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])/np.sqrt(2)
-    Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
-    pj=np.exp(-2.0j*J)
-    mj=np.exp(2.0j*J)
-    id=1.0
-    Jprim=np.array([[id,id,pj,mj],
-                    [id,id,mj,pj],
-                    [pj,mj,id,id],
-                    [mj,pj,id,id]
-    ])
-    legs=[tenpy.linalg.charges.LegCharge.from_qflat(BlipSite(True).chinfo,list(range(-i,i+1))) for i in tarr]
-    leg_i1=tenpy.linalg.charges.LegCharge.from_trivial(4,BlipSite(True).chinfo)
-    leg_i2=BlipSite(True).leg
-    leg_p=sites[0].leg
-    leg_t=tenpy.linalg.charges.LegCharge.from_trivial(1,sites[0].chinfo)
-    Js=[get_proj(Jprim,lc,ln.conj(),leg_i2,leg_i1.conj()).drop_charge() for lc,ln in zip(legs[1:-2],legs[2:-1])]
-    Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    return MPO(sites,[Id]+Js+[Id])
-
-@lru_cache(None)
-def get_Jr_mpo(L):
-    sites=[BlipSite(False) for _ in range(L)]
-    if sites[0].conserve: #violates conservation
-        raise ValueError()
-    T=len(sites)-1
-    tarr=[0]+list(range(T//2+T%2))+list(range(T//2))[::-1]+[0]
-    Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
-    legs=[LegCharge.from_qflat(BlipSite(True).chinfo,list(range(-i,i+1))) for i in tarr]
-    leg_i1=LegCharge.from_trivial(4,BlipSite(True).chinfo)
-    leg_i2=BlipSite(True).leg
-    leg_p=sites[0].leg
-    leg_t=LegCharge.from_trivial(1,sites[0].chinfo)
-    Js=[get_proj(Iprim,lc,ln.conj(),leg_i2,leg_i1.conj()).drop_charge() for lc,ln in zip(legs[1:-2],legs[2:-1])]
-    Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    return MPO(sites,[Id]+Js+[Id])
-
-def magsec_proj(T,M,branch="fw"):
-    chinfo=ChargeInfo([1],[branch])
-    if branch=="fw":
-        leg_p=LegCharge.from_qflat(chinfo,[1,0,1,0])
-    else:
-        leg_p=LegCharge.from_qflat(chinfo,[1,0,0,1])
-    leg_t=LegCharge.from_trivial(1,chinfo)
-    leg_pt=LegCharge.from_trivial(4,chinfo)
-    leg_rt=LegCharge.from_qflat(chinfo,[M])
-    legr=[(max(0,i-T+M+2),min(i+1,M)+1) for i in range(T-2)]
-    legs=[leg_t]+[LegCharge.from_qflat(chinfo,list(range(*x))) for x in legr]+[leg_rt]
-    Id_a=np.eye(4)
-    Id_m=[get_proj(Id_a,ll,lr.conj(),leg_pt,leg_p).drop_charge() for ll,lr in zip(legs[:-1],legs[1:])]
-    Id_l=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_t,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex)
-    Id_r=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_rt,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex,qtotal=[M])
-    return MPO([BlipSite(False) for t in range(T+1)],[Id_l.drop_charge()]+Id_m+[Id_r.drop_charge()])
-
-@lru_cache(None)
-def get_hr_mpo(L):
-    sites=[BlipSite(False) for _ in range(L)]
-    if sites[0].conserve: #violates conservation
-        raise ValueError()
-    T=len(sites)-1
-    tarr=[0]+list(range(T//2+T%2))+list(range(T//2))[::-1]+[0]
-    Iprim=np.array([[1.0,0.0,0.0,0.0],[0.0,1.0,0.0,0.0],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
-    Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
-    legs=[LegCharge.from_qflat(BlipSite(True).chinfo,list(range(-i,i+1))) for i in tarr]
-    leg_i1=LegCharge.from_trivial(4,BlipSite(True).chinfo)
-    leg_i2=BlipSite(True).leg
-    leg_p=sites[0].leg
-    leg_t=LegCharge.from_trivial(1,sites[0].chinfo)
-    Js=[get_proj(Iprim,lc,ln.conj(),leg_i2,leg_i1.conj()).drop_charge() for lc,ln in zip(legs[1:-2],legs[2:-1])]
-    Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    return MPO(sites,[Id]+Js+[Id])
+def ising_T(t,J,g,h):
+    pass
