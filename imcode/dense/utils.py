@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as la
 from functools import reduce
 def dense_kron(Ms):
     '''
@@ -28,6 +29,9 @@ def sp(L,i):
 def one(L):
     return dense_kron([ID]*L)
 
+def normalize_im(v):
+    return v/v[0] #TODO: good for now
+
 def disorder_sector(L):
     cn=0
     sec={}
@@ -38,8 +42,18 @@ def disorder_sector(L):
             invsec.append(i)
             cn+=1
     return (2*L,sec,invsec)
-def entropy(sites,vec):
+def reduced_density_matrix(sites,vec):
     '''
-        Calculates the bipartite entanglement entropy between ``sites`` and the complement
+        Calculates the reduced density matrix of the subsystem defined by ``sites``
     '''
-    pass
+    L=int(np.log2(len(vec)))
+    complement=sorted(list(set(range(L))-set(sites)))
+    vec=vec.reshape((2,)*L)
+    vec=np.transpose(vec,sites+complement)
+    return vec@vec.T #TODO: check
+def rdm_entropy(rdm):
+    '''
+        Calculates the entropy of a reduced density matrix
+    '''
+    ev=la.eigvalsh(rdm) #TODO: check
+    return np.sum(ev*np.log(ev+1e-30))

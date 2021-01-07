@@ -1,19 +1,19 @@
 import numpy as np
-from .utils import entropy
+from .utils import rdm_entropy
 
 def folded_temporal_entropy(vec):
-    return entropy([])
+    L=int(np.log2(len(vec)))
+    return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
 
 def flat_temporal_entropy(vec):
+    L=int(np.log2(len(vec)))
+    return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
+
+
+def im_correlator_zz(vec):
     pass
 
-def entropy(vec):
-    pass
-
-def correlator_zz_im(vec):
-    pass
-
-def correlator_zz_direct(vec):
+def direct_correlator_zz(vec):
     pass
 
 def spectral_function(L,eigs,eigv):
@@ -29,11 +29,9 @@ def spectral_function(L,eigs,eigv):
     hist_sz=np.histogram(Ed,bins,weights=np.abs(M_sz)**2)[0]
     hist_c=np.histogram(Ed,bins)[0]
     return hist_c,hist_sx,hist_sz
-
-def ktau(eigs):
-    taus=np.floor(np.exp(np.linspace(0,np.log(len(eigs)),201)))
-    res=np.zeros(taus.shape,dtype=float)
+def direct_sff(eigs,tau):
+    res=0
     for i1,e1 in enumerate(eigs):
         for e2 in eigs[:i1]:
-            res+=np.cos((e1-e2)*taus)*2
-    return taus,res
+            res+=np.cos((e1-e2)*tau)*2
+    return res

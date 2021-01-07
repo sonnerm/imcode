@@ -68,17 +68,14 @@ def ising_h(T,h):
 def hr_operator(T):
     pass
 
-def ising_hr_T(T,J,g,compressed=False):
+def ising_hr_T(T,J,g):
     '''
         Calculate a dense spatial transfer matrix for the disorder averaged
         influence matrix formalism described in arXiv:2012.00777. The averaging
         is performed over parameter h. Site ordering as in ising_T.
     '''
     ret=ising_T(T,J,0.0,g)
-    if compressed:
-        return compress(ret)
-    else:
-        return ret@hr(T,False)
+    return ret@hr(T,False)
 
 def Jr_operator(T):
     pass
