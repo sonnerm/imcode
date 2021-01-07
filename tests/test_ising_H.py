@@ -31,10 +31,11 @@ def test_dense_ising_H_real(dense_ising_H_real):
 def test_dense_ising_H_complex(dense_ising_H_complex):
     diH=dense_ising_H_complex[0]
     assert diH.dtype==np.complex_
+    #This model is always symmetric
+    assert diH.T==pytest.approx(diH)
     #ensure that tests cover generic case
     assert diH.conj()!=pytest.approx(diH)
     assert diH.T.conj()!=pytest.approx(diH)
-    assert diH.T!=pytest.approx(diH)
 def test_sparse_ising_H_real(dense_ising_H_real):
     siH=sparse.ising_H(*dense_ising_H_real[1])
     assert siH.dtype==np.float_

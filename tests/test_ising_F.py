@@ -2,6 +2,7 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
+from utils import sparse_eq
 import pytest
 @pytest.fixture(scope="module")
 def dense_ising_F_complex():
@@ -43,16 +44,16 @@ def test_dense_ising_F_complex(dense_ising_F_complex):
 
 def test_sparse_ising_F_real(dense_ising_F_real):
     siF=sparse.ising_F(*dense_ising_F_real[1])
-    sparse_eq(siF,dense_test_ising_F_real[0])
+    sparse_eq(siF,dense_ising_F_real[0])
 
 def test_sparse_ising_F_complex(dense_ising_F_complex):
     siF=sparse.ising_F(*dense_ising_F_complex[1])
-    sparse_eq(siF,dense_test_ising_F_complex[0])
+    sparse_eq(siF,dense_ising_F_complex[0])
 
 def test_mps_ising_F_real(dense_ising_F_real):
     miF=mps.ising_F(*dense_ising_F_real[1])
-    assert mps.mps_to_dense(miF)==pytest.approx(dense_test_ising_F_real[0])
+    assert mps.mps_to_dense(miF)==pytest.approx(dense_ising_F_real[0])
 
 def test_mps_ising_F_complex(dense_ising_F_complex):
     miF=sparse.ising_F(*dense_ising_F_complex[1])
-    assert mps.mps_to_dense(miF)==pytest.approx(dense_test_ising_F_complex[0])
+    assert mps.mps_to_dense(miF)==pytest.approx(dense_ising_F_complex[0])

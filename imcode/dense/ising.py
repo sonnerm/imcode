@@ -16,7 +16,7 @@ def ising_H(J,g,h):
     ret=np.zeros((2**L,2**L),dtype=np.common_type(J,g,h,np.array(1.0)))
     for i,Jv in enumerate(J[:L-1]):
         ret+=Jv*dense_kron([ID]*i+[SZ]+[SZ]+[ID]*(L-i-2))
-    if len(J)==L:
+    if len(J)==L and L>1:
         ret+=J[-1]*dense_kron([SZ]+[ID]*(L-2)+[SZ])
     for i,hv in enumerate(h):
         ret+=hv*dense_kron([ID]*i+[SZ]+[ID]*(L-i-1))

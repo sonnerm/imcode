@@ -23,6 +23,8 @@ def disorder_sector(L):
             invsec.append(i)
             cn+=1
     return (2*L,sec,invsec)
+def sparse_to_dense(spop):
+    return spop@np.eye(spop.shape[0]) # For now
 # def FWHTOperator(spla.LinearOperator):
 #     def __init__(self):
 #         pass
