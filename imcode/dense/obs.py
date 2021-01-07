@@ -10,10 +10,12 @@ def flat_temporal_entropy(vec):
     return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
 
 
-def im_correlator_zz(im,site_op=None,t=None):
-    pass
+def im_czz(left_im,site_op=None,right_im=None):
+    t=int(np.log2(left_im.shape[0]))
+    return np.sum(zz_op(t)*left_im*site_op*right_im)
 
-def direct_correlator_zz(F,t,i,j):
+
+def direct_czz(F,t,i,j):
     L=int(np.log2(F.shape[0]))
     return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))
 

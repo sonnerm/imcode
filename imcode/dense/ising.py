@@ -1,6 +1,8 @@
 from .utils import dense_kron,SX,SZ,ID
+from ..utils import popcount
 import numpy as np
 import scipy.linalg as scla
+
 def ising_H(J,g,h):
     '''
         Construct a dense Hamiltonian of a spin 1/2 Ising ring with parameters given by the arrays J,g,h.
@@ -41,22 +43,27 @@ def ising_T(T,J,g,h):
         chain. See arXiv:2009.10105 for details. The sites are ordered as
         follows: [s_0 forward s_T backward].
     '''
-    h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
-    Jt=-np.pi/4-np.log(np.tan(g))*0.5j
-    eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
-    Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
-    U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(Jt,np.zeros_like(h),h).diagonal())))
-    U1*=np.exp(eta.real*(2*T))
+    U1=ising_h(T,h)*ising_W(T,g)
+    U2=ising_J(T,J)
+    return U1@U2 #TODO: check order
+def ising_J(T,J):
     Pm=np.array([[1,1],[1,1]])
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*J)],[np.exp(-1.0j*J),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
-    U2=ising_J(T,J)
-    return U1@U2
-def ising_J(T,J):
     return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))/2
 
 def ising_h(T,h):
-    pass
+    h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
+    U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
+    return U1
+
+def ising_W(T,g):
+    Jt=-np.pi/4-np.log(np.tan(g))*0.5j
+    eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
+    Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
+    U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(Jt,np.zeros(2*T),np.zeros(2*T)).diagonal())))
+    U1*=np.exp(eta.real*(2*T))
+    return U1
 # def ising_W(T,g):
 #     Jt=-np.pi/4-np.log(np.tan(g))*0.5j
 #     eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
@@ -65,8 +72,13 @@ def ising_h(T,h):
 #     U1*=np.exp(eta.real*(2*T))
 #     return U1
 
+@lru_cache(None)
 def hr_operator(T):
-    pass
+    ret=np.zeros(2**(2*T))
+    for i in range(2**(2*T)):
+        if popcount((i>>T)&(~(1<<(T-1))))==popcount((i^((i>>T)<<T))&(~(1<<(T-1)))):
+            ret=1
+    return np.diag(ret)
 
 def ising_hr_T(T,J,g):
     '''
@@ -74,11 +86,19 @@ def ising_hr_T(T,J,g):
         influence matrix formalism described in arXiv:2012.00777. The averaging
         is performed over parameter h. Site ordering as in ising_T.
     '''
-    ret=ising_T(T,J,0.0,g)
-    return ret@hr(T,False)
+    U1=ising_hr(T)*ising_W(T,g)
+    U2=ising_J(T,J)
+    return U1@U2 #TODO: check order
 
+#Should probably be cached, there are not that many values of T possible
+@lru_cache(None)
 def Jr_operator(T):
-    pass
+    ret=np.zeros((2**(2*T),2**(2*T)))
+    for i in range(2**(2*T)):
+        if popcount((i>>T)&(~(1<<(T-1))))==popcount((i^((i>>T)<<T))&(~(1<<(T-1)))):
+            for j in range(2**(2*T)):
+                ret[j,j^i]=1
+    return ret
 def ising_Jr_T(T,g,h):
 
     '''
@@ -86,8 +106,10 @@ def ising_Jr_T(T,g,h):
         influence matrix formalism similar to arXiv:2012.00777
         Site ordering as in ising_T.
     '''
-    #TODO add new ref if available
-    pass
+    U1=ising_h(T,h)*ising_W(T,g)
+    U2=ising_Jr(T)
+    return U1@U2 #TODO: check order
+#TODO add new ref if available
 def ising_Jhr_T(T,g):
     '''
         Calculate a dense spatial transfer matrix for the disorder averaged
@@ -95,7 +117,9 @@ def ising_Jhr_T(T,g):
         Site ordering as in ising_T.
     '''
     #TODO add new ref if available
-    pass
+    U1=ising_hr(T)*ising_W(T,g)
+    U2=ising_Jr(T)
+    return U1@U2 #TODO: check order
 
 def ising_SFF(T,J,g,h):
     pass
