@@ -10,11 +10,12 @@ def flat_temporal_entropy(vec):
     return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
 
 
-def im_correlator_zz(vec):
+def im_correlator_zz(im,site_op=None,t=None):
     pass
 
-def direct_correlator_zz(vec):
-    pass
+def direct_correlator_zz(F,t,i,j):
+    L=int(np.log2(F.shape[0]))
+    return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))
 
 def spectral_function(L,eigs,eigv):
     eigs=eigs*(2**L)/2/np.pi # unfolding
@@ -35,3 +36,5 @@ def direct_sff(eigs,tau):
         for e2 in eigs[:i1]:
             res+=np.cos((e1-e2)*tau)*2
     return res
+def sfft_sff(sfft,L):
+    return

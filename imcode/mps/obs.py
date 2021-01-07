@@ -108,3 +108,56 @@ def magsec_proj(T,M,branch="fw"):
     Id_l=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_t,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex)
     Id_r=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_rt,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex,qtotal=[M])
     return MPO([BlipSite(False) for t in range(T+1)],[Id_l.drop_charge()]+Id_m+[Id_r.drop_charge()])
+
+def get_czz_oneside(mps):
+    lstate= [[1,-1,0,0]]+[[1,1,1,1]]*(mps.L-2)+[[1,-1,0,0]]
+    lmps=MPS.from_product_state(mps.sites,lstate)
+    return mps.overlap(lmps)/2
+def get_blip_average_uu(mps):
+    lstate= [[1,0,0,0]]+[[0,0,1,1]]*(mps.L-2)+[[1,0,0,0]]
+    lmps=MPS.from_product_state(mps.sites,lstate)
+    return mps.overlap(lmps)
+
+def get_blip_average_int(mps,g,h):
+    lstate= [[1,0,0,0]]+[[0,0,1,1]]*(mps.L-2)+[[1,0,0,0]]
+    lmps=MPS.from_product_state(mps.sites,lstate)
+    if mps.L==3:
+        hmpo=get_h_mpo(mps.sites,h)
+        mpc=mps.copy()
+        hmpo.apply_naively(mpc)
+        return mpc.overlap(lmps)
+    def get_W_mpo_mod(sites,g):
+        T=len(sites)-1
+        leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
+        leg_p=sites[0].leg
+        leg_m=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0]*4)
+        s2=-np.sin(g)**2
+        c2=np.cos(g)**2
+        mx=0
+        px=0
+        Wprim=np.array([[mx,mx,mx,mx],
+                        [mx,mx,mx,mx],
+                        [mx,mx,c2,s2],
+                        [mx,mx,s2,c2]
+        ])
+        W_bda=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(1),np.eye(1))
+        W_0a=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(4),np.eye(1))
+        W_ia=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(4),Wprim)
+        W_Ta=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(1),Wprim)
+        W_bd=npc.Array.from_ndarray(W_bda,[leg_t,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+        W_0=npc.Array.from_ndarray(W_0a,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+        W_i=npc.Array.from_ndarray(W_ia,[leg_m,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+        W_T=npc.Array.from_ndarray(W_Ta,[leg_m,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+        return MPO(sites,[W_bd,W_0]+[W_i]*(T-3)+[W_T,W_bd])
+    W_mod=get_W_mpo_mod(mps.sites,g)
+    hmpo=get_h_mpo(mps.sites,h)
+    mpc=mps.copy()
+    hmpo.apply_naively(mpc)
+    W_mod.apply_naively(mpc)
+    mpc.canonical_form(False)
+    return mpc.overlap(lmps)
+
+def get_blip_average_ud(mps):
+    lstate= [[1,0,0,0]]+[[0,0,1,1]]*(mps.L-2)+[[0,1,0,0]]
+    lmps=MPS.from_product_state(mps.sites,lstate)
+    return mps.overlap(lmps)

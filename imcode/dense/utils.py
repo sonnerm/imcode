@@ -32,16 +32,6 @@ def one(L):
 def normalize_im(v):
     return v/v[0] #TODO: good for now
 
-def disorder_sector(L):
-    cn=0
-    sec={}
-    invsec=[]
-    for i in range(2**(2*L)):
-        if gmpy.popcount((i>>L)&(~(1<<(L-1))))==gmpy.popcount((i^((i>>L)<<L))&(~(1<<(L-1)))):
-            sec[i]=cn
-            invsec.append(i)
-            cn+=1
-    return (2*L,sec,invsec)
 def reduced_density_matrix(sites,vec):
     '''
         Calculates the reduced density matrix of the subsystem defined by ``sites``
