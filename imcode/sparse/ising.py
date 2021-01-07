@@ -1,5 +1,5 @@
 import numpy as np
-from .util import fwht
+from .utils import fwht
 import scipy.sparse.linalg as spla
 
 def ising_diag(J,h):

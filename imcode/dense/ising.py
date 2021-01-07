@@ -50,9 +50,22 @@ def ising_T(T,J,g,h):
     Pm=np.array([[1,1],[1,1]])
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*J)],[np.exp(-1.0j*J),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
-    U2=dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))/2
+    U2=ising_J(T,J)
     return U1@U2
-def hr_operator(T,compress=False):
+def ising_J(T,J):
+    return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))/2
+
+def ising_h(T,h):
+    pass
+# def ising_W(T,g):
+#     Jt=-np.pi/4-np.log(np.tan(g))*0.5j
+#     eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
+#     Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
+#     U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(Jt,np.zeros_like(h),h).diagonal())))
+#     U1*=np.exp(eta.real*(2*T))
+#     return U1
+
+def hr_operator(T):
     pass
 
 def ising_hr_T(T,J,g,compressed=False):
@@ -67,7 +80,7 @@ def ising_hr_T(T,J,g,compressed=False):
     else:
         return ret@hr(T,False)
 
-def Jr_operator(T,compress=False):
+def Jr_operator(T):
     pass
 def ising_Jr_T(T,g,h):
 
@@ -77,7 +90,6 @@ def ising_Jr_T(T,g,h):
         Site ordering as in ising_T.
     '''
     #TODO add new ref if available
-
     pass
 def ising_Jhr_T(T,g):
     '''

@@ -1,21 +1,20 @@
-import numpy as np
-from pytest import mark
+import pytest
+import imcode.dense as dense
 import imcode.sparse as sparse
 import imcode.mps as mps
-import imcode.shallow as shallow
-
+from pytest import mark
 @mark.skip("Not written")
-def test_shallow_hom_sparse():
+def test_dense_im_direct():
     return NotImplemented
-
 @mark.skip("Not written")
-def test_shallow_dis_sparse():
+def test_sparse_im():
     return NotImplemented
-
 @mark.skip("Not written")
-def test_shallow_dis_mps():
+def test_sparse_direct():
     return NotImplemented
-
 @mark.skip("Not written")
-def test_shallow_hom_mps():
+def test_mps_im():
+    return NotImplemented
+@mark.skip("Not written")
+def test_mps_direct():
     return NotImplemented

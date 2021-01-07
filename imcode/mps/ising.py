@@ -139,37 +139,3 @@ def get_hr_mpo(L):
     Js=[get_proj(Iprim,lc,ln.conj(),leg_i2,leg_i1.conj()).drop_charge() for lc,ln in zip(legs[1:-2],legs[2:-1])]
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[Id]+Js+[Id])
-def get_magsec(mps,W_mpo,options):
-    T=mps.L-1
-    msuu=[]
-    msud=[]
-    pu_a=np.zeros((4,4))
-    pu_a[0,0]=1
-    pd_a=np.zeros((4,4))
-    pd_a[1,1]=1
-    leg_p=LegCharge.from_trivial(4)
-    pu=npc.Array.from_ndarray(pu_a,[leg_p,leg_p.conj()],labels=["p","p*"],dtype=complex)
-    pd=npc.Array.from_ndarray(pd_a,[leg_p,leg_p.conj()],labels=["p","p*"],dtype=complex)
-    mpc=mps.copy()
-    get_hr_mpo(mps.L).apply(mpc,options)
-    mpcuu=mpc.copy()
-    W_mpo.apply_naively(mpcuu)
-    mpcuu.apply_local_op(0,pu)
-    mpcud=mpcuu.copy()
-
-    mpcuu.apply_local_op(T,pu)
-    mpcuu.canonical_form(False)
-
-    mpcud.apply_local_op(T,pd)
-    mpcud.canonical_form(False)
-    normuu=mpcuu.norm*mpc.norm
-    normud=mpcud.norm*mpc.norm
-    # print(normuu)
-    # print(normud)
-    for i in range(T):
-        msp=magsec_proj(T,i,"fw")
-        msp.IdL[0]=0
-        msp.IdR[T+1]=0
-        msuu.append(MPOEnvironment(mpc,msp,mpcuu).full_contraction(0)*normuu)
-        msud.append(MPOEnvironment(mpc,msp,mpcud).full_contraction(0)*normud)
-    return msuu,msud#,normuu,normud,normuue,normude

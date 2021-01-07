@@ -74,6 +74,3 @@ def test_ising_F_simple():
     def simple_ising_F(J, g, h):
         return scla.expm(1.0j * dense.ising_H(J, [0.0] * L, h)) @ scla.expm(1.0j * dense.ising_H([0.0] * L, g, [0.0] * L))
     assert simple_ising_F(J, g, h) == pytest.approx(dense.ising_F(J, g, h))
-
-def test_ising_T_obs():
-    pass

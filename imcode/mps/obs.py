@@ -46,3 +46,38 @@ def get_czz_norm(mps,W_mpo,h_mpo):
     mpc.apply_local_op(mps.L-1,zop,True)
     czz=MPOEnvironment(mps,h_mpo,mpc).full_contraction(0)*mps.norm*mpc.norm
     return czz,norm
+
+def get_magsec(mps,W_mpo,options):
+    T=mps.L-1
+    msuu=[]
+    msud=[]
+    pu_a=np.zeros((4,4))
+    pu_a[0,0]=1
+    pd_a=np.zeros((4,4))
+    pd_a[1,1]=1
+    leg_p=LegCharge.from_trivial(4)
+    pu=npc.Array.from_ndarray(pu_a,[leg_p,leg_p.conj()],labels=["p","p*"],dtype=complex)
+    pd=npc.Array.from_ndarray(pd_a,[leg_p,leg_p.conj()],labels=["p","p*"],dtype=complex)
+    mpc=mps.copy()
+    get_hr_mpo(mps.L).apply(mpc,options)
+    mpcuu=mpc.copy()
+    W_mpo.apply_naively(mpcuu)
+    mpcuu.apply_local_op(0,pu)
+    mpcud=mpcuu.copy()
+
+    mpcuu.apply_local_op(T,pu)
+    mpcuu.canonical_form(False)
+
+    mpcud.apply_local_op(T,pd)
+    mpcud.canonical_form(False)
+    normuu=mpcuu.norm*mpc.norm
+    normud=mpcud.norm*mpc.norm
+    # print(normuu)
+    # print(normud)
+    for i in range(T):
+        msp=magsec_proj(T,i,"fw")
+        msp.IdL[0]=0
+        msp.IdR[T+1]=0
+        msuu.append(MPOEnvironment(mpc,msp,mpcuu).full_contraction(0)*normuu)
+        msud.append(MPOEnvironment(mpc,msp,mpcud).full_contraction(0)*normud)
+    return msuu,msud#,normuu,normud,normuue,normude
