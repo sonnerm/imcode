@@ -62,7 +62,14 @@ def test_ising_H():
     diH=dense.ising_H(J, g, h)
     assert diH.dtype==np.float_
     assert (dense.ising_H(J, g, h) == dense.ising_H(J, g, h).T).all()
-
+def test_single_site_ising_H():
+    J = np.random.normal() + 1.0j * np.random.normal()
+    g = np.random.normal() + 1.0j * np.random.normal()
+    h = np.random.normal() + 1.0j * np.random.normal()
+    diH=dense.ising_H(J,g,h)
+    assert diH==pytest.approx(SZ*h+SX*g+ID*J)
+    diH=dense.ising_H([0.0],g,h)
+    assert diH==pytest.approx(SZ*h+SX*g)
 def test_ising_F_simple():
     np.random.seed(hash("dense_test_ising_F") % 2**32)
     L=5
