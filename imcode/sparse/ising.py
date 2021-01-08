@@ -1,7 +1,6 @@
 import numpy as np
 from functools import lru_cache
-from scipy.sparse.linalg import LinearOperator
-from .utils import fwht
+from .utils import fwht,DiagonalLinearOperator,SxDiagonalLinearOperator
 import scipy.sparse.linalg as spla
 
 def ising_diag(J,h):

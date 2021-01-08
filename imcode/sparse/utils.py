@@ -1,6 +1,7 @@
 import numpy as np
 from ..utils import popcount
 import scipy.sparse.linalg as spla
+from scipy.sparse.linalg import LinearOperator
 
 class SxDiagonalLinearOperator(LinearOperator):
     '''
