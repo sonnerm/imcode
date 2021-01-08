@@ -13,7 +13,6 @@ def fwht(a):
         a[::2,:],a[1::2,:]=a[::2,:]+a[1::2,:],a[::2,:]-a[1::2,:]
         a=a.reshape((slen,))
         h *= 2
-
 def disorder_sector(L):
     cn=0
     sec={}

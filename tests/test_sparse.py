@@ -16,3 +16,6 @@ def test_sparse_ising_diag():
     sdi=sparse.ising_diag(J,h)
     assert sdi.dtype==np.float_
     assert np.diag(sdi)==pytest.approx(dense.ising_H(J,[0.0]*L,h))
+@mark.skip("Not written yet")
+def test_sparse_sxdiagonallinearoperator():
+    pass

@@ -31,9 +31,9 @@ class SxDiagonalLinearOperator(LinearOperator):
         dtype=D.dtype
         super().__init__(dtype,shape)
     def _matvec(self,vec):
-        v=vec[:]
+        v=np.array(np.ravel(vec),dtype=np.common_type(vec,self.diag))
         fwht(v)
-        v*=self.diag
+        v*=self.diag/v.shape[0]
         fwht(v)
         return v
     def _adjoint(self):
@@ -49,7 +49,7 @@ class DiagonalLinearOperator(LinearOperator):
         dtype=D.dtype
         super().__init__(dtype,shape)
     def _matvec(self,vec):
-        return vec*self.diag
+        return np.ravel(vec)*self.diag
     def _adjoint(self):
         return DiagonalLinearOperator(self.diag.conj())
 def ising_H(J,g,h):
@@ -64,7 +64,22 @@ def ising_F(J,g,h):
     return opsz@opsx
 
 def ising_W(T,g):
-    pass
+    Jt=-np.pi/4-np.log(np.tan(g))*0.5j
+    eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
+    Jt=np.array([Jt]*(T)+[-Jt.conj()]*T)
+    D1=np.exp(1.0j*imbrie_diag(Jt,np.zeros_like(Jt)))
+    D1*=np.exp(2*T*eta.real)
+    return DiagonalLinearOperator(D1)
+def ising_J(T,J):
+    gt=np.array([0.0]+[2*gt.conj()]*(T-1)+[0.0]+[-2*gt]*(T-1))
+    D2=np.exp(1.0j*get_imbrie_diag(gt,np.zeros_like(gt)))
+    D2*=np.exp(-(2*T-2)*eta2.real)
+    D2/=2
+    D2*=get_keldysh_boundary(T)
+def ising_h(T,J):
+    h=np.array([0.0]+[h]*(T-1)+[0.0]+[-np.array(h).conj()]*(T-1))
+    D1=np.exp(1.0j*imbrie_diag(np.zeros_like(h),h))
+    return DiagonalLinearOperator(D1)
 def _get_weights(g,T):
     ws=np.zeros(2**(2*T))
     for i in range(2**(2*T)):
@@ -79,17 +94,51 @@ def _get_keldysh_boundary(T):
 def ising_T(J,g,h):
     '''
     '''
-    Jt,gt,eta1,eta2=dualU(J,g)
-    gt=np.array([0.0]+[2*gt.conj()]*(T-1)+[0.0]+[-2*gt]*(T-1))
-    D2=np.exp(1.0j*get_imbrie_diag(gt,np.zeros_like(gt)))
-    D2*=np.exp(-(2*T-2)*eta2.real)
-    D2/=2
-    D2*=get_keldysh_boundary(T)
-    h=np.array([0.0]+[2*h]*(T-1)+[0.0]+[-2*np.array(h).conj()]*(T-1))
-    Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
-    D1=np.exp(-1.0j*get_imbrie_diag(h,Jt))
-    D1*=np.exp(2*T*eta1.real)
-    return spla.LinearOperator((len(sec[2]),len(sec[2])),lambda v:_apply_F_dual(sec,T,D1,D2,v),lambda v:_apply_F_dual_ad(sec,T,D1,D2,v))
+    U1=DiagonalLinearOperator(ising_h(T,h).diag*ising_W(T,g).diag)#slight optimization
+    U2=ising_J(T,J)
+    return U1@U2 #TODO: check order
+@lru_cache(None)
+def _hr_diagonal(T):
+    ret=np.zeros(2**(2*T))
+    for i in range(2**(2*T)):
+        if popcount((i>>T)&(~(1<<(T-1))))==popcount((i^((i>>T)<<T))&(~(1<<(T-1)))):
+            ret=1
+    return ret
+def hr_operator(T):
+    return DiagonalLinearOperator(_hr_diagonal)
+def Jr_operator(T):
+    return SxDiagonalLinearOperator(_hr_diagonal)#TODO: Fingers crossed
+
+def ising_hr_T(T,J,g):
+    '''
+        Calculate a dense spatial transfer matrix for the disorder averaged
+        influence matrix formalism described in arXiv:2012.00777. The averaging
+        is performed over parameter h. Site ordering as in ising_T.
+    '''
+    U1=DiagonalLinearOperator(ising_hr(T).diag*ising_W(T,g).diag)
+    U2=ising_J(T,J)
+    return U1@U2 #TODO: check order
+def ising_Jr_T(T,g,h):
+
+    '''
+        Calculate a dense spatial transfer matrix for the J disorder averaged
+        influence matrix formalism similar to arXiv:2012.00777
+        Site ordering as in ising_T.
+    '''
+    U1=DiagonalLinearOperator(ising_h(T,h).diag*ising_W(T,g).diag)
+    U2=ising_Jr(T)
+    return U1@U2 #TODO: check order
+#TODO add new ref if available
+def ising_Jhr_T(T,g):
+    '''
+        Calculate a dense spatial transfer matrix for the disorder averaged
+        influence matrix formalism with averaging over both J and h.
+        Site ordering as in ising_T.
+    '''
+    #TODO add new ref if available
+    U1=DiagonalLinearOperator(ising_hr(T).diag*ising_W(T,g).diag)
+    U2=ising_Jr(T)
+    return U1@U2 #TODO: check order
 
 def ising_SFF(T,J,g,h):
     pass
