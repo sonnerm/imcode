@@ -97,7 +97,7 @@ def ising_T(J,g,h):
     '''
     U1=DiagonalLinearOperator(ising_h(T,h).diag*ising_W(T,g).diag)#slight optimization
     U2=ising_J(T,J)
-    return U1@U2 #TODO: check order
+    return U2@U1
 @lru_cache(None)
 def _hr_diagonal(T):
     ret=np.zeros(2**(2*T))
@@ -118,7 +118,7 @@ def ising_hr_T(T,J,g):
     '''
     U1=DiagonalLinearOperator(ising_hr(T).diag*ising_W(T,g).diag)
     U2=ising_J(T,J)
-    return U1@U2 #TODO: check order
+    return U2@U1
 def ising_Jr_T(T,g,h):
 
     '''
@@ -128,7 +128,7 @@ def ising_Jr_T(T,g,h):
     '''
     U1=DiagonalLinearOperator(ising_h(T,h).diag*ising_W(T,g).diag)
     U2=ising_Jr(T)
-    return U1@U2 #TODO: check order
+    return U2@U1
 #TODO add new ref if available
 def ising_Jhr_T(T,g):
     '''
@@ -139,7 +139,7 @@ def ising_Jhr_T(T,g):
     #TODO add new ref if available
     U1=DiagonalLinearOperator(ising_hr(T).diag*ising_W(T,g).diag)
     U2=ising_Jr(T)
-    return U1@U2 #TODO: check order
+    return U2@U1
 
 def ising_SFF(T,J,g,h):
     pass

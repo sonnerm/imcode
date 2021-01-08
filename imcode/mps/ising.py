@@ -1,7 +1,3 @@
-def ising_F(J,g,h):
-    pass
-def ising_H(J,g,h):
-    pass
 def ising_W(t,g):
     leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
     leg_p=sites[0].leg
@@ -25,7 +21,7 @@ def ising_W(t,g):
 
 def ising_h(t,h):
     T=len(sites)-1
-    leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
+    leg_t=tenpy.linalg.charges.LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
     Ha=np.einsum("ab,cd->abcd",np.eye(1),np.diag([1.0,1.0,np.exp(2.0j*h),np.exp(-2.0j*h)]))

@@ -6,7 +6,7 @@ from utils import sparse_eq
 import pytest
 @pytest.fixture(scope="module")
 def dense_ising_h_complex():
-    T=4
+    T=3
     np.random.seed(hash("dense_ising_h_complex")%(2**32))
     h=np.random.normal()+np.random.normal()*1.0j
     return (dense.ising_h(T,h),(T,h))

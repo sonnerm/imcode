@@ -38,15 +38,6 @@ def ising_F(J,g,h):
     return scla.expm(1.0j*ising_H(J,[0.0]*L,h))@scla.expm(1.0j*ising_H([0.0]*L,g,[0.0]*L))
 
 
-def ising_T(T,J,g,h):
-    '''
-        Calculate a dense IM approach transfer matrix for the kicked ising
-        chain. See arXiv:2009.10105 for details. The sites are ordered as
-        follows: [s_0 forward s_T backward].
-    '''
-    U1=ising_h(T,h)*ising_W(T,g)
-    U2=ising_J(T,J)
-    return U1@U2 #TODO: check order
 def ising_J(T,J):
     Pm=np.array([[1,1],[1,1]])
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*J)],[np.exp(-1.0j*J),np.exp(1.0j*J)]])
@@ -55,7 +46,7 @@ def ising_J(T,J):
 
 def ising_h(T,h):
     h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
-    U1=np.diag(np.exp(-1.0j*np.array(ising_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
+    U1=np.diag(np.exp(1.0j*np.array(ising_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
     return U1
 
 def ising_W(T,g):
@@ -65,6 +56,16 @@ def ising_W(T,g):
     U1=np.diag(np.exp(-1.0j*np.array(ising_H(Jt,np.zeros(2*T),np.zeros(2*T)).diagonal())))
     U1*=np.exp(eta.real*(2*T))
     return U1
+
+def ising_T(T,J,g,h):
+    '''
+        Calculate a dense IM approach transfer matrix for the kicked ising
+        chain. See arXiv:2009.10105 for details. The sites are ordered as
+        follows: [s_0 forward s_T backward].
+    '''
+    U1=ising_h(T,h)*ising_W(T,g)
+    U2=ising_J(T,J)
+    return U2@U1
 # def ising_W(T,g):
 #     Jt=-np.pi/4-np.log(np.tan(g))*0.5j
 #     eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
@@ -89,7 +90,7 @@ def ising_hr_T(T,J,g):
     '''
     U1=ising_hr(T)*ising_W(T,g)
     U2=ising_J(T,J)
-    return U1@U2 #TODO: check order
+    return U2@U1
 
 #Should probably be cached, there are not that many values of T possible
 @lru_cache(None)
@@ -109,7 +110,7 @@ def ising_Jr_T(T,g,h):
     '''
     U1=ising_h(T,h)*ising_W(T,g)
     U2=ising_Jr(T)
-    return U1@U2 #TODO: check order
+    return U2@U1
 #TODO add new ref if available
 def ising_Jhr_T(T,g):
     '''
@@ -120,7 +121,7 @@ def ising_Jhr_T(T,g):
     #TODO add new ref if available
     U1=ising_hr(T)*ising_W(T,g)
     U2=ising_Jr(T)
-    return U1@U2 #TODO: check order
+    return U2@U1
 
 def ising_SFF(T,J,g,h):
     pass
