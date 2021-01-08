@@ -6,14 +6,14 @@ from utils import sparse_eq
 import pytest
 @pytest.fixture(scope="module")
 def dense_ising_h_complex():
-    T=3
+    T=2
     np.random.seed(hash("dense_ising_h_complex")%(2**32))
     h=np.random.normal()+np.random.normal()*1.0j
     return (dense.ising_h(T,h),(T,h))
 
 @pytest.fixture(scope="module")
 def dense_ising_h_real():
-    T=4
+    T=2
     np.random.seed(hash("dense_ising_h_real")%(2**32))
     h=np.random.normal()
     return (dense.ising_h(T,h),(T,h))
@@ -44,10 +44,12 @@ def test_sparse_ising_h_complex(dense_ising_h_complex):
 
 def test_mps_ising_h_real(dense_ising_h_real):
     mih=mps.ising_h(*dense_ising_h_real[1])
-    assert mps.mps_to_dense(mih)==pytest.approx(dense_ising_h_real[0])
-    assert mih.chi==1
+    assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_h_real[0])
+    assert mih.chi==[1]*(mih.L+1)
 
 def test_mps_ising_h_complex(dense_ising_h_complex):
     mih=mps.ising_h(*dense_ising_h_complex[1])
-    assert mps.mps_to_dense(mih)==pytest.approx(dense_ising_h_complex[0])
-    assert mih.chi==1
+    # print(np.diag(mps.mpo_to_dense(mih)))
+    # print(np.diag(dense_ising_h_complex[0]))
+    assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_h_complex[0])
+    assert mih.chi==[1]*(mih.L+1)
