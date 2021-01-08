@@ -13,10 +13,10 @@ def ising_W(t,g):
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     leg_m=LegCharge.from_trivial(4)
-    s2=np.sin(g)**2
-    c2=np.cos(g)**2
-    mx=1.0j*np.sin(g)*np.cos(g)
-    px=-1.0j*np.sin(g)*np.cos(g)
+    s2=np.abs(np.sin(g))**2
+    c2=np.abs(np.cos(g))**2
+    mx=-1.0j*np.conj(np.sin(g))*np.cos(g)
+    px=1.0j*np.sin(g)*np.conj(np.cos(g))
     Wprim=np.array([[c2,s2,mx,px],
                     [s2,c2,px,mx],
                     [mx,px,c2,s2],

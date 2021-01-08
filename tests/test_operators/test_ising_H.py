@@ -2,13 +2,13 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
-from .utils import sparse_eq
+from ..utils import sparse_eq,seed_rng
 import pytest
 pytestmark=pytest.mark.skip("skip everything")
 @pytest.fixture(scope="module")
 def dense_ising_H_complex():
     L=5
-    np.random.seed(hash("dense_ising_H_complex")%(2**32))
+    seed_rng("dense_ising_H_complex")
     J=np.random.normal(size=(L,))+np.random.normal(size=(L,))*1.0j
     g=np.random.normal(size=(L,))+np.random.normal(size=(L,))*1.0j
     h=np.random.normal(size=(L,))+np.random.normal(size=(L,))*1.0j
@@ -17,7 +17,7 @@ def dense_ising_H_complex():
 @pytest.fixture(scope="module")
 def dense_ising_H_real():
     L=5
-    np.random.seed(hash("dense_ising_H_real")%(2**32))
+    seed_rng("dense_ising_H_real")
     J=np.random.normal(size=(L,))
     g=np.random.normal(size=(L,))
     h=np.random.normal(size=(L,))

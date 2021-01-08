@@ -2,19 +2,19 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
-from .utils import sparse_eq
+from ..utils import sparse_eq,seed_rng
 import pytest
 @pytest.fixture(scope="module")
 def dense_ising_h_complex():
     T=2
-    np.random.seed(hash("dense_ising_h_complex")%(2**32))
+    seed_rng("dense_ising_h_complex")
     h=np.random.normal()+np.random.normal()*1.0j
     return (dense.ising_h(T,h),(T,h))
 
 @pytest.fixture(scope="module")
 def dense_ising_h_real():
     T=2
-    np.random.seed(hash("dense_ising_h_real")%(2**32))
+    seed_rng("dense_ising_h_real")
     h=np.random.normal()
     return (dense.ising_h(T,h),(T,h))
 

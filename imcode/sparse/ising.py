@@ -34,12 +34,27 @@ def ising_F(J,g,h):
     return opsz@opsx
 
 def ising_W(T,g):
-    Jt=-np.pi/4-np.log(np.tan(g))*0.5j
-    eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
-    Jt=np.array([Jt]*(T)+[-Jt.conj()]*T)
-    D1=np.exp(1.0j*ising_diag(Jt,np.zeros_like(Jt)))
-    D1*=np.exp(2*T*eta.real)
-    return DiagonalLinearOperator(D1)
+    ret=np.ones((2**(2*T)),dtype=complex)
+    for i in range(T):
+        ret=ret.reshape((2**i,2,2,2**(2*T-2-i)))
+        ret[:,1,1,:]*=np.cos(g)
+        ret[:,0,0,:]*=np.cos(g)
+        ret[:,1,0,:]*=np.sin(g)*1.0j
+        ret[:,0,1,:]*=np.sin(g)*1.0j
+
+    for i in range(T-1):
+        ret=ret.reshape((2**(T+i),2,2,2**(T-2-i)))
+        ret[:,1,1,:]*=np.conj(np.cos(g))
+        ret[:,0,0,:]*=np.conj(np.cos(g))
+        ret[:,1,0,:]*=np.conj(np.sin(g)*1.0j)
+        ret[:,0,1,:]*=np.conj(np.sin(g)*1.0j)
+
+    ret=ret.reshape((2,2**(2*T-2),2))
+    ret[1,:,1]*=np.conj(np.cos(g))
+    ret[0,:,0]*=np.conj(np.cos(g))
+    ret[1,:,0]*=np.conj(np.sin(g)*1.0j)
+    ret[0,:,1]*=np.conj(np.sin(g)*1.0j)
+    return DiagonalLinearOperator(np.ravel(ret))
 def ising_J(T,J):
     D=np.ones(2**(2*T),dtype=complex)
     for i in range(1,T):

@@ -2,20 +2,20 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
-from .utils import sparse_eq
+from ..utils import sparse_eq,seed_rng
 import pytest
 pytestmark=pytest.mark.skip("skip everything")
 @pytest.fixture(scope="module")
 def dense_ising_J_complex():
     T=2
-    np.random.seed(hash("dense_ising_J_complex")%(2**32))
+    seed_rng("dense_ising_J_complex")
     J=np.random.normal()+np.random.normal()*1.0j
     return (dense.ising_J(T,J),(T,J))
 
 @pytest.fixture(scope="module")
 def dense_ising_J_real():
     T=2
-    np.random.seed(hash("dense_ising_J_real")%(2**32))
+    seed_rng("dense_ising_J_real")
     J=np.random.normal()
     return (dense.ising_J(T,J),(T,J))
 

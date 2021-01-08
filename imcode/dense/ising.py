@@ -42,7 +42,7 @@ def ising_J(T,J):
     Pm=np.array([[1,1],[1,1]])
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*np.conj(J))],[np.exp(-1.0j*np.conj(J)),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
-    return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))/2
+    return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))
 
 def ising_h(T,h):
     h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
@@ -50,12 +50,27 @@ def ising_h(T,h):
     return U1
 
 def ising_W(T,g):
-    Jt=-np.pi/4-np.log(np.tan(g))*0.5j
-    eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
-    Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
-    U1=np.diag(np.exp(-1.0j*np.array(ising_H(Jt,np.zeros(2*T),np.zeros(2*T)).diagonal())))
-    U1*=np.exp(eta.real*(2*T))
-    return U1
+    ret=np.ones((2**(2*T)),dtype=complex)
+    for i in range(T):
+        ret=ret.reshape((2**i,2,2,2**(2*T-2-i)))
+        ret[:,1,1,:]*=np.cos(g)
+        ret[:,0,0,:]*=np.cos(g)
+        ret[:,1,0,:]*=np.sin(g)*1.0j
+        ret[:,0,1,:]*=np.sin(g)*1.0j
+
+    for i in range(T-1):
+        ret=ret.reshape((2**(T+i),2,2,2**(T-2-i)))
+        ret[:,1,1,:]*=np.conj(np.cos(g))
+        ret[:,0,0,:]*=np.conj(np.cos(g))
+        ret[:,1,0,:]*=np.conj(np.sin(g)*1.0j)
+        ret[:,0,1,:]*=np.conj(np.sin(g)*1.0j)
+
+    ret=ret.reshape((2,2**(2*T-2),2))
+    ret[1,:,1]*=np.conj(np.cos(g))
+    ret[0,:,0]*=np.conj(np.cos(g))
+    ret[1,:,0]*=np.conj(np.sin(g)*1.0j)
+    ret[0,:,1]*=np.conj(np.sin(g)*1.0j)
+    return np.diag(np.ravel(ret))
 
 def ising_T(T,J,g,h):
     r'''
@@ -66,13 +81,6 @@ def ising_T(T,J,g,h):
     U1=ising_h(T,h)*ising_W(T,g)
     U2=ising_J(T,J)
     return U2@U1
-# def ising_W(T,g):
-#     Jt=-np.pi/4-np.log(np.tan(g))*0.5j
-#     eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
-#     Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
-#     U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(Jt,np.zeros_like(h),h).diagonal())))
-#     U1*=np.exp(eta.real*(2*T))
-#     return U1
 
 @lru_cache(None)
 def hr_operator(T):
@@ -92,7 +100,6 @@ def ising_hr_T(T,J,g):
     U2=ising_J(T,J)
     return U2@U1
 
-#Should probably be cached, there are not that many values of T possible
 @lru_cache(None)
 def Jr_operator(T):
     ret=np.zeros((2**(2*T),2**(2*T)))

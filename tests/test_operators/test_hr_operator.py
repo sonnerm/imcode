@@ -2,7 +2,7 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
-from .utils import sparse_eq
+from ..utils import sparse_eq
 import pytest
 @pytest.fixture(scope="module")
 def dense_hr_operator():
