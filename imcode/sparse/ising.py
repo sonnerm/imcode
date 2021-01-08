@@ -26,7 +26,7 @@ def ising_H(J,g,h):
     '''
     '''
     opsz=DiagonalLinearOperator(ising_diag(J,h))
-    opsx=SxDiagonalLinearOperator(ising_diag(np.zeros_like(J),h))
+    opsx=SxDiagonalLinearOperator(ising_diag(np.zeros_like(J),g))
     return opsz+opsx
 def ising_F(J,g,h):
     opsz=DiagonalLinearOperator(np.exp(1.0j*ising_diag(J,h)))
