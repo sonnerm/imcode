@@ -35,7 +35,7 @@ def ising_h(t,h):
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
-    Ha=np.einsum("ab,cd->abcd",np.eye(1),np.diag([1.0,1.0,np.exp(2.0j*h),np.exp(-2.0j*h)]))
+    Ha=np.einsum("ab,cd->abcd",np.eye(1),np.diag([np.exp(1.0j*(h-np.conj(h))),np.exp(-1.0j*(h-np.conj(h))),np.exp(1.0j*(h+np.conj(h))),np.exp(-1.0j*(h+np.conj(h)))]))
     H=npc.Array.from_ndarray(Ha,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[Id]+[H]*(t-1)+[Id])
