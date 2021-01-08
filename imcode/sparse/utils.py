@@ -2,6 +2,37 @@ import numpy as np
 from ..utils import popcount
 import scipy.sparse.linalg as spla
 
+class SxDiagonalLinearOperator(LinearOperator):
+    '''
+        Linear operator
+    '''
+    def __init__(self, D):
+        self.diag=D
+        shape=(D.shape[0],D.shape[0])
+        dtype=D.dtype
+        super().__init__(dtype,shape)
+    def _matvec(self,vec):
+        v=np.array(np.ravel(vec),dtype=np.common_type(vec,self.diag))
+        fwht(v)
+        v*=self.diag/v.shape[0]
+        fwht(v)
+        return v
+    def _adjoint(self):
+        return SxDiagonalLinearOperator(self.diag.conj())
+
+class DiagonalLinearOperator(LinearOperator):
+    '''
+        Linear operator
+    '''
+    def __init__(self, D):
+        self.diag=D
+        shape=(D.shape[0],D.shape[0])
+        dtype=D.dtype
+        super().__init__(dtype,shape)
+    def _matvec(self,vec):
+        return np.ravel(vec)*self.diag
+    def _adjoint(self):
+        return DiagonalLinearOperator(self.diag.conj())
 def fwht(a):
     '''
         Performs an inplace Fast-Walsh-Hadamard transformation on array a.
