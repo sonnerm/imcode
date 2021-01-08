@@ -1,3 +1,8 @@
+def ising_H(J,g,h):
+    pass
+
+def ising_F(J,g,h):
+    pass
 def ising_W(t,g):
     leg_t=tenpy.linalg.charges.LegCharge.from_qflat(chinfo,[0])
     leg_p=sites[0].leg
