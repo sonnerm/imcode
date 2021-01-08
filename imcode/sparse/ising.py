@@ -1,4 +1,5 @@
 import numpy as np
+from functools import lru_cache
 from scipy.sparse.linalg import LinearOperator
 from .utils import fwht
 import scipy.sparse.linalg as spla
@@ -67,18 +68,18 @@ def ising_W(T,g):
     Jt=-np.pi/4-np.log(np.tan(g))*0.5j
     eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
     Jt=np.array([Jt]*(T)+[-Jt.conj()]*T)
-    D1=np.exp(1.0j*imbrie_diag(Jt,np.zeros_like(Jt)))
+    D1=np.exp(1.0j*ising_diag(Jt,np.zeros_like(Jt)))
     D1*=np.exp(2*T*eta.real)
     return DiagonalLinearOperator(D1)
 def ising_J(T,J):
     gt=np.array([0.0]+[2*gt.conj()]*(T-1)+[0.0]+[-2*gt]*(T-1))
-    D2=np.exp(1.0j*get_imbrie_diag(gt,np.zeros_like(gt)))
+    D2=np.exp(1.0j*ising_diag(gt,np.zeros_like(gt)))
     D2*=np.exp(-(2*T-2)*eta2.real)
     D2/=2
     D2*=get_keldysh_boundary(T)
-def ising_h(T,J):
+def ising_h(T,h):
     h=np.array([0.0]+[h]*(T-1)+[0.0]+[-np.array(h).conj()]*(T-1))
-    D1=np.exp(1.0j*imbrie_diag(np.zeros_like(h),h))
+    D1=np.exp(1.0j*ising_diag(np.zeros_like(h),h))
     return DiagonalLinearOperator(D1)
 def _get_weights(g,T):
     ws=np.zeros(2**(2*T))

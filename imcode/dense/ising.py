@@ -55,14 +55,14 @@ def ising_J(T,J):
 
 def ising_h(T,h):
     h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
-    U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
+    U1=np.diag(np.exp(-1.0j*np.array(ising_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
     return U1
 
 def ising_W(T,g):
     Jt=-np.pi/4-np.log(np.tan(g))*0.5j
     eta=np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
     Jt=np.array([4*Jt]*(T)+[-4*Jt.conj()]*T)
-    U1=np.diag(np.exp(-1.0j*np.array(imbrie_H(Jt,np.zeros(2*T),np.zeros(2*T)).diagonal())))
+    U1=np.diag(np.exp(-1.0j*np.array(ising_H(Jt,np.zeros(2*T),np.zeros(2*T)).diagonal())))
     U1*=np.exp(eta.real*(2*T))
     return U1
 # def ising_W(T,g):
