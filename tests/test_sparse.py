@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from pytest import mark
+from utils import sparse_eq
 import imcode.sparse as sparse
 import imcode.dense as dense
 def test_sparse_ising_diag():
@@ -16,6 +17,12 @@ def test_sparse_ising_diag():
     sdi=sparse.ising_diag(J,h)
     assert sdi.dtype==np.float_
     assert np.diag(sdi)==pytest.approx(dense.ising_H(J,[0.0]*L,h))
-@mark.skip("Not written yet")
 def test_sparse_sxdiagonallinearoperator():
+    sxd=sparse.SxDiagonalLinearOperator(np.array([1,-1]))
+    sparse_eq(sxd,dense.SX)
+    sxd=sparse.SxDiagonalLinearOperator(np.array([1,1,1,1]))
+    sparse_eq(sxd,np.eye(4))
+
+@mark.skip("Not written yet")
+def test_sparse_diagonallinearoperator():
     pass
