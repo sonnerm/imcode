@@ -5,7 +5,7 @@ import numpy as np
 import scipy.linalg as scla
 
 def ising_H(J,g,h):
-    '''
+    r'''
         Construct a dense Hamiltonian of a spin 1/2 Ising ring with parameters given by the arrays J,g,h.
         H=\sum_i J_i s^z_{i+1}s^z_{i} + \sum_i h_i s^z_i + \sum_i g_i s^x_i
         (s^x, s^z are Pauli matrices)
@@ -27,7 +27,7 @@ def ising_H(J,g,h):
         ret+=gv*dense_kron([ID]*i+[SX]+[ID]*(L-i-1))
     return ret
 def ising_F(J,g,h):
-    '''
+    r'''
         Constructs a dense one period time evolution operator for the kicked ising chain model
         F = \exp(i\sum_i J_i s_i^zs_{i+1}^z + h_i s_i^z)\exp(i \sum_i g_i s^x_i)
         (s^x, s^z are Pauli matrices)
@@ -40,7 +40,7 @@ def ising_F(J,g,h):
 
 def ising_J(T,J):
     Pm=np.array([[1,1],[1,1]])
-    Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*J)],[np.exp(-1.0j*J),np.exp(1.0j*J)]])
+    Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*np.conj(J))],[np.exp(-1.0j*np.conj(J)),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
     return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))/2
 
@@ -58,7 +58,7 @@ def ising_W(T,g):
     return U1
 
 def ising_T(T,J,g,h):
-    '''
+    r'''
         Calculate a dense IM approach transfer matrix for the kicked ising
         chain. See arXiv:2009.10105 for details. The sites are ordered as
         follows: [s_0 forward s_T backward].
@@ -79,11 +79,11 @@ def hr_operator(T):
     ret=np.zeros(2**(2*T))
     for i in range(2**(2*T)):
         if popcount((i>>T)&(~(1<<(T-1))))==popcount((i^((i>>T)<<T))&(~(1<<(T-1)))):
-            ret=1
+            ret[i]=1
     return np.diag(ret)
 
 def ising_hr_T(T,J,g):
-    '''
+    r'''
         Calculate a dense spatial transfer matrix for the disorder averaged
         influence matrix formalism described in arXiv:2012.00777. The averaging
         is performed over parameter h. Site ordering as in ising_T.
@@ -103,7 +103,7 @@ def Jr_operator(T):
     return ret
 def ising_Jr_T(T,g,h):
 
-    '''
+    r'''
         Calculate a dense spatial transfer matrix for the J disorder averaged
         influence matrix formalism similar to arXiv:2012.00777
         Site ordering as in ising_T.
@@ -113,7 +113,7 @@ def ising_Jr_T(T,g,h):
     return U2@U1
 #TODO add new ref if available
 def ising_Jhr_T(T,g):
-    '''
+    r'''
         Calculate a dense spatial transfer matrix for the disorder averaged
         influence matrix formalism with averaging over both J and h.
         Site ordering as in ising_T.

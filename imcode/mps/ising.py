@@ -10,9 +10,9 @@ def ising_F(J,g,h):
     raise NotImplementedError("Not yet implemented")
 def ising_W(t,g):
     sites=[BlipSite() for _ in range(t+1)]
-    leg_t=tenpy.linalg.charges.LegCharge.from_trivial(1)
+    leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
-    leg_m=tenpy.linalg.charges.LegCharge.from_trivial(4)
+    leg_m=LegCharge.from_trivial(4)
     s2=np.sin(g)**2
     c2=np.cos(g)**2
     mx=1.0j*np.sin(g)*np.cos(g)
@@ -42,7 +42,7 @@ def ising_h(t,h):
 
 def ising_J(t,J):
     sites=[BlipSite() for _ in range(t+1)]
-    leg_t=tenpy.linalg.charges.LegCharge.from_trivial(1)
+    leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])/np.sqrt(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)

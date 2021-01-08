@@ -1,1 +1,1 @@
-from utils import sparse_eq
+from .utils import sparse_eq

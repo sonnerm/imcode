@@ -1,3 +1,4 @@
 - Remove Blip site from mps
 - Write tests mps/shallow/ed
 - rewrite sff code
+- test parameter t

@@ -1,6 +1,10 @@
-from . import ising_W,multiply_mpos
+from .utils import multiply_mpos
+from .ising import ising_W
+from functools import lru_cache
+import numpy as np
+from tenpy.linalg.charges import LegCharge
 @lru_cache(None)
-def hr_op(t):
+def hr_operator(t):
     tarr=[0]+list(range(t//2+t%2))+list(range(t//2))[::-1]+[0]
     Iprim=np.array([[1.0,0.0,0.0,0.0],[0.0,1.0,0.0,0.0],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)

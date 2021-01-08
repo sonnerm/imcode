@@ -2,7 +2,7 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
-from utils import sparse_eq
+from .utils import sparse_eq
 import pytest
 pytestmark=pytest.mark.skip("skip everything")
 @pytest.fixture(scope="module")
