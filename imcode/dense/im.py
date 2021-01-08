@@ -1,19 +1,22 @@
 import numpy as np
 import numpy.linalg as la
-def calc_im_iterative(T):
+def im_iterative(T):
     '''
         Obtain the semi-infinite chain influence matrix by iterating the transfer matrix `T` 2T times.
     '''
-    calc_im_finite(T,2*T)
-def calc_im_finite(T,L):
-    t2=int(np.log2(T.shape[0]))
-    vec=np.ones(T.shape[0])
-    for _ in range(L):
+    im_finite([T]*(2*T))
+def im_finite(Ts,boundary=None):
+    if boundary is None:
+        t2=int(np.log2(Ts[0].shape[0]))
+        vec=np.ones(Ts[0].shape[0])
+    else:
+        vec=boundary
+    for T in Ts:
         vec=T@vec
     return vec
 
 
-def calc_im_diag(T):
+def im_diag(T):
     '''
         Obtain the semi-infinite chain influence matrix by fully diagonalizing
         the transfer matrix `T` and taking the eigenvector to the largest eigenvalue

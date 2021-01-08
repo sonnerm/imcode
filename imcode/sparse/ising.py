@@ -74,11 +74,11 @@ def ising_h(T,h):
     D1=np.exp(1.0j*ising_diag(np.zeros_like(h),h))
     return DiagonalLinearOperator(D1)
 
-def ising_T(J,g,h):
+def ising_T(t,J,g,h):
     '''
     '''
-    U1=DiagonalLinearOperator(ising_h(T,h).diag*ising_W(T,g).diag)#slight optimization
-    U2=ising_J(T,J)
+    U1=DiagonalLinearOperator(ising_h(t,h).diag*ising_W(t,g).diag)#slight optimization
+    U2=ising_J(t,J)
     return U2@U1
 @lru_cache(None)
 def _hr_diagonal(T):
