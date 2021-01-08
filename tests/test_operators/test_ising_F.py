@@ -4,7 +4,7 @@ from imcode import sparse
 from imcode import mps
 from ..utils import sparse_eq,seed_rng
 import pytest
-pytestmark=pytest.mark.skip("skip everything")
+# pytestmark=pytest.mark.skip("skip everything")
 @pytest.fixture(scope="module")
 def dense_ising_F_complex():
     L=5
@@ -32,7 +32,6 @@ def test_dense_ising_F_real(dense_ising_F_real):
     assert diF.T.conj()!=pytest.approx(diF)
     assert diF.T!=pytest.approx(diF)
     assert diF.conj()!=pytest.approx(diF)
-
 def test_dense_ising_F_complex(dense_ising_F_complex):
     diF=dense_ising_F_complex[0]
     assert diF.dtype==np.complex_
@@ -49,6 +48,8 @@ def test_sparse_ising_F_real(dense_ising_F_real):
 
 def test_sparse_ising_F_complex(dense_ising_F_complex):
     siF=sparse.ising_F(*dense_ising_F_complex[1])
+    print(sparse.sparse_to_dense(siF))
+    print(dense_ising_F_complex[0])
     sparse_eq(siF,dense_ising_F_complex[0])
 @pytest.mark.skip("not implemented")
 def test_mps_ising_F_real(dense_ising_F_real):
