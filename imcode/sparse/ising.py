@@ -59,13 +59,14 @@ def ising_J(T,J):
     D=np.ones(2**(2*T),dtype=complex)
     for i in range(1,T):
         D=D.reshape((2**i,2,2**(2*T-i-1)))
-        D[:,1,:]*=np.sin(J)
-        D[:,0,:]*=np.cos(J)
+        D[:,1,:]*=2.0j*np.sin(J)
+        D[:,0,:]*=2*np.cos(J)
         D=D.reshape((2**(T+i),2,2**(T-i-1)))
-        D[:,1,:]*=np.sin(J)
-        D[:,0,:]*=np.cos(J)
+        D[:,1,:]*=-2.0j*np.sin(J)
+        D[:,0,:]*=2*np.cos(J)
     D=D.reshape((2,2**(2*T-1)))
     D[1,:]*=0
+    D[0,:]*=2
     D=D.reshape((2**(T),2,2**(T-1)))
     D[:,1,:]*=0
     return SxDiagonalLinearOperator(np.ravel(D))
