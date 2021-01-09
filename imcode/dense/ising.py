@@ -39,7 +39,7 @@ def ising_F(J,g,h):
 
 
 def ising_J(T,J):
-    Pm=np.array([[1,1],[1,1]])
+    Pm=np.array([[1,1],[1,1]])/np.sqrt(2)
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*np.conj(J))],[np.exp(-1.0j*np.conj(J)),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
     return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))

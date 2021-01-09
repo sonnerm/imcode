@@ -49,5 +49,7 @@ def test_mps_ising_J_real(dense_ising_J_real):
 
 def test_mps_ising_J_complex(dense_ising_J_complex):
     mih=mps.ising_J(*dense_ising_J_complex[1])
+    print(mps.mpo_to_dense(mih))
+    print(dense_ising_J_complex[0])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_J_complex[0])
     assert mih.chi==[1]*(mih.L+1)

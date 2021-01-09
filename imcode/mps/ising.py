@@ -1,4 +1,4 @@
-from .utils import BlipSite
+from .utils import BlipSite,multiply_mpos
 from tenpy.networks.mpo import MPO
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
@@ -52,17 +52,17 @@ def ising_J(t,J):
     leg_p=sites[0].leg
     Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])/np.sqrt(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
-    pj=np.exp(-2.0j*J)
-    mj=np.exp(2.0j*J)
-    id=1.0
-    Jprim=np.array([[id,id,pj,mj],
-                    [id,id,mj,pj],
-                    [pj,mj,id,id],
-                    [mj,pj,id,id]
+    pj=np.exp(2.0j*J)
+    mj=np.exp(-2.0j*np.conj(J))
+    ip=np.exp(1.0j*(J-np.conj(J)))
+    Jprim=np.array([[ip,ip,pj,mj],
+                    [ip,ip,mj,pj],
+                    [pj,mj,ip,ip],
+                    [mj,pj,ip,ip]
     ])
     Ja=np.einsum("ab,cd->abcd",np.eye(1),Jprim)
     J=npc.Array.from_ndarray(Ja,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[Id]+[J]*(t-1)+[Id])
 def ising_T(t,J,g,h):
-    pass
+    return multiply_mpos(ising_J(t,J),ising_W(t,g),ising_h(t,h))
