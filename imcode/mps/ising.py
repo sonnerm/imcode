@@ -7,6 +7,12 @@ def ising_H(J,g,h):
     raise NotImplementedError("Not yet implemented")
 
 def ising_F(J,g,h):
+    L=len(h)
+    sites=[SpinHalfSite() for _ in range(L)]
+    leg_t=LegCharge.from_trivial(1)
+    leg_p=sites[0].leg
+    leg_m=LegCharge.from_trivial(2)
+    Wprim=np.array([])
     raise NotImplementedError("Not yet implemented")
 def ising_W(t,g):
     sites=[BlipSite() for _ in range(t+1)]

@@ -59,11 +59,11 @@ def ising_J(T,J):
     D=np.ones(2**(2*T),dtype=complex)
     for i in range(1,T):
         D=D.reshape((2**i,2,2**(2*T-i-1)))
-        D[:,0,:]*=np.exp(1.0j*J)
-        D[:,1,:]*=np.exp(-1.0*np.conj(J))
+        D[:,1,:]*=np.sin(J)
+        D[:,0,:]*=np.cos(J)
         D=D.reshape((2**(T+i),2,2**(T-i-1)))
-        D[:,1,:]*=np.exp(1.0j*J)
-        D[:,0,:]*=np.exp(-1.0*np.conj(J))
+        D[:,1,:]*=np.sin(J)
+        D[:,0,:]*=np.cos(J)
     D=D.reshape((2,2**(2*T-1)))
     D[1,:]*=0
     D=D.reshape((2**(T),2,2**(T-1)))

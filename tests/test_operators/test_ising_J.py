@@ -4,7 +4,6 @@ from imcode import sparse
 from imcode import mps
 from ..utils import sparse_eq,seed_rng
 import pytest
-pytestmark=pytest.mark.skip("for now")
 @pytest.fixture(scope="module")
 def dense_ising_J_complex():
     T=2
