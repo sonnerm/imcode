@@ -3,6 +3,7 @@ from tenpy.networks.site import Site
 from tenpy.networks.mpo import MPO
 from tenpy.linalg.charges import LegCharge
 from tenpy.algorithms.exact_diag import ExactDiag
+import tenpy.linalg.np_conserved as npc
 class BlipSite(Site):
     def __init__(self):
         super().__init__(LegCharge.from_trivial(4),["+","-","b","a"],)
@@ -30,7 +31,12 @@ def mps_to_dense():
         psi = psi.reshape(2*4**i,4,4**(mps.L-3-i)*2)[:,[0,2,3,1],:]
     psi = psi.reshape((2,)*(mps.L*2-2)).transpose([0,]+[x for x in range(1,2*mps.L-4,2)]+[2*mps.L-3]+[x for x in list(range(2,2*mps.L-2,2))[::-1]])
     return psi.ravel()*mps.norm
-
+def wrap_ndarray(ar):
+    l1=LegCharge.from_trivial(ar.shape[0])
+    l2=LegCharge.from_trivial(ar.shape[1])
+    l3=LegCharge.from_trivial(ar.shape[2])
+    l4=LegCharge.from_trivial(ar.shape[3])
+    return npc.Array.from_ndarray(ar,[l1,l2,l3,l4],labels=["wL","wR","p","p*"])
 def normalize_im():
     pass
 def _multiply_W(w1,w2):

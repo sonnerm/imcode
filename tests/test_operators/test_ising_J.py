@@ -39,7 +39,6 @@ def test_sparse_ising_J_real(dense_ising_J_real):
     print(dense_ising_J_real[0])
     sparse_eq(sih,dense_ising_J_real[0])
 
-@pytest.mark.skip()
 def test_sparse_ising_J_complex(dense_ising_J_complex):
     sih=sparse.ising_J(*dense_ising_J_complex[1])
     sparse_eq(sih,dense_ising_J_complex[0])
