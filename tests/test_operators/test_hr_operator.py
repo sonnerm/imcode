@@ -20,7 +20,6 @@ def test_dense_hr_operator(dense_hr_operator):
 def test_sparse_hr_operator(dense_hr_operator):
     sih=sparse.hr_operator(dense_hr_operator[1])
     sparse_eq(sih,dense_hr_operator[0])
-@pytest.mark.skip("Needs reimplementation")
 def test_mps_hr_operator(dense_hr_operator):
     mih=mps.hr_operator(dense_hr_operator[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_hr_operator[0])
