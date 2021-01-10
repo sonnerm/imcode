@@ -3,12 +3,12 @@ import numpy.linalg as la
 from imcode import dense
 from imcode import sparse
 from imcode import mps
-from ..utils import sparse_eq,seed_rng
+from ..utils import seed_rng
 import pytest
 
 @pytest.fixture(scope="module")
 def dense_ising_T():
-    T=2
+    T=3
     seed_rng("dense_ising_T")
     J=np.random.normal()
     g=np.random.normal()
@@ -23,7 +23,7 @@ def test_dense_ising_T(dense_ising_T):
 
 def test_sparse_ising_T(dense_ising_T):
     sih=sparse.ising_T(*dense_ising_T[1])
-    sparse_eq(sih,dense_ising_T[0])
+    assert sparse.sparse_to_dense(sih)==pytest.approx(dense_ising_T[0])
 
 def test_mps_ising_T(dense_ising_T):
     mih=mps.ising_T(*dense_ising_T[1])

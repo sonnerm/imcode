@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from pytest import mark
-from .utils import sparse_eq,seed_rng
+from .utils import seed_rng
 import imcode.sparse as sparse
 import imcode.dense as dense
 def test_sparse_ising_diag():
@@ -26,3 +26,9 @@ def test_sparse_sxdiagonallinearoperator():
 @mark.skip("Not written yet")
 def test_sparse_diagonallinearoperator():
     pass
+
+def sparse_eq(sp,de):
+    assert sparse.sparse_to_dense(sp)==pytest.approx(de)
+    assert sparse.sparse_to_dense(sp.T)==pytest.approx(de.T)
+    assert sparse.sparse_to_dense(sp.adjoint())==pytest.approx(de.T.conj())
+    assert sparse.sparse_to_dense(sp.T.adjoint())==pytest.approx(de.conj())

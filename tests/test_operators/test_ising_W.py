@@ -2,19 +2,19 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
-from ..utils import sparse_eq,seed_rng
+from ..utils import seed_rng
 import pytest
 
 @pytest.fixture(scope="module")
 def dense_ising_W_complex():
-    T=2
+    T=3
     seed_rng("dense_ising_W_complex")
     g=np.random.normal()+np.random.normal()*1.0j
     return (dense.ising_W(T,g),(T,g))
 
 @pytest.fixture(scope="module")
 def dense_ising_W_real():
-    T=2
+    T=3
     seed_rng("dense_ising_W_real")
     g=np.random.normal()
     return (dense.ising_W(T,g),(T,g))
@@ -37,11 +37,11 @@ def test_dense_ising_W_complex(dense_ising_W_complex):
 
 def test_sparse_ising_W_real(dense_ising_W_real):
     sih=sparse.ising_W(*dense_ising_W_real[1])
-    sparse_eq(sih,dense_ising_W_real[0])
+    assert sparse.sparse_to_dense(sih)==pytest.approx(dense_ising_W_real[0])
 
 def test_sparse_ising_W_complex(dense_ising_W_complex):
     sih=sparse.ising_W(*dense_ising_W_complex[1])
-    sparse_eq(sih,dense_ising_W_complex[0])
+    assert sparse.sparse_to_dense(sih)==pytest.approx(dense_ising_W_complex[0])
 
 def test_mps_ising_W_real(dense_ising_W_real):
     mih=mps.ising_W(*dense_ising_W_real[1])
