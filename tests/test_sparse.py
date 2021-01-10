@@ -19,15 +19,23 @@ def test_sparse_ising_diag():
     assert np.diag(sdi)==pytest.approx(dense.ising_H(J,[0.0]*L,h))
 def test_sparse_sxdiagonallinearoperator():
     sxd=sparse.SxDiagonalLinearOperator(np.array([1,-1]))
-    sparse_eq(sxd,dense.SX)
+    assert sparse.sparse_to_dense(sxd)==pytest.approx(dense.SX)
     sxd=sparse.SxDiagonalLinearOperator(np.array([1,1,1,1]))
-    sparse_eq(sxd,np.eye(4))
+    assert sparse.sparse_to_dense(sxd)==pytest.approx(np.eye(4))
 
 @mark.skip("Not written yet")
 def test_sparse_diagonallinearoperator():
     pass
 
-def sparse_eq(sp,de):
+def test_sparse_algebra():
+    seed_rng("sparse_algebra")
+    L=64
+    sx1=sparse.SxDiagonalLinearOperator(np.random.normal((L,))+1.0j*np.random.normal((L,)))
+    sx2=sparse.SxDiagonalLinearOperator(np.random.normal((L,))+1.0j*np.random.normal((L,)))
+    sz1=sparse.DiagonalLinearOperator(np.random.normal((L,))+1.0j*np.random.normal((L,)))
+    sz2=sparse.DiagonalLinearOperator(np.random.normal((L,))+1.0j*np.random.normal((L,)))
+    sp=sx1@(sz2+sx2)@sz1
+    de=sparse.sparse_to_dense(sx1)@(sparse.sparse_to_dense(sz2)+sparse.sparse_to_dense(sx2))@sparse.sparse_to_dense(sz1)
     assert sparse.sparse_to_dense(sp)==pytest.approx(de)
     assert sparse.sparse_to_dense(sp.T)==pytest.approx(de.T)
     assert sparse.sparse_to_dense(sp.adjoint())==pytest.approx(de.T.conj())
