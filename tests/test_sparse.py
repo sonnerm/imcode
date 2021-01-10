@@ -23,9 +23,6 @@ def test_sparse_sxdiagonallinearoperator():
     sxd=sparse.SxDiagonalLinearOperator(np.array([1,1,1,1]))
     assert sparse.sparse_to_dense(sxd)==pytest.approx(np.eye(4))
 
-@mark.skip("Not written yet")
-def test_sparse_diagonallinearoperator():
-    pass
 
 def test_sparse_algebra():
     seed_rng("sparse_algebra")

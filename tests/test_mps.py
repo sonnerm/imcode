@@ -1,5 +1,5 @@
 import pytest
 
 @pytest.mark.skip("Not implemented")
-def test_hdf5_store():
+def test_store_blipsite_mps():
     pass

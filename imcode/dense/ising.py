@@ -96,7 +96,7 @@ def ising_hr_T(T,J,g):
         influence matrix formalism described in arXiv:2012.00777. The averaging
         is performed over parameter h. Site ordering as in ising_T.
     '''
-    U1=ising_hr(T)*ising_W(T,g)
+    U1=hr_operator(T)*ising_W(T,g)
     U2=ising_J(T,J)
     return U2@U1
 
