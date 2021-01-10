@@ -30,8 +30,8 @@ def _get_proj_dec(c):
     for i in range(2*c-1):
         ret[i+1,i,0,0]=1.0
         ret[i+1,i,1,1]=1.0
-        ret[i+2,i,2,2]=1.0
-        ret[i,i,3,3]=1.0
+        ret[i+2,i,3,3]=1.0
+        ret[i,i,2,2]=1.0
     return ret
 def ising_hr_T(t,J,g):
     return multiply_mpos([ising_J(t,J),ising_W(t,J),hr_operator(t)])
