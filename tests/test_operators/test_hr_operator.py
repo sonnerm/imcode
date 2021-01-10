@@ -63,3 +63,20 @@ def test_dense_hr_operator_short():
     assert dih.dtype==np.float_
     assert np.diag(np.diag(dih))==pytest.approx(dih) #diagonal
     assert np.diag(dih)**2==pytest.approx(np.diag(dih)) #projection
+
+def test_sparse_hr_operator_short():
+    # Essentially check whether code fails for short times
+    dih=dense.hr_operator(1)
+    sih=sparse.hr_operator(1)
+    assert sparse.sparse_to_dense(sih)==pytest.approx(dih)
+    dih=dense.hr_operator(2)
+    sih=dense.hr_operator(2)
+    assert sparse.sparse_to_dense(sih)==pytest.approx(dih)
+def test_mps_hr_operator_short():
+    # Essentially check whether code fails for short times
+    dih=dense.hr_operator(1)
+    mih=mps.hr_operator(1)
+    assert mps.mpo_to_dense(mih)==pytest.approx(dih)
+    dih=dense.hr_operator(2)
+    mih=mps.hr_operator(2)
+    assert mps.mpo_to_dense(mih)==pytest.approx(dih)

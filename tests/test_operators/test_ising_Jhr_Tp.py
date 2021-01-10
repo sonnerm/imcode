@@ -18,6 +18,8 @@ def test_dense_ising_Jhr_Tp(dense_ising_Jhr_Tp):
     assert diT.dtype==np.complex_
     proj=la.matrix_power(diT,dense_ising_Jhr_Tp[1][0]*2)
     assert proj==pytest.approx(diT@proj)
+
+@pytest.mark.skip("Needs reimplementation")
 def test_sparse_ising_Jhr_Tp(dense_ising_Jhr_Tp):
     sih=sparse.ising_Jhr_Tp(*dense_ising_Jhr_Tp[1])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_ising_Jhr_Tp[0])
