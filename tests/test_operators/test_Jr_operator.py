@@ -26,7 +26,6 @@ def test_sparse_Jr_operator(dense_Jr_operator):
     np.diag(scla.hadamard(op.shape[0])@op@scla.hadamard(op.shape[0]))/op.shape[0]
     sih=sparse.Jr_operator(dense_Jr_operator[1])
     sparse_eq(sih,dense_Jr_operator[0])
-@pytest.mark.skip("Needs reimplementation")
 def test_mps_Jr_operator(dense_Jr_operator):
     mih=mps.Jr_operator(dense_Jr_operator[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_Jr_operator[0])
