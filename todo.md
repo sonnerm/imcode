@@ -2,9 +2,8 @@
 - Write tests mps/shallow/ed
 - rewrite sff code
 - test parameter t
-
-ising_J -> ising_hr, ising_T
-Jr
+- complex ising_J,ising_h not quite correct (boundaries!!!)
+- check normalization Jr !!!
 mps ising_H,ising_F
 
 im_*

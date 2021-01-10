@@ -65,4 +65,4 @@ def ising_J(t,J):
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[Id]+[J]*(t-1)+[Id])
 def ising_T(t,J,g,h):
-    return multiply_mpos(ising_J(t,J),ising_W(t,g),ising_h(t,h))
+    return multiply_mpos([ising_J(t,J),ising_W(t,g),ising_h(t,h)])
