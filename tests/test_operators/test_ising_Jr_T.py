@@ -6,7 +6,6 @@ from imcode import mps
 from ..utils import seed_rng
 import pytest
 
-pytestmark=pytest.mark.skip("for now")
 @pytest.fixture(scope="module")
 def dense_ising_Jr_T():
     T=3
@@ -16,7 +15,7 @@ def dense_ising_Jr_T():
     return (dense.ising_Jr_T(T,g,h),(T,g,h))
 
 def test_dense_ising_Jr_T(dense_ising_Jr_T):
-    diT=dense_ising_Jr_T[0]
+    diT=dense_ising_Jr_T[0]/2
     assert diT.dtype==np.complex_
     proj=la.matrix_power(diT,dense_ising_Jr_T[1][0]*2)
     assert proj==pytest.approx(diT@proj)
