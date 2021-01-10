@@ -7,30 +7,64 @@ import pytest
 from .utils import seed_rng
 
 @pytest.fixture(scope="module")
-def dense_finite_short_time_real_hom():
-    seed_rng("finite_short_time_real_hom")
-    t=3
-    J=np.random.normal()
-    g=np.random.normal()
-    h=np.random.normal()
-    dt=dense.ising_T(t,J,g,h)
-    ims=[dense.im_finite([dt]*L) for L in range(1,5)]
-    return (ims,dt,(t,J,g,h))
+def dense_L1_short_time():
+    seed_rng("finite_L1")
+    t,L=3,1
+    dts=[]
+    for _ in range(L):
+        J=np.random.normal()
+        g=np.random.normal()
+        h=np.random.normal()
+        dts.append(dense.ising_T(t,J,g,h))
+    im=dense.im_finite(dts)
+    return (im,(t,J,g,h))
+@pytest.fixture(scope="module")
+def dense_L2_short_time():
+    seed_rng("finite_L2")
+    t,L=3,2
+    dts=[]
+    for _ in range(L):
+        J=np.random.normal()
+        g=np.random.normal()
+        h=np.random.normal()
+        dts.append(dense.ising_T(t,J,g,h))
+    im=dense.im_finite(dts)
+    return (im,(t,J,g,h))
+@pytest.fixture(scope="module")
+def dense_L3_short_time():
+    seed_rng("finite_L3")
+    t,L=3,3
+    dts=[]
+    for _ in range(L):
+        J=np.random.normal()
+        g=np.random.normal()
+        h=np.random.normal()
+        dts.append(dense.ising_T(t,J,g,h))
+    im=dense.im_finite(dts)
+    return (im,(t,J,g,h))
 
 @pytest.fixture(scope="module")
-def dense_finite_short_time_complex_hom():
-    seed_rng("finite_short_time_real_hom")
-    t=3
-    J=np.random.normal()+1.0j*np.random.normal()
-    g=np.random.normal()+1.0j*np.random.normal()
-    h=np.random.normal()+1.0j*np.random.normal()
-    dt=dense.ising_T(t,J,g,h)
-    ims=[dense.im_finite([dt]*L) for L in range(1,5)]
-    return (ims,dt,(t,J,g,h))
-@pytest.mark.skip("tbd later")
-def test_sparse_finite_short_time_real_hom(dense_finite_short_time_real_hom):
-    df=dense_finite_short_time_real_hom
-    st=sparse.ising_T(*df[-1])
-    for L in range(1,5):
-        sim=sparse.im_finite([st]*L)
-        assert sim==pytest.approx(df[0][L-1])
+def dense_L4_short_time():
+    seed_rng("finite_L4")
+    t,L=3,3
+    dts=[]
+    for _ in range(L):
+        J=np.random.normal()
+        g=np.random.normal()
+        h=np.random.normal()
+        dts.append(dense.ising_T(t,J,g,h))
+    im=dense.im_finite(dts)
+    return (im,(t,J,g,h))
+def check_dense_im(im):
+    pass
+def test_dense_L4_short_time(dense_L4_short_time):
+    check_dense_im(dense_L4_short_time[0])
+def test_dense_L3_short_time(dense_L3_short_time):
+    check_dense_im(dense_L3_short_time[0])
+def test_dense_L2_short_time(dense_L2_short_time):
+    check_dense_im(dense_L2_short_time[0])
+def test_dense_L1_short_time(dense_L1_short_time):
+    check_dense_im(dense_L1_short_time[0])
+
+def test_sparse_L1_short_time(dense_L1_short_time):
+    pass

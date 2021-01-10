@@ -1,5 +1,6 @@
 from .utils import multiply_mpos,wrap_ndarray,BlipSite
-from .ising import ising_W
+from .ising import ising_W,ising_h
+from .ising_hr import hr_operator
 from functools import lru_cache
 from tenpy.networks.mpo import MPO
 import numpy as np
@@ -67,4 +68,10 @@ def _get_jr_dec(c):
         ret[i+2,i,2,0]=1.0
     return ret
 def ising_Jr_T(t,g,h):
-    pass
+    return multiply_mpos([Jr_operator(t),ising_W(t,g),ising_h(t,h)])
+
+def ising_Jhr_T(t,g):
+    return multiply_mpos([Jr_operator(t),ising_W(t,g),hr_operator(t)])
+
+def ising_Jhr_Tp(t,g):
+    return multiply_mpos([hr_operator(t),Jr_operator(t),ising_W(t,g)])

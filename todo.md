@@ -4,8 +4,11 @@
 - test parameter t
 - complex ising_J,ising_h not quite correct (boundaries!!!)
 - check normalization Jr !!!
-mps ising_H,ising_F
+- mps ising_H,ising_F
+- im_finite
 
 im_*
 
-obs
+obs:
+  - entropy folded
+  - czz

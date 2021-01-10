@@ -24,7 +24,7 @@ def mpo_to_dense(mpo):
     return nda.reshape(4**(mpo.L-1),4**(mpo.L-1))
 
 
-def mps_to_dense():
+def mps_to_dense(mps):
     psi = mps.get_theta(0, mps.L)
     psi = psi.take_slice([0, 0], ['vL', 'vR'])
     psi = psi.to_ndarray().reshape((2,2,4**(mps.L-2),2,2))[0,:,:,0,:]
