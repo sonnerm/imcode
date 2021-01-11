@@ -1,19 +1,37 @@
 import numpy as np
 from .utils import rdm_entropy
 
-def folded_temporal_entropy(vec):
+def folded_entropy(vec):
     L=int(np.log2(len(vec)))
     return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
 
-def flat_temporal_entropy(vec):
+def flat_entropy(vec):
     L=int(np.log2(len(vec)))
     return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
+def entropy(vec):
+    pass
 
+def boundary_obs(im,obs):
+    return np.sum(im*obs)
+def embedded_obs(left_im,obs_op,right_im):
+    return np.sum(left_im*(obs_op@right_im))
 
-def im_czz(left_im,site_op=None,right_im=None):
-    t=int(np.log2(left_im.shape[0]))
-    return np.sum(zz_op(t)*left_im*site_op*right_im)
-
+def embedded_czz(im,lop):
+    op=multiply_mpos([lop,zz_operator])
+    return embedded_obs(im,op,im)
+def boundary_czz(im,lop):
+    st=zz_state(t)
+    apply(lop,st)
+    return boundary_obs(im,st)
+def embedded_norm(im,lop):
+    return embedded_obs(im,lop,im)
+def boundary_norm(im,lop):
+    st=open_boundary_im(t)
+    apply(lop,st)
+    return boundary_obs(im,lop,im)
+# def im_czz(left_im,site_op=None,right_im=None):
+#     t=int(np.log2(left_im.shape[0]))
+#     return np.sum(zz_op(t)*left_im*site_op*right_im)
 
 def direct_czz(F,t,i,j):
     L=int(np.log2(F.shape[0]))

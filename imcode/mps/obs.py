@@ -19,7 +19,7 @@ def zz_operator(t):
 def zz_state(t):
     pass
 def embedded_czz(im,lop):
-    op=multiply_mpos([lop,zz_operator])
+    op=multiply_mpos([lop,zz_operator(t)])
     return embedded_obs(im,op,im)
 def boundary_czz(im,lop):
     st=zz_state(t)
