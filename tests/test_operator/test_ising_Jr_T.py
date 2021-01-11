@@ -13,7 +13,8 @@ def dense_ising_Jr_T():
     g=np.random.normal()
     h=np.random.normal()
     return (dense.ising_Jr_T(T,g,h),(T,g,h))
-@pytest.mark.skip()
+
+@pytest.mark.slow
 def test_ising_Jr_disorder(dense_ising_Jr_T):
     SAMPLE=2000
     seed_rng("dense_ising_Jr_T_dis")

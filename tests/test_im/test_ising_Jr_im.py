@@ -14,9 +14,11 @@ def dense_ising_Jr_im():
     dt=dense.ising_Jr_T(t,g,h)
     im=dense.im_iterative(dt)
     return (im,(t,g,h))
+
 def test_dense_ising_Jr_im_iterative(dense_ising_Jr_im):
     check_dense_im(dense_ising_Jr_im[0])
 
+@pytest.mark.slow
 def test_ising_Jr_im_disorder(dense_ising_Jr_im):
     SAMPLE=1000
     seed_rng("ising_Jr_im_disorder")

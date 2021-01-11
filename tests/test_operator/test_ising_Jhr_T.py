@@ -19,7 +19,7 @@ def test_dense_ising_Jhr_T(dense_ising_Jhr_T):
     proj=la.matrix_power(diT,dense_ising_Jhr_T[1][0]*2)
     assert proj==pytest.approx(diT@proj)
 
-@pytest.mark.skip()
+@pytest.mark.slow
 def test_ising_Jhr_disorder(dense_ising_Jhr_T):
     SAMPLE=1000
     seed_rng("dense_ising_Jhr_T_dis")
@@ -30,7 +30,7 @@ def test_ising_Jhr_disorder(dense_ising_Jhr_T):
     Tmd/=SAMPLE
     print(Tmd)
     print(dense_ising_Jhr_T[0])
-    assert Tmd==pytest.approx(dense_ising_Jhr_T[0],rel=1e-2,abs=1e-2)
+    assert Tmd==pytest.approx(dense_ising_Jhr_T[0],rel=1e-3,abs=1e-3)
 @pytest.mark.xfail
 def test_sparse_ising_Jhr_T(dense_ising_Jhr_T):
     sih=sparse.ising_Jhr_T(*dense_ising_Jhr_T[1])

@@ -14,6 +14,8 @@ def dense_ising_hr_im():
     dt=dense.ising_hr_T(t,J,g)
     im=dense.im_iterative(dt)
     return (im,(t,J,g))
+
+@pytest.mark.slow
 def test_ising_hr_im_disorder(dense_ising_hr_im):
     SAMPLE=1000
     seed_rng("ising_hr_im_disorder")

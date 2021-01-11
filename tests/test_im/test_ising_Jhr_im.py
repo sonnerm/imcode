@@ -13,7 +13,7 @@ def dense_ising_Jhr_im():
     dt=dense.ising_Jhr_T(t,g)
     im=dense.im_iterative(dt)
     return (im,(t,g))
-
+@pytest.mark.slow
 def test_ising_Jhr_im_disorder(dense_ising_Jhr_im):
     SAMPLE=1000
     seed_rng("ising_Jhr_im_disorder")
