@@ -48,13 +48,18 @@ def _multiply_W(w1,w2):
 def multiply_mpos(mpolist):
     Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
     return MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps])
+def apply(mpo,mps,chi=None,options=None):
+    if options is None:
+        if chi is None:
+            mpo.apply_naively(mps)
+            return
+        else:
+            options={"trunc_params":{"chi_max":chi},"verbose":False,"compression_method":"SVD"}
+    mpo.apply(mps,options)
 
-def apply_all(mps,h_mpo,W_mpo,J_mpo,chi_max=128):
-    options={"trunc_params":{"chi_max":chi_max},"verbose":False,"compression_method":"SVD"}
-    h_mpo.apply_naively(mps)
-    W_mpo.apply_naively(mps)
-    J_mpo.apply_naively(mps)
-    mps.compress(options)
+def apply_naively(mpo,mps):
+    mpo.apply_naively(mps,options)
+
 def get_it_mps(sites):
     state = [[1,1,0,0]] * len(sites) #infinite temperature state
     psi = MPS.from_product_state(sites, state)
