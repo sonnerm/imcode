@@ -31,10 +31,11 @@ def test_dense_Jr_operator_even(dense_Jr_operator_even):
 def test_sparse_Jr_operator_odd(dense_Jr_operator_odd):
     sih=sparse.Jr_operator(dense_Jr_operator_odd[1])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_Jr_operator_odd[0])
-
 @pytest.mark.xfail
 def test_sparse_Jr_operator_even(dense_Jr_operator_even):
     sih=sparse.Jr_operator(dense_Jr_operator_even[1])
+    print(sparse.sparse_to_dense(sih))
+    print(dense_Jr_operator_even[0])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_Jr_operator_even[0])
 
 def test_mps_Jr_operator_odd(dense_Jr_operator_odd):
