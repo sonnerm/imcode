@@ -12,7 +12,7 @@ def perfect_dephaser_im(t):
     psi = MPS.from_product_state(sites, state)
     return psi
 def im_iterative(mpo,chi=None,options=None):
-    return im_finite([mpo]*(2*(mpo.L-1)),chi,options)
+    return im_finite([mpo]*(2*(mpo.L-1)),chi=chi,options=options)
 
 def im_finite(Ts,boundary=None,chi=None,options=None):
     t=Ts[0].L-1

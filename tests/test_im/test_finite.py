@@ -136,3 +136,12 @@ def test_shallow_L3_short_time(dense_L3_short_time):
     assert im_from_shallow(*dense_L3_short_time[1])==pytest.approx(dense_L3_short_time[0])
 def test_shallow_L4_short_time(dense_L4_short_time):
     assert im_from_shallow(*dense_L4_short_time[1])==pytest.approx(dense_L4_short_time[0])
+
+def test_mps_shallow_L1_long_time():
+    pass
+def test_mps_shallow_L2_long_time():
+    pass
+def test_mps_shallow_L3_long_time():
+    pass
+def test_mps_shallow_L4_long_time():
+    pass
