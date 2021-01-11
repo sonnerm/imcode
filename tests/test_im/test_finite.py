@@ -5,6 +5,7 @@ import imcode.mps as mps
 import imcode.dense as dense
 import pytest
 from ..utils import seed_rng
+from .utils import check_dense_im
 
 @pytest.fixture(scope="module")
 def dense_L1_short_time():
@@ -55,11 +56,6 @@ def dense_L4_short_time():
         dts.append(dense.ising_T(t,Js[i],gs[i],hs[i]))
     im=dense.im_finite(dts)
     return (im,(t,Js,gs,hs))
-def check_dense_im(im):
-    #check classical configurations
-    #check norm boundary without local fields
-    #check norm embedded without local fields
-    pass
 def test_dense_L4_short_time(dense_L4_short_time):
     check_dense_im(dense_L4_short_time[0])
 def test_dense_L3_short_time(dense_L3_short_time):
@@ -126,18 +122,17 @@ def test_mps_L4_short_time(dense_L4_short_time):
         sts.append(mps.ising_T(t,J,g,h))
     assert mps.mps_to_dense(mps.im_finite(sts))==pytest.approx(dense_L4_short_time[0])
 def im_from_shallow(t,Js,gs,hs):
-    ret=np.zeros((2**(2*t)))
+    def index_to_state(t,ind):
+        return bin(ind+2**(2*t))[3:].replace("1","u").replace("0","d")
+    ret=np.zeros((2**(2*t)),dtype=complex)
     for i in range(2**(2*t)):
-        ret[i]=shallow.im_element(Js,gs,hs,shallow.index_to_state(t,i))
-@pytest.mark.skip()
+        ret[i]=shallow.im_element(Js,gs,hs,index_to_state(t,i))
+    return ret
 def test_shallow_L1_short_time(dense_L1_short_time):
     assert im_from_shallow(*dense_L1_short_time[1])==pytest.approx(dense_L1_short_time[0])
-@pytest.mark.skip()
 def test_shallow_L2_short_time(dense_L2_short_time):
     assert im_from_shallow(*dense_L2_short_time[1])==pytest.approx(dense_L2_short_time[0])
-@pytest.mark.skip()
 def test_shallow_L3_short_time(dense_L3_short_time):
     assert im_from_shallow(*dense_L3_short_time[1])==pytest.approx(dense_L3_short_time[0])
-@pytest.mark.skip()
 def test_shallow_L4_short_time(dense_L4_short_time):
     assert im_from_shallow(*dense_L4_short_time[1])==pytest.approx(dense_L4_short_time[0])

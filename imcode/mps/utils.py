@@ -54,7 +54,7 @@ def apply(mpo,mps,chi=None,options=None):
     if options is None:
         if chi is None:
             mpo.apply_naively(mps)
-            mps.canonical_form()
+            mps.canonical_form(renormalize=False)
             return
         else:
             options={"trunc_params":{"chi_max":chi},"verbose":False,"compression_method":"SVD"}

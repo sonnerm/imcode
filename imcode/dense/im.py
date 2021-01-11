@@ -9,7 +9,8 @@ def im_iterative(T):
     '''
         Obtain the semi-infinite chain influence matrix by iterating the transfer matrix `T` 2T times.
     '''
-    im_finite([T]*(2*T))
+    t=int(np.log2(T.shape[0]))
+    return im_finite([T]*(2*t))
 def im_finite(Ts,boundary=None):
     if boundary is None:
         t2=int(np.log2(Ts[0].shape[0]))

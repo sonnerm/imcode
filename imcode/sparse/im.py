@@ -1,5 +1,5 @@
 import numpy as np
-import numpy.linalg as la
+import scipy.sparse.linalg as spla
 def im_iterative(T):
     '''
         Obtain the semi-infinite chain influence matrix by iterating the transfer matrix `T`
@@ -10,13 +10,13 @@ def im_iterative(T):
         vec=T@vec
     return vec
 
-def im_lanczos(T):
+def im_diag(T):
     '''
         Obtain the semi-infinite chain influence matrix by fully diagonalizing
         the transfer matrix `T` and taking the eigenvector to the largest eigenvalue
         normalized such that classical trajectories are one, fd results are returned
     '''
-    ev,evv=la.eig(T)
+    ev,evv=spla.eigs(T,k=1,which="LM")
     return (evv[:,np.argmax(ev)]/evv[0,np.argmax(ev)],(ev,evv))
 
 def im_finite(Ts,boundary=None):

@@ -50,7 +50,8 @@ def ising_J(t,J):
     sites=[BlipSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
-    Iprim=np.array([[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]])/np.sqrt(2)
+    # Iprim=np.array([[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]])/np.sqrt(2)
+    Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])/np.sqrt(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
     pj=np.exp(2.0j*J)
     mj=np.exp(-2.0j*np.conj(J))
