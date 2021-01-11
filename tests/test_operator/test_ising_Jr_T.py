@@ -14,6 +14,17 @@ def dense_ising_Jr_T():
     h=np.random.normal()
     return (dense.ising_Jr_T(T,g,h),(T,g,h))
 
+def test_ising_Jr_disorder(dense_ising_Jr_T):
+    SAMPLE=1000
+    seed_rng("dense_ising_Jr_T_dis")
+    Tmd=np.zeros_like(dense_ising_Jr_T[0])
+    t,g,h=dense_ising_Jr_T[1]
+    for i in range(SAMPLE):
+        Tmd+=dense.ising_T(t,np.random.uniform(0,2*np.pi),g,h)
+    Tmd/=SAMPLE
+    print(Tmd)
+    print(dense_ising_Jr_T[0])
+    assert Tmd==pytest.approx(dense_ising_Jr_T[0],rel=1e-2,abs=1e-2)
 def test_dense_ising_Jr_T(dense_ising_Jr_T):
     diT=dense_ising_Jr_T[0]
     assert diT.dtype==np.complex_

@@ -14,6 +14,18 @@ def dense_ising_hr_T():
     g=np.random.normal()
     return (dense.ising_hr_T(T,J,g),(T,J,g))
 
+def test_ising_hr_disorder(dense_ising_hr_T):
+    SAMPLE=1000
+    seed_rng("dense_ising_hr_T_dis")
+    Tmd=np.zeros_like(dense_ising_hr_T[0])
+    t,J,g=dense_ising_hr_T[1]
+    for i in range(SAMPLE):
+        Tmd+=dense.ising_T(t,J,g,np.random.uniform(0,2*np.pi))
+    Tmd/=SAMPLE
+    print(Tmd)
+    print(dense_ising_hr_T[0])
+    assert Tmd==pytest.approx(dense_ising_hr_T[0],rel=1e-2,abs=1e-2)
+
 def test_dense_ising_hr_T(dense_ising_hr_T):
     diT=dense_ising_hr_T[0]
     assert diT.dtype==np.complex_

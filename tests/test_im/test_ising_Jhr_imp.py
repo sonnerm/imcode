@@ -2,7 +2,7 @@ import pytest
 import imcode.dense as dense
 import imcode.sparse as sparse
 import imcode.mps as mps
-from .utils import check_mps_im,check_dense_im
+from .utils import check_mps_im,check_dense_im,check_dense_imp,check_mps_imp
 from ..utils import seed_rng
 import numpy as np
 @pytest.fixture(scope="module")
@@ -14,7 +14,7 @@ def dense_ising_Jhr_imp():
     im=dense.im_iterative(dt)
     return (im,(t,g))
 def test_dense_ising_Jhr_imp_iterative(dense_ising_Jhr_imp):
-    check_dense_im(dense_ising_Jhr_imp[0])
+    check_dense_imp(dense_ising_Jhr_imp[0])
 
 def test_dense_ising_Jhr_imp_diag(dense_ising_Jhr_imp):
     print(dense_ising_Jhr_imp[0])
