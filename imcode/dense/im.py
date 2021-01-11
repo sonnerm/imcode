@@ -1,5 +1,10 @@
 import numpy as np
 import numpy.linalg as la
+def open_boundary_im(t):
+    return np.ones((2**(2*t)))
+def perfect_dephaser_im(t):
+    pass
+
 def im_iterative(T):
     '''
         Obtain the semi-infinite chain influence matrix by iterating the transfer matrix `T` 2T times.

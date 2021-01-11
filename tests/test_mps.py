@@ -24,7 +24,7 @@ def test_store_mps(tmpdir):
     seed_rng("store_mps")
     t,J,g,h=4,np.random.normal(),np.random.normal(),np.random.normal()
     mpo=mps.ising_T(t,J,g,h)
-    mps1=mps.im_iterative(mpo)
+    mps1=mps.im_iterative(mpo,chi=128)
     hdf5_io.save_to_hdf5(f,mps1,"mps")
     f.close()
     del mps1

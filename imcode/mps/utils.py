@@ -49,9 +49,12 @@ def multiply_mpos(mpolist):
     Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
     return MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps])
 def apply(mpo,mps,chi=None,options=None):
+    mpo.IdL[0]=0
+    mpo.IdR[-1]=0 #How is this my job?
     if options is None:
         if chi is None:
             mpo.apply_naively(mps)
+            mps.canonical_form()
             return
         else:
             options={"trunc_params":{"chi_max":chi},"verbose":False,"compression_method":"SVD"}

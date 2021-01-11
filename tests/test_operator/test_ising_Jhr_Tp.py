@@ -5,7 +5,6 @@ from imcode import sparse
 from imcode import mps
 from ..utils import seed_rng
 import pytest
-pytestmark=pytest.mark.skip("for now")
 @pytest.fixture(scope="module")
 def dense_ising_Jhr_Tp():
     T=3
