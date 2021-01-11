@@ -1,5 +1,6 @@
 import numpy as np
-from .utils import rdm_entropy
+import numpy.linalg as la
+from .utils import rdm_entropy,sz
 
 def folded_entropy(vec):
     L=int(np.log2(len(vec)))
@@ -15,13 +16,19 @@ def boundary_obs(im,obs):
     return np.sum(im*obs)
 def embedded_obs(left_im,obs_op,right_im):
     return np.sum(left_im*(obs_op@right_im))
-
+def zz_state(t):
+    ret=np.zeros((2,2**(t-1),2,2**(t-1)))
+    ret[0,:,0,:]=1
+    ret[0,:,1,:]=-1
+    ret[1,:,0,:]=-1
+    ret[1,:,1,:]=1
+    return np.ravel(ret)
 def embedded_czz(im,lop):
-    op=multiply_mpos([lop,zz_operator])
-    return embedded_obs(im,op,im)
+    t=int(np.log2(im.shape[0]))//2
+    return embedded_obs(im,lop,zz_state(t)*im)
 def boundary_czz(im,lop):
-    st=zz_state(t)
-    apply(lop,st)
+    t=int(np.log2(im.shape[0]))//2
+    st=lop@zz_state(t)
     return boundary_obs(im,st)
 def embedded_norm(im,lop):
     return embedded_obs(im,lop,im)
@@ -35,7 +42,7 @@ def boundary_norm(im,lop):
 
 def direct_czz(F,t,i,j):
     L=int(np.log2(F.shape[0]))
-    return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))
+    return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))/(2**(L-1))
 
 def spectral_function(L,eigs,eigv):
     eigs=eigs*(2**L)/2/np.pi # unfolding

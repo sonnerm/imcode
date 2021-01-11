@@ -107,9 +107,9 @@ def Jr_operator(T):
     # D[D<0]=0
     # for i in range(1,T):
     #     D=D.reshape((2**i,2,2**(2*T-i-1)))
-    #     D[:,1,:]*=1
-    #     D=D.reshape((2**(T+i),2,2**(T-i-1)))
     #     D[:,1,:]*=-1
+    #     D=D.reshape((2**(T+i),2,2**(T-i-1)))
+    #     D[:,1,:]*=1
     # D=D.reshape((2,2**(2*T-1)))
     # D[1,:]*=0
     # D[0,:]*=2

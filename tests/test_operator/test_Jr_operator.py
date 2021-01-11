@@ -2,6 +2,7 @@ import numpy as np
 from imcode import dense
 from imcode import sparse
 from imcode import mps
+from ..utils import seed_rng
 import pytest
 @pytest.fixture(scope="module")
 def dense_Jr_operator_odd():
@@ -25,7 +26,22 @@ def test_dense_Jr_operator_even(dense_Jr_operator_even):
     assert dih.dtype==np.float_#real
     assert dih.T==pytest.approx(dih) #symmetric
     assert set(list(np.ravel(dih)))=={0.0,0.5} #only zero and one's
-
+@pytest.mark.slow
+def test_dense_Jr_operator_disorder(dense_Jr_operator_even):
+    SAMPLE=10000
+    seed_rng("dense_Jr_operator")
+    Tmd=np.zeros_like(dense_Jr_operator_even[0],dtype=complex)
+    t=dense_Jr_operator_even[1]
+    am=[]
+    for i in range(SAMPLE):
+        Tmd+=dense.ising_J(t,np.random.uniform(0,8*np.pi))
+        if i>100:
+            test=np.abs(Tmd/(i+1))
+            am.append(max(test[test<0.4]))
+    Tmd/=SAMPLE
+    # print(Tmd)
+    # print(dense_Jr_operator_even[0])
+    assert Tmd==pytest.approx(dense_Jr_operator_even[0],rel=1e-2,abs=1e-2)
 
 @pytest.mark.xfail
 def test_sparse_Jr_operator_odd(dense_Jr_operator_odd):
