@@ -17,6 +17,20 @@ def dense_ising_Jr_im():
 def test_dense_ising_Jr_im_iterative(dense_ising_Jr_im):
     check_dense_im(dense_ising_Jr_im[0])
 
+def test_ising_Jr_im_disorder(dense_ising_Jr_im):
+    SAMPLE=1000
+    seed_rng("ising_Jr_im_disorder")
+    t,g,h=dense_ising_Jr_im[1]
+    vec=dense.open_boundary_im(t)
+    for i in range(2*t):
+        vec=dense.ising_T(t,np.random.uniform(0,2*np.pi),g,h)@vec
+    vav=np.zeros_like(vec)
+    for i in range(SAMPLE):
+        vec=dense.ising_T(t,np.random.uniform(0,2*np.pi),g,h)@vec
+        vav+=vec
+    vav/=SAMPLE
+    assert vav == pytest.approx(dense_ising_Jr_im[0],rel=1e-3,abs=1e-3)
+
 def test_dense_ising_Jr_im_diag(dense_ising_Jr_im):
     print(dense_ising_Jr_im[0])
     print(dense.im_diag(dense.ising_Jr_T(*dense_ising_Jr_im[1]))[0])

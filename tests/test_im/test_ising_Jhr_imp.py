@@ -13,8 +13,11 @@ def dense_ising_Jhr_imp():
     dt=dense.ising_Jhr_Tp(t,g)
     im=dense.im_iterative(dt)
     return (im,(t,g))
-def test_dense_ising_Jhr_imp_iterative(dense_ising_Jhr_imp):
-    check_dense_imp(dense_ising_Jhr_imp[0])
+
+def test_dense_ising_Jhr_imp_expand(dense_ising_Jhr_imp):
+    im=dense.im_iterative(dense.ising_Jhr_T(*dense_ising_Jhr_imp[1]))
+    im2=dense.im_finite([dense.ising_Jhr_T(*dense_ising_Jhr_imp[1])],boundary=dense_ising_Jhr_imp[0])
+    assert im == pytest.approx(im2)
 
 def test_dense_ising_Jhr_imp_diag(dense_ising_Jhr_imp):
     print(dense_ising_Jhr_imp[0])

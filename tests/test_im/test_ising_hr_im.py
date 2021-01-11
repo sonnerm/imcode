@@ -14,6 +14,20 @@ def dense_ising_hr_im():
     dt=dense.ising_hr_T(t,J,g)
     im=dense.im_iterative(dt)
     return (im,(t,J,g))
+def test_ising_hr_im_disorder(dense_ising_hr_im):
+    SAMPLE=1000
+    seed_rng("ising_hr_im_disorder")
+    t,J,g=dense_ising_hr_im[1]
+    vec=dense.open_boundary_im(t)
+    for i in range(2*t):
+        vec=dense.ising_T(t,J,g,np.random.uniform(0,2*np.pi))@vec
+    vav=np.zeros_like(vec)
+    for i in range(SAMPLE):
+        vec=dense.ising_T(t,J,g,np.random.uniform(0,2*np.pi))@vec
+        vav+=vec
+    vav/=SAMPLE
+    assert vav == pytest.approx(dense_ising_hr_im[0],rel=1e-4,abs=1e-4)
+
 def test_dense_ising_hr_im_iterative(dense_ising_hr_im):
     check_dense_im(dense_ising_hr_im[0])
 

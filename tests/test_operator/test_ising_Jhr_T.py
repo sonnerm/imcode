@@ -19,6 +19,7 @@ def test_dense_ising_Jhr_T(dense_ising_Jhr_T):
     proj=la.matrix_power(diT,dense_ising_Jhr_T[1][0]*2)
     assert proj==pytest.approx(diT@proj)
 
+@pytest.mark.skip()
 def test_ising_Jhr_disorder(dense_ising_Jhr_T):
     SAMPLE=1000
     seed_rng("dense_ising_Jhr_T_dis")

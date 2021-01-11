@@ -14,8 +14,10 @@ def dense_ising_hr_imp():
     dt=dense.ising_hr_Tp(t,J,g)
     im=dense.im_iterative(dt)
     return (im,(t,J,g))
-def test_dense_ising_hr_imp_iterative(dense_ising_hr_imp):
-    check_dense_imp(dense_ising_hr_imp[0])
+def test_dense_ising_hr_imp_expand(dense_ising_hr_imp):
+    im=dense.im_iterative(dense.ising_hr_T(*dense_ising_hr_imp[1]))
+    im2=dense.im_finite([dense.ising_hr_T(*dense_ising_hr_imp[1])],boundary=dense_ising_hr_imp[0])
+    assert im == pytest.approx(im2)
 
 def test_dense_ising_hr_imp_diag(dense_ising_hr_imp):
     print(dense_ising_hr_imp[0])

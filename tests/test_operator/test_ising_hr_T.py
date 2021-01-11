@@ -14,6 +14,7 @@ def dense_ising_hr_T():
     g=np.random.normal()
     return (dense.ising_hr_T(T,J,g),(T,J,g))
 
+@pytest.mark.skip()
 def test_ising_hr_disorder(dense_ising_hr_T):
     SAMPLE=1000
     seed_rng("dense_ising_hr_T_dis")
