@@ -27,12 +27,12 @@ def test_dense_Jr_operator_even(dense_Jr_operator_even):
     assert set(list(np.ravel(dih)))=={0.0,0.5} #only zero and one's
 
 
-@pytest.mark.skip("Needs reimplementation")
+@pytest.mark.xfail
 def test_sparse_Jr_operator_odd(dense_Jr_operator_odd):
     sih=sparse.Jr_operator(dense_Jr_operator_odd[1])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_Jr_operator_odd[0])
 
-@pytest.mark.skip("Needs reimplementation")
+@pytest.mark.xfail
 def test_sparse_Jr_operator_even(dense_Jr_operator_even):
     sih=sparse.Jr_operator(dense_Jr_operator_even[1])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_Jr_operator_even[0])
@@ -59,7 +59,7 @@ def test_dense_Jr_operator_short():
     assert dih.T==pytest.approx(dih) #symmetric
     assert set(list(np.ravel(dih)))=={0.0,0.5} #only zero and one's
 
-@pytest.mark.skip("Needs reimplementation")
+@pytest.mark.xfail
 def test_sparse_Jr_operator_short():
     # Essentially check whether code fails for short times
     dih=dense.Jr_operator(1)

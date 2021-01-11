@@ -49,12 +49,12 @@ def test_sparse_ising_F_real(dense_ising_F_real):
 def test_sparse_ising_F_complex(dense_ising_F_complex):
     siF=sparse.ising_F(*dense_ising_F_complex[1])
     assert sparse.sparse_to_dense(siF)==pytest.approx(dense_ising_F_complex[0])
-@pytest.mark.skip("not implemented")
+@pytest.mark.xfail
 def test_mps_ising_F_real(dense_ising_F_real):
     miF=mps.ising_F(*dense_ising_F_real[1])
     assert mps.mps_to_dense(miF)==pytest.approx(dense_ising_F_real[0])
 
-@pytest.mark.skip("not implemented")
+@pytest.mark.xfail
 def test_mps_ising_F_complex(dense_ising_F_complex):
     miF=sparse.ising_F(*dense_ising_F_complex[1])
     assert mps.mps_to_dense(miF)==pytest.approx(dense_ising_F_complex[0])

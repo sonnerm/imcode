@@ -18,7 +18,7 @@ def test_store_mpo(tmpdir):
     f2=h5py.File(tmpdir.join("test_mpo.h5"))
     mpo2=hdf5_io.load_from_hdf5(f2,"mpo")
     assert mps.mpo_to_dense(mpo2)==pytest.approx(dense.ising_T(t,J,g,h))
-@pytest.mark.skip("not implemented")
+@pytest.mark.xfail
 def test_store_mps(tmpdir):
     f=h5py.File(tmpdir.join("test_mps.h5"),"w")
     seed_rng("store_mps")

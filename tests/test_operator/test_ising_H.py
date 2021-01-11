@@ -46,12 +46,12 @@ def test_sparse_ising_H_complex(dense_ising_H_complex):
     siH=sparse.ising_H(*dense_ising_H_complex[1])
     assert siH.dtype==np.complex_
     assert sparse.sparse_to_dense(siH)==pytest.approx(dense_ising_H_complex[0])
-@pytest.mark.skip("Not implemented")
+@pytest.mark.xfail
 def test_mps_ising_H_real(dense_ising_H_real):
     miH=mps.ising_H(*dense_ising_H_real[1])
     assert mps.mps_to_dense(siH)==pytest.approx(dense_ising_H_real[0])
 
-@pytest.mark.skip("Not implemented")
+@pytest.mark.xfail
 def test_mps_ising_H_complex(dense_ising_H_complex):
     miH=mps.ising_H(*dense_ising_H_complex[1])
     assert mps.mps_to_dense(siH)==pytest.approx(dense_ising_H_complex[0])
