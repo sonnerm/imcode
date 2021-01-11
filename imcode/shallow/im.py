@@ -14,6 +14,8 @@ def im_element(Js,gs,hs,state):
     else: # unfolded tuple
         fw,bw=state
     L=len(hs)
+    gs=gs[::-1]
+    hs=hs[::-1]
     Ws=[np.array([[np.cos(g),1.0j*np.sin(g)],[1.0j*np.sin(g),np.cos(g)]]) for g in gs]
     W=functools.reduce(np.kron,Ws)
     Udiag=np.exp(1.0j*ising_diag(Js[:-1],gs))
