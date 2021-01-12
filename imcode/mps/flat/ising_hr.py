@@ -1,10 +1,12 @@
+from ..utils import wrap_ndarray
+from .ising import ising_W,ising_J
 from functools import lru_cache
 @lru_cache(None)
 def hr_operator(t):
-    sites=[BlipSite() for t in range(t+1)]
-    Iprim=np.array([[1.0,0.0,0.0,0.0],[0.0,1.0,0.0,0.0],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
+    sites=[FlatSite() for t in range(t+1)]
+    Iprim=np.array([[1.0,0.0],[0.0,1.0]])
     leg_t=LegCharge.from_trivial(1)
-    leg_p=LegCharge.from_trivial(4)
+    leg_p=LegCharge.from_trivial(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
     inc=[wrap_ndarray(_get_proj_inc(c)) for c in range((t-1)//2)]

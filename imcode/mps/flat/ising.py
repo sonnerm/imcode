@@ -1,6 +1,7 @@
 from .utils import FlatSite
+from ..utils import multiply_mpos
 def ising_W(t,g):
-    sites=[SpinHalfSite(None) for _ in range(t+1)]
+    sites=[FlatSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=LegCharge.from_trivial(2)
     leg_m=LegCharge.from_trivial(2)
@@ -17,7 +18,7 @@ def ising_W(t,g):
     return MPO(sites,[W_0]+[W_i]*(t-1)+[W_T])
 
 def ising_h(t,h):
-    sites=[SpinHalfSite(False) for _ in range(t+1)]
+    sites=[FlatSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=LegCharge.from_trivial(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(2))
@@ -29,7 +30,7 @@ def ising_h(t,h):
     return MPO(sites,[Id]+[Hf]*(t-1)+[Id]+[Hb]*(t-1))
 
 def ising_J(t,J):
-    sites=[SpinHalfSite(None) for _ in range(t+1)]
+    sites=[FlatSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     # Iprim=np.array([[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]])/np.sqrt(2)

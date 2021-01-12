@@ -23,7 +23,10 @@ def test_sparse_ising_hr_Tp(dense_ising_hr_Tp):
     sih=sparse.ising_hr_Tp(*dense_ising_hr_Tp[1])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_ising_hr_Tp[0])
 
-def test_mps_ising_hr_Tp(dense_ising_hr_Tp):
+def test_fold_ising_hr_Tp(dense_ising_hr_Tp):
     mih=mps.fold.ising_hr_Tp(*dense_ising_hr_Tp[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_hr_Tp[0])
-    # assert mih.chi==[1]+[4*i for i in range(1,(mih.L)//2)]+[4*i for i in range((mih.L)//2,0,-1)]+[1]
+@pytest.mark.xfail
+def test_flat_ising_hr_Tp(dense_ising_hr_Tp):
+    mih=mps.flat.ising_hr_Tp(*dense_ising_hr_Tp[1])
+    assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_hr_Tp[0])
