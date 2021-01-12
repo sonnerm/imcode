@@ -1,9 +1,9 @@
 import numpy as np
-def free_to_quad():
+def maj_to_quad():
     pass
-def free_to_trans():
+def maj_to_trans():
     pass
-def quad_to_free():
+def quad_to_maj():
     pass
-def trans_to_free():
+def trans_to_maj():
     pass

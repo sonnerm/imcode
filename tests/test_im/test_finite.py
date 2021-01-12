@@ -97,8 +97,6 @@ def test_mps_L1_short_time(dense_L1_short_time):
     for J,g,h in zip(*dense_L1_short_time[1][1:]):
         sts.append(mps.fold.ising_T(t,J,g,h))
     mif=mps.im_finite(sts)
-    print(mps.mps_to_dense(mif)/mps.mps_to_dense(mif)[0])
-    print(dense_L1_short_time[0])
     ps=dense_L1_short_time[1][1:]
     assert mps.mpo_to_dense(sts[0])==pytest.approx(dense.ising_T(t,ps[0][0],ps[1][0],ps[2][0]))
 

@@ -36,7 +36,12 @@ def test_sparse_ising_Jhr_T(dense_ising_Jhr_T):
     sih=sparse.ising_Jhr_T(*dense_ising_Jhr_T[1])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_ising_Jhr_T[0])
 
-def test_mps_ising_Jhr_T(dense_ising_Jhr_T):
+def test_flat_ising_Jhr_T(dense_ising_Jhr_T):
+    mih=mps.flat.ising_Jhr_T(*dense_ising_Jhr_T[1])
+    assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_Jhr_T[0])
+    #assert mih.chi==[1]+[4*i for i in range(1,(mih.L)//2)]+[4*i for i in range((mih.L)//2,0,-1)]+[1]
+
+def test_fold_ising_Jhr_T(dense_ising_Jhr_T):
     mih=mps.fold.ising_Jhr_T(*dense_ising_Jhr_T[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_Jhr_T[0])
     #assert mih.chi==[1]+[4*i for i in range(1,(mih.L)//2)]+[4*i for i in range((mih.L)//2,0,-1)]+[1]

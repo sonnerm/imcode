@@ -29,8 +29,15 @@ def test_sparse_ising_im_iterative(dense_ising_im):
 def test_sparse_ising_im_diag(dense_ising_im):
     assert sparse.im_diag(sparse.ising_T(*dense_ising_im[1]))[0]==pytest.approx(dense_ising_im[0])
 
-def test_mps_ising_im_iterative(dense_ising_im):
+def test_fold_ising_im_iterative(dense_ising_im):
     assert mps.mps_to_dense(mps.im_iterative(mps.fold.ising_T(*dense_ising_im[1])))==pytest.approx(dense_ising_im[0])
+
+def test_flat_ising_im_iterative(dense_ising_im):
+    assert mps.mps_to_dense(mps.im_iterative(mps.flat.ising_T(*dense_ising_im[1])))==pytest.approx(dense_ising_im[0])
 @pytest.mark.xfail
-def test_mps_ising_im_dmrg(dense_ising_im):
+def test_fold_ising_im_dmrg(dense_ising_im):
     assert mps.mps_to_dense(mps.im_dmrg(mps.fold.ising_T(*dense_ising_im[1])))==pytest.approx(dense_ising_im[0])
+
+@pytest.mark.xfail
+def test_flat_ising_im_dmrg(dense_ising_im):
+    assert mps.mps_to_dense(mps.im_dmrg(mps.flat.ising_T(*dense_ising_im[1])))==pytest.approx(dense_ising_im[0])

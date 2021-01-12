@@ -54,14 +54,25 @@ def test_sparse_Jr_operator_even(dense_Jr_operator_even):
     print(dense_Jr_operator_even[0])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_Jr_operator_even[0])
 
-def test_mps_Jr_operator_odd(dense_Jr_operator_odd):
+def test_fold_Jr_operator_odd(dense_Jr_operator_odd):
     t=dense_Jr_operator_odd[1]
     mih=mps.fold.Jr_operator(t)
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_Jr_operator_odd[0])
     assert mih.chi==[1]+[2*i+1 for i in range(0,(t+1)//2)]+[2*i-1 for i in range((t-1)//2,0,-1)]+[1]
-def test_mps_Jr_operator_even(dense_Jr_operator_even):
+def test_fold_Jr_operator_even(dense_Jr_operator_even):
     t=dense_Jr_operator_even[1]
     mih=mps.fold.Jr_operator(t)
+    assert mps.mpo_to_dense(mih)==pytest.approx(dense_Jr_operator_even[0])
+    assert mih.chi==[1]+[2*i+1 for i in range((t+1)//2)]+[2*i-1 for i in range((t+1)//2,0,-1)]+[1]
+
+def test_flat_Jr_operator_odd(dense_Jr_operator_odd):
+    t=dense_Jr_operator_odd[1]
+    mih=mps.flat.Jr_operator(t)
+    assert mps.mpo_to_dense(mih)==pytest.approx(dense_Jr_operator_odd[0])
+    assert mih.chi==[1]+[2*i+1 for i in range(0,(t+1)//2)]+[2*i-1 for i in range((t-1)//2,0,-1)]+[1]
+def test_flat_Jr_operator_even(dense_Jr_operator_even):
+    t=dense_Jr_operator_even[1]
+    mih=mps.flat.Jr_operator(t)
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_Jr_operator_even[0])
     assert mih.chi==[1]+[2*i+1 for i in range((t+1)//2)]+[2*i-1 for i in range((t+1)//2,0,-1)]+[1]
 
@@ -86,11 +97,20 @@ def test_sparse_Jr_operator_short():
     sih=dense.Jr_operator(2)
     assert sparse.sparse_to_dense(sih)==pytest.approx(dih)
 
-def test_mps_Jr_operator_short():
+def test_fold_Jr_operator_short():
     # Essentially check whether code fails for short times
     dih=dense.Jr_operator(1)
     mih=mps.fold.Jr_operator(1)
     assert mps.mpo_to_dense(mih)==pytest.approx(dih)
     dih=dense.Jr_operator(2)
     mih=mps.fold.Jr_operator(2)
+    assert mps.mpo_to_dense(mih)==pytest.approx(dih)
+
+def test_flat_Jr_operator_short():
+    # Essentially check whether code fails for short times
+    dih=dense.Jr_operator(1)
+    mih=mps.flat.Jr_operator(1)
+    assert mps.mpo_to_dense(mih)==pytest.approx(dih)
+    dih=dense.Jr_operator(2)
+    mih=mps.flat.Jr_operator(2)
     assert mps.mpo_to_dense(mih)==pytest.approx(dih)

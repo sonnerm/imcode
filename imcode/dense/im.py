@@ -3,7 +3,15 @@ import numpy.linalg as la
 def open_boundary_im(t):
     return np.ones((2**(2*t)))
 def perfect_dephaser_im(t):
-    pass
+    ret=np.zeros((2**(2*t)))
+    L=1<<(2*t-1)
+    R=1<<(t-1)
+    for i in range(2**(t-1)):
+        ret[L|(i<<t)|R|i]=1
+        ret[(i<<t)|R|i]=1
+        ret[L|(i<<t)|i]=1
+        ret[(i<<t)|i]=1
+    return ret
 
 def im_iterative(T):
     '''
