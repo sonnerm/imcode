@@ -1,12 +1,18 @@
 from .utils import apply
-from .fold import open_boundary_im
+from . import fold
+from . import flat
 def im_iterative(mpo,chi=None,options=None):
     return im_finite([mpo]*(2*(mpo.L-1)),chi=chi,options=options)
 
 def im_finite(Ts,boundary=None,chi=None,options=None):
     t=Ts[0].L-1
     if boundary is None:
-        vec=open_boundary_im(t)
+        if isinstance(Ts[0].sites[0],fold.FoldSite):
+            vec=fold.open_boundary_im(t)
+        elif isinstance(Ts[0].sites[0],flat.FlatSite):
+            vec=flat.open_boundary_im(t)
+        else:
+            assert False
     else:
         vec=boundary.copy()
     for T in Ts:

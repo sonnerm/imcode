@@ -1,5 +1,5 @@
 from ..utils import multiply_mpos,wrap_ndarray
-from .utils import BlipSite
+from .utils import FoldSite
 from .ising import ising_W,ising_h
 from .ising_hr import hr_operator
 from functools import lru_cache
@@ -9,7 +9,7 @@ from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
 @lru_cache(None)
 def Jr_operator(t):
-    sites=[BlipSite() for t in range(t+1)]
+    sites=[FoldSite() for t in range(t+1)]
     # Iprim=np.ones((4,4))/np.sqrt(2)
     Iprim=np.ones((4,4))/np.sqrt(2)
     Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])/np.sqrt(2)

@@ -1,5 +1,5 @@
 from ..utils import multiply_mpos,wrap_ndarray
-from .utils import BlipSite
+from .utils import FoldSite
 from .ising import ising_W,ising_J
 from functools import lru_cache
 from tenpy.networks.mpo import MPO
@@ -8,7 +8,7 @@ from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
 @lru_cache(None)
 def hr_operator(t):
-    sites=[BlipSite() for t in range(t+1)]
+    sites=[FoldSite() for t in range(t+1)]
     Iprim=np.array([[1.0,0.0,0.0,0.0],[0.0,1.0,0.0,0.0],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]])
     leg_t=LegCharge.from_trivial(1)
     leg_p=LegCharge.from_trivial(4)

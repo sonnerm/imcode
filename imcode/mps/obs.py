@@ -1,7 +1,7 @@
 import tenpy
 import numpy as np
 from .utils import apply,multiply_mpos
-from .fold.utils import BlipSite
+from .fold.utils import FoldSite
 from .flat.utils import FlatSite
 from tenpy.networks.mpo import MPOEnvironment,MPO
 from tenpy.linalg.charges import LegCharge
@@ -11,7 +11,7 @@ def boundary_obs(im,obs):
 def embedded_obs(left_im,obs_mpo,right_im):
     return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm
 def zz_operator(t):
-    sites=[BlipSite() for _ in range(t+1)]
+    sites=[FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
@@ -21,7 +21,7 @@ def zz_operator(t):
     return MPO(sites,[Z]+[Id]*(t-1)+[Z])
 
 def zz_state(t):
-    sites=[BlipSite() for _ in range(t+1)]
+    sites=[FoldSite() for _ in range(t+1)]
 
 def embedded_czz(im,lop):
     t=im.L-1
@@ -54,7 +54,7 @@ def magsec_proj(T,M,branch="fw"):
     Id_m=[get_proj(Id_a,ll,lr.conj(),leg_pt,leg_p).drop_charge() for ll,lr in zip(legs[:-1],legs[1:])]
     Id_l=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_t,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex)
     Id_r=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_rt,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex,qtotal=[M])
-    return MPO([BlipSite(False) for t in range(T+1)],[Id_l.drop_charge()]+Id_m+[Id_r.drop_charge()])
+    return MPO([FoldSite(False) for t in range(T+1)],[Id_l.drop_charge()]+Id_m+[Id_r.drop_charge()])
 def embedded_magsec(im,s,lop):
     pass
 def boundary_magsec(im,s,lop):
@@ -130,7 +130,7 @@ def magsec_proj(T,M,branch="fw"):
     Id_m=[get_proj(Id_a,ll,lr.conj(),leg_pt,leg_p).drop_charge() for ll,lr in zip(legs[:-1],legs[1:])]
     Id_l=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_t,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex)
     Id_r=npc.Array.from_ndarray(np.einsum("ab,cd->abcd",np.eye(1),np.eye(4)),[leg_rt,leg_t.conj(),leg_pt,leg_pt.conj()],labels=["wL","wR","p","p*"],dtype=complex,qtotal=[M])
-    return MPO([BlipSite(False) for t in range(T+1)],[Id_l.drop_charge()]+Id_m+[Id_r.drop_charge()])
+    return MPO([FoldSite(False) for t in range(T+1)],[Id_l.drop_charge()]+Id_m+[Id_r.drop_charge()])
 
 def get_blip_average_uu(mps):
     lstate= [[1,0,0,0]]+[[0,0,1,1]]*(mps.L-2)+[[1,0,0,0]]

@@ -1,11 +1,11 @@
-from .utils import BlipSite
+from .utils import FoldSite
 from ..utils import multiply_mpos
 from tenpy.networks.mpo import MPO
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
 import numpy as np
 def ising_W(t,g):
-    sites=[BlipSite() for _ in range(t+1)]
+    sites=[FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     leg_m=LegCharge.from_trivial(4)
@@ -27,7 +27,7 @@ def ising_W(t,g):
     return MPO(sites,[W_0]+[W_i]*(t-1)+[W_T])
 
 def ising_h(t,h):
-    sites=[BlipSite() for _ in range(t+1)]
+    sites=[FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
@@ -37,7 +37,7 @@ def ising_h(t,h):
     return MPO(sites,[Id]+[H]*(t-1)+[Id])
 
 def ising_J(t,J):
-    sites=[BlipSite() for _ in range(t+1)]
+    sites=[FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     # Iprim=np.array([[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]])/np.sqrt(2)
