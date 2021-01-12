@@ -1,27 +1,32 @@
 import tenpy
-from .utils import apply,multiply_mpos
+import numpy as np
+from .utils import apply,multiply_mpos,BlipSite
 from tenpy.networks.mpo import MPOEnvironment,MPO
 from tenpy.linalg.charges import LegCharge
+import tenpy.linalg.np_conserved as npc
 def boundary_obs(im,obs):
     im.overlap(obs)
 def embedded_obs(left_im,obs_mpo,right_im):
     return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm
 def zz_operator(t):
     sites=[BlipSite() for _ in range(t+1)]
-    leg_t=LegCharge.from_trivial(0)
+    leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
     Za=np.einsum("ab,cd->abcd",np.eye(1),np.diag([1.0,-1.0,0.0,0.0]))
     Z=npc.Array.from_ndarray(Za,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    return MPO(sites,[Z]+[Id]*(T-1)+[Z])
+    return MPO(sites,[Z]+[Id]*(t-1)+[Z])
 
 def zz_state(t):
-    pass
+    sites=[BlipSite() for _ in range(t+1)]
+    
 def embedded_czz(im,lop):
+    t=im.L-1
     op=multiply_mpos([lop,zz_operator(t)])
     return embedded_obs(im,op,im)
 def boundary_czz(im,lop):
+    t=im.L-1
     st=zz_state(t)
     apply(lop,st)
     return boundary_obs(im,st)

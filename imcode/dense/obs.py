@@ -13,9 +13,9 @@ def entropy(vec):
     pass
 
 def boundary_obs(im,obs):
-    return np.sum(im*obs)
+    return np.sum(im*obs)/2
 def embedded_obs(left_im,obs_op,right_im):
-    return np.sum(left_im*(obs_op@right_im))
+    return np.sum(left_im*(obs_op@right_im))/2
 def zz_state(t):
     ret=np.zeros((2,2**(t-1),2,2**(t-1)))
     ret[0,:,0,:]=1
@@ -42,7 +42,11 @@ def boundary_norm(im,lop):
 
 def direct_czz(F,t,i,j):
     L=int(np.log2(F.shape[0]))
-    return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))/(2**(L-1))
+    return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))/(2**L)
+
+def direct_norm(F,t,i,j): #lol
+    L=int(np.log2(F.shape[0]))
+    return np.trace(la.matrix_power(F,t)@la.matrix_power(F.T.conj(),t))/(2**L)
 
 def spectral_function(L,eigs,eigv):
     eigs=eigs*(2**L)/2/np.pi # unfolding
