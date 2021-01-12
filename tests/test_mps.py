@@ -10,7 +10,7 @@ def test_store_mpo(tmpdir):
     f=h5py.File(tmpdir.join("test_mpo.h5"),"w")
     seed_rng("store_mpo")
     t,J,g,h=4,np.random.normal(),np.random.normal(),np.random.normal()
-    mpo=mps.ising_T(t,J,g,h)
+    mpo=mps.fold.ising_T(t,J,g,h)
     hdf5_io.save_to_hdf5(f,mpo,"mpo")
     f.close()
     del mpo
@@ -22,7 +22,7 @@ def test_store_mps(tmpdir):
     f=h5py.File(tmpdir.join("test_mps.h5"),"w")
     seed_rng("store_mps")
     t,J,g,h=4,np.random.normal(),np.random.normal(),np.random.normal()
-    mpo=mps.ising_T(t,J,g,h)
+    mpo=mps.fold.ising_T(t,J,g,h)
     mps1=mps.im_iterative(mpo,chi=128)
     hdf5_io.save_to_hdf5(f,mps1,"mps")
     f.close()

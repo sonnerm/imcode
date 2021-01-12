@@ -1,6 +1,8 @@
 import tenpy
 import numpy as np
-from .utils import apply,multiply_mpos,BlipSite
+from .utils import apply,multiply_mpos
+from .fold.utils import BlipSite
+from .flat.utils import FlatSite
 from tenpy.networks.mpo import MPOEnvironment,MPO
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
@@ -20,7 +22,7 @@ def zz_operator(t):
 
 def zz_state(t):
     sites=[BlipSite() for _ in range(t+1)]
-    
+
 def embedded_czz(im,lop):
     t=im.L-1
     op=multiply_mpos([lop,zz_operator(t)])

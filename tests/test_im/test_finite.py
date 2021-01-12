@@ -95,7 +95,7 @@ def test_mps_L1_short_time(dense_L1_short_time):
     t=dense_L1_short_time[1][0]
     sts=[]
     for J,g,h in zip(*dense_L1_short_time[1][1:]):
-        sts.append(mps.ising_T(t,J,g,h))
+        sts.append(mps.fold.ising_T(t,J,g,h))
     mif=mps.im_finite(sts)
     print(mps.mps_to_dense(mif)/mps.mps_to_dense(mif)[0])
     print(dense_L1_short_time[0])
@@ -107,19 +107,19 @@ def test_mps_L2_short_time(dense_L2_short_time):
     t=dense_L2_short_time[1][0]
     sts=[]
     for J,g,h in zip(*dense_L2_short_time[1][1:]):
-        sts.append(mps.ising_T(t,J,g,h))
+        sts.append(mps.fold.ising_T(t,J,g,h))
     assert mps.mps_to_dense(mps.im_finite(sts))==pytest.approx(dense_L2_short_time[0])
 def test_mps_L3_short_time(dense_L3_short_time):
     t=dense_L3_short_time[1][0]
     sts=[]
     for J,g,h in zip(*dense_L3_short_time[1][1:]):
-        sts.append(mps.ising_T(t,J,g,h))
+        sts.append(mps.fold.ising_T(t,J,g,h))
     assert mps.mps_to_dense(mps.im_finite(sts))==pytest.approx(dense_L3_short_time[0])
 def test_mps_L4_short_time(dense_L4_short_time):
     t=dense_L4_short_time[1][0]
     sts=[]
     for J,g,h in zip(*dense_L4_short_time[1][1:]):
-        sts.append(mps.ising_T(t,J,g,h))
+        sts.append(mps.fold.ising_T(t,J,g,h))
     assert mps.mps_to_dense(mps.im_finite(sts))==pytest.approx(dense_L4_short_time[0])
 def im_from_shallow(t,Js,gs,hs):
     def index_to_state(t,ind):

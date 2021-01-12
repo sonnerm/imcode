@@ -1,7 +1,4 @@
-def ising_H():
-    pass
-def ising_F():
-    pass
+from .utils import FlatSite
 def ising_W(t,g):
     sites=[SpinHalfSite(None) for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
@@ -24,8 +21,8 @@ def ising_h(t,h):
     leg_t=LegCharge.from_trivial(1)
     leg_p=LegCharge.from_trivial(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(2))
-    Hfa=np.einsum("ab,cd->abcd",np.eye(1),np.diag([np.exp(1.0j*h),np.exp(-1.0j*np.conj(h))))
-    Hba=np.einsum("ab,cd->abcd",np.eye(1),np.diag([np.exp(-1.0j*np.conj(h)),np.exp(1.0j*h)))
+    Hfa=np.einsum("ab,cd->abcd",np.eye(1),np.diag([np.exp(1.0j*h),np.exp(-1.0j*np.conj(h))]))
+    Hba=np.einsum("ab,cd->abcd",np.eye(1),np.diag([np.exp(-1.0j*np.conj(h)),np.exp(1.0j*h)]))
     Hf=npc.Array.from_ndarray(Hfw,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Hb=npc.Array.from_ndarray(Hbw,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure

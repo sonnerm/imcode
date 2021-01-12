@@ -43,12 +43,12 @@ def test_sparse_ising_h_real(dense_ising_h_real):
 #     sparse_eq(sih,dense_ising_h_complex[0])
 
 def test_mps_ising_h_real(dense_ising_h_real):
-    mih=mps.ising_h(*dense_ising_h_real[1])
+    mih=mps.fold.ising_h(*dense_ising_h_real[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_h_real[0])
     assert mih.chi==[1]*(mih.L+1)
 
 # def test_mps_ising_h_complex(dense_ising_h_complex):
-#     mih=mps.ising_h(*dense_ising_h_complex[1])
+#     mih=mps.fold.ising_h(*dense_ising_h_complex[1])
 #     print(np.diag(mps.mpo_to_dense(mih)))
 #     print(np.diag(dense_ising_h_complex[0]))
 #     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_h_complex[0])

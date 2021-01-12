@@ -43,12 +43,12 @@ def test_sparse_ising_J_real(dense_ising_J_real):
 #     sparse_eq(sih,dense_ising_J_complex[0])
 
 def test_mps_ising_J_real(dense_ising_J_real):
-    mih=mps.ising_J(*dense_ising_J_real[1])
+    mih=mps.fold.ising_J(*dense_ising_J_real[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_J_real[0])
     assert mih.chi==[1]*(mih.L+1)
 
 # def test_mps_ising_J_complex(dense_ising_J_complex):
-#     mih=mps.ising_J(*dense_ising_J_complex[1])
+#     mih=mps.fold.ising_J(*dense_ising_J_complex[1])
 #     print(mps.mpo_to_dense(mih))
 #     print(dense_ising_J_complex[0])
 #     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_J_complex[0])

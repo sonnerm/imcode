@@ -37,7 +37,7 @@ def test_sparse_direct_ising_czz(dense_ising_czz):
 def test_mps_direct_ising_czz(dense_ising_czz):
     t,J,g,h=dense_ising_czz[-1]
     L=7
-    F=mps_flat.ising_F([J]*(L-1),[g]*L,[h]*L)
+    F=mps.ising_F([J]*(L-1),[g]*L,[h]*L)
     assert mps_flat.direct_czz(F,t,3,3)==pytest.approx(dense_ising_czz[0])
     assert mps_flat.direct_czz(F,t,0,0)==pytest.approx(dense_ising_czz[1])
 
@@ -51,8 +51,8 @@ def test_sparse_ising_czz(dense_ising_czz):
 
 def test_mps_ising_czz(dense_ising_czz):
     t,J,g,h=dense_ising_czz[-1]
-    T=mps.ising_T(t,J,g,h)
+    T=mps.fold.ising_T(t,J,g,h)
     im=mps.im_iterative(T)
-    lop=mps.multiply_mpos([mps.ising_W(t,g),mps.ising_h(t,h)])
+    lop=mps.multiply_mpos([mps.fold.ising_W(t,g),mps.fold.ising_h(t,h)])
     assert mps.embedded_czz(im,lop) == pytest.approx(dense_ising_czz[0])
     assert mps.boundary_czz(im,lop) == pytest.approx(dense_ising_czz[1])

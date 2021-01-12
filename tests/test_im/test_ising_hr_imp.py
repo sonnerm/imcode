@@ -20,8 +20,6 @@ def test_dense_ising_hr_imp_expand(dense_ising_hr_imp):
     assert im == pytest.approx(im2)
 
 def test_dense_ising_hr_imp_diag(dense_ising_hr_imp):
-    print(dense_ising_hr_imp[0])
-    print(dense.im_diag(dense.ising_hr_Tp(*dense_ising_hr_imp[1]))[0])
     assert dense.im_diag(dense.ising_hr_Tp(*dense_ising_hr_imp[1]))[0]==pytest.approx(dense_ising_hr_imp[0])
 
 def test_sparse_ising_hr_imp_iterative(dense_ising_hr_imp):
@@ -31,7 +29,7 @@ def test_sparse_ising_hr_imp_diag(dense_ising_hr_imp):
     assert sparse.im_diag(sparse.ising_hr_Tp(*dense_ising_hr_imp[1]))[0]==pytest.approx(dense_ising_hr_imp[0])
 
 def test_mps_ising_hr_imp_iterative(dense_ising_hr_imp):
-    assert mps.mps_to_dense(mps.im_iterative(mps.ising_hr_Tp(*dense_ising_hr_imp[1])))==pytest.approx(dense_ising_hr_imp[0])
+    assert mps.mps_to_dense(mps.im_iterative(mps.fold.ising_hr_Tp(*dense_ising_hr_imp[1])))==pytest.approx(dense_ising_hr_imp[0])
 @pytest.mark.xfail
 def test_mps_ising_hr_imp_dmrg(dense_ising_hr_imp):
-    assert mps.mps_to_dense(mps.im_dmrg(mps.ising_hr_Tp(*dense_ising_hr_imp[1])))==pytest.approx(dense_ising_hr_imp[0])
+    assert mps.mps_to_dense(mps.im_dmrg(mps.fold.ising_hr_Tp(*dense_ising_hr_imp[1])))==pytest.approx(dense_ising_hr_imp[0])

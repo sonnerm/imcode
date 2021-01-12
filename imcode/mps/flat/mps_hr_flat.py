@@ -1,5 +1,4 @@
 import tenpy
-
 import numpy as np
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
@@ -8,7 +7,6 @@ from tenpy.networks.mpo import MPO
 
 from tenpy.networks.site import SpinHalfSite
 
-chinfo=SpinHalfSite("Sz").leg.chinfo
 def get_W_mpo(sites,g):
     T=len(sites)//2
     leg_m=tenpy.linalg.charges.LegCharge.from_trivial(2)
