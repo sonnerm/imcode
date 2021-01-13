@@ -3,4 +3,5 @@ from .im import im_finite, im_iterative, im_dmrg
 from .obs import boundary_obs,embedded_obs
 from .obs import boundary_czz,embedded_czz
 from .obs import boundary_norm,embedded_norm
-from .utils import multiply_mpos,mps_to_dense,mpo_to_dense,apply
+from .utils import multiply_mpos
+from .todense import mpo_to_dense,mps_to_dense

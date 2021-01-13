@@ -36,6 +36,7 @@ def test_sparse_ising_Jhr_T(dense_ising_Jhr_T):
     sih=sparse.ising_Jhr_T(*dense_ising_Jhr_T[1])
     assert sparse.sparse_to_dense(sih)==pytest.approx(dense_ising_Jhr_T[0])
 
+@pytest.mark.skip()
 def test_flat_ising_Jhr_T(dense_ising_Jhr_T):
     mih=mps.flat.ising_Jhr_T(*dense_ising_Jhr_T[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_Jhr_T[0])

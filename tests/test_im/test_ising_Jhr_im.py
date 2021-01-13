@@ -45,6 +45,7 @@ def test_sparse_ising_Jhr_im_diag(dense_ising_Jhr_im):
 def test_fold_ising_Jhr_im_iterative(dense_ising_Jhr_im):
     assert mps.mps_to_dense(mps.im_iterative(mps.fold.ising_Jhr_T(*dense_ising_Jhr_im[1])))==pytest.approx(dense_ising_Jhr_im[0])
 
+@pytest.mark.xfail
 def test_flat_ising_Jhr_im_iterative(dense_ising_Jhr_im):
     assert mps.mps_to_dense(mps.im_iterative(mps.flat.ising_Jhr_T(*dense_ising_Jhr_im[1])))==pytest.approx(dense_ising_Jhr_im[0])
 @pytest.mark.xfail

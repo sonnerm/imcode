@@ -4,12 +4,15 @@ from .utils import apply,multiply_mpos
 from .fold.utils import FoldSite
 from .flat.utils import FlatSite
 from tenpy.networks.mpo import MPOEnvironment,MPO
+from tenpy.networks.mps import MPS
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
 def boundary_obs(im,obs):
-    im.overlap(obs)
+    return im.overlap(obs)/2
 def embedded_obs(left_im,obs_mpo,right_im):
-    return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm
+    obs_mpo.IdL[0]=0
+    obs_mpo.IdR[-1]=0
+    return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm/2
 def zz_operator(t):
     sites=[FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
@@ -22,6 +25,8 @@ def zz_operator(t):
 
 def zz_state(t):
     sites=[FoldSite() for _ in range(t+1)]
+    state=[[1,-1,0,0]]+[[1,1,1,1]]*(t-1)+[[1,-1,0,0]]
+    return MPS.from_product_state(sites,state)
 
 def embedded_czz(im,lop):
     t=im.L-1

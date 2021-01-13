@@ -1,4 +1,6 @@
 from functools import lru_cache
+from .ising import ising_W,ising_h
+from .ising_hr import hr_operator
 from .utils import FlatSite
 from ..utils import wrap_ndarray,multiply_mpos
 from tenpy.linalg.charges import LegCharge

@@ -47,6 +47,7 @@ def test_fold_ising_h_real(dense_ising_h_real):
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_h_real[0])
     assert mih.chi==[1]*(mih.L+1)
 
+@pytest.mark.skip()
 def test_flat_ising_h_real(dense_ising_h_real):
     mih=mps.flat.ising_h(*dense_ising_h_real[1])
     assert mps.mpo_to_dense(mih)==pytest.approx(dense_ising_h_real[0])
