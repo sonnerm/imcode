@@ -32,18 +32,21 @@ def one(L):
 def normalize_im(v):
     return v/v[0] #TODO: good for now
 
-def reduced_density_matrix(sites,vec):
+def rdm(vec,sites):
     '''
         Calculates the reduced density matrix of the subsystem defined by ``sites``
     '''
     L=int(np.log2(len(vec)))
     complement=sorted(list(set(range(L))-set(sites)))
+    vec=vec/np.sqrt(np.sum(vec.conj()*vec))
     vec=vec.reshape((2,)*L)
     vec=np.transpose(vec,sites+complement)
-    return vec@vec.T #TODO: check
+    vec=vec.reshape((2**len(sites),2**(len(complement))))
+    ret=np.einsum("ij,kj->ik",vec.conj(),vec)
+    return ret
 def rdm_entropy(rdm):
     '''
         Calculates the entropy of a reduced density matrix
     '''
     ev=la.eigvalsh(rdm) #TODO: check
-    return np.sum(ev*np.log(ev+1e-30))
+    return -np.sum(ev*np.log(np.clip(ev,1e-30,1.0)))

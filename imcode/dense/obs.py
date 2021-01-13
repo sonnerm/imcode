@@ -1,17 +1,18 @@
 import numpy as np
 import numpy.linalg as la
-from .utils import rdm_entropy,reduced_density_matrix,sz
+from .utils import rdm_entropy,rdm,sz
 from .im import open_boundary_im
 
 def fold_entropy(vec):
     L=int(np.log2(len(vec)))
     ent=[]
-    for i in range(L//2+1): 
-        return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L)),vec))
+    for i in range(1,L//2+1):
+        ent.append(rdm_entropy(rdm(vec,list(range(i))+list(range(L-i+1,L)))))
+    return ent
 
 def flat_entropy(vec):
     L=int(np.log2(len(vec)))
-    return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L)),vec))
+    return rdm_entropy(rdm(vec,list(range(L//4))+list(range(3*L//4,L))))
 def op_entropy(dm):
     assert False #For now
 
