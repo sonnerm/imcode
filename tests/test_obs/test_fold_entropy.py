@@ -26,7 +26,7 @@ def test_fold_ising_fold_entropy(dense_ising_fold_entropy):
 def test_sparse_ising_fold_entropy(dense_ising_fold_entropy):
     t,J,g,h=dense_ising_fold_entropy[-1]
     T=sparse.ising_T(t,J,g,h)
-    im=mps.im_iterative(T)
+    im=sparse.im_iterative(T)
     assert dense.fold_entropy(im) == pytest.approx(dense_ising_fold_entropy[0])
 
 @pytest.mark.xfail

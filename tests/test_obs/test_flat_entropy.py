@@ -18,14 +18,14 @@ def dense_ising_flat_entropy():
 
 
 def test_fold_ising_flat_entropy(dense_ising_flat_entropy):
-    t,J,g,h=dense_ising_czz[-1]
+    t,J,g,h=dense_ising_flat_entropy[-1]
     T=mps.fold.ising_T(t,J,g,h)
     im=mps.im_iterative(T)
-    with pytest.raises(Error):
+    with pytest.raises(Exception):
         pytest.raises(mps.flat_entropy(im))
 
 def test_flat_ising_flat_entropy(dense_ising_flat_entropy):
-    t,J,g,h=dense_ising_czz[-1]
+    t,J,g,h=dense_ising_flat_entropy[-1]
     T=mps.fold.ising_T(t,J,g,h)
     im=mps.im_iterative(T)
     assert mps.flat_entropy(im) == pytest.approx(dense_ising_flat_entropy[0])
@@ -33,7 +33,7 @@ def test_flat_ising_flat_entropy(dense_ising_flat_entropy):
 def test_sparse_ising_flat_entropy(dense_ising_flat_entropy):
     t,J,g,h=dense_ising_flat_entropy[-1]
     T=sparse.ising_T(t,J,g,h)
-    im=mps.im_iterative(T)
+    im=sparse.im_iterative(T)
     assert dense.flat_entropy(im) == pytest.approx(dense_ising_flat_entropy[0])
 
 @pytest.mark.xfail

@@ -14,12 +14,12 @@ def embedded_obs(left_im,obs_mpo,right_im):
     obs_mpo.IdR[-1]=0
     return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm/2
 def flat_entropy(im):
-    assert isinstance(im.sites[0],FlatSite) # not possible for folded mpo
+    assert isinstance(im.sites[0],flat.FlatSite) # not possible for folded mpo
     t=im.L//2
-    return im.bond_entropy()[t]
+    return im.entanglement_entropy()[t]
 def fold_entropy(im):
-    assert isinstance(im.sites[0],FoldSite) # for now
-    return im.bond_entropy()
+    assert isinstance(im.sites[0],fold.FoldSite) # for now
+    return im.entanglement_entropy()
 def op_entropy(mpo):
     pass
 
