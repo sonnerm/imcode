@@ -1,8 +1,8 @@
 import tenpy
 import numpy as np
 from .utils import apply,multiply_mpos
-from .fold.utils import FoldSite
-from .flat.utils import FlatSite
+from . import fold
+from . import flat
 from tenpy.networks.mpo import MPOEnvironment,MPO
 from tenpy.networks.mps import MPS
 from tenpy.linalg.charges import LegCharge
@@ -13,8 +13,18 @@ def embedded_obs(left_im,obs_mpo,right_im):
     obs_mpo.IdL[0]=0
     obs_mpo.IdR[-1]=0
     return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm/2
+def flat_entropy(im):
+    assert isinstance(im.sites[0],FlatSite) # not possible for folded mpo
+    t=im.L//2
+    return im.bond_entropy()[t]
+def fold_entropy(im):
+    assert isinstance(im.sites[0],FoldSite) # for now
+    return im.bond_entropy()
+def op_entropy(mpo):
+    pass
+
 def zz_operator(t):
-    sites=[FoldSite() for _ in range(t+1)]
+    sites=[fold.FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
@@ -24,7 +34,7 @@ def zz_operator(t):
     return MPO(sites,[Z]+[Id]*(t-1)+[Z])
 
 def zz_state(t):
-    sites=[FoldSite() for _ in range(t+1)]
+    sites=[fold.FoldSite() for _ in range(t+1)]
     state=[[1,-1,0,0]]+[[1,1,1,1]]*(t-1)+[[1,-1,0,0]]
     return MPS.from_product_state(sites,state)
 
@@ -40,9 +50,10 @@ def boundary_czz(im,lop):
 def embedded_norm(im,lop):
     return embedded_obs(im,lop,im)
 def boundary_norm(im,lop):
-    st=open_boundary_im(t)
+    t=im.L-1
+    st=fold.open_boundary_im(t)
     apply(lop,st)
-    return boundary_obs(im,lop,im)
+    return boundary_obs(im,st)
 
 def magsec_proj(T,M,branch="fw"):
     chinfo=ChargeInfo([1],[branch])

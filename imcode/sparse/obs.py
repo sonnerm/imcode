@@ -21,9 +21,9 @@ def boundary_czz(im,lop):
 def embedded_norm(im,lop):
     return embedded_obs(im,lop,im)
 def boundary_norm(im,lop):
-    st=open_boundary_im(t)
-    apply(lop,st)
-    return boundary_obs(im,lop,im)
+    t=int(np.log2(im.shape[0]))//2
+    st=lop@open_boundary_im(t)
+    return boundary_obs(im,st)
 
 def direct_czz(F,t,i,j):
     return None

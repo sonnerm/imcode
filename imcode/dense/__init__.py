@@ -7,3 +7,4 @@ from .utils import SX,SY,SZ,SM,SP,ID,sx,sy,sz,sm,sp,one
 from .obs import embedded_obs,boundary_obs
 from .obs import embedded_czz,boundary_czz,direct_czz
 from .obs import embedded_norm,boundary_norm,direct_norm
+from .obs import flat_entropy,fold_entropy,op_entropy

@@ -1,16 +1,17 @@
 import numpy as np
 import numpy.linalg as la
 from .utils import rdm_entropy,sz
+from .im import open_boundary_im
 
-def folded_entropy(vec):
+def fold_entropy(vec):
     L=int(np.log2(len(vec)))
     return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
 
 def flat_entropy(vec):
     L=int(np.log2(len(vec)))
     return rdm_entropy(reduced_density_matrix(list(range(L//4))+list(range(3*L//4,L))))
-def entropy(vec):
-    pass
+def op_entropy(dm):
+    assert False #For now
 
 def boundary_obs(im,obs):
     return np.sum(im*obs)/2
@@ -33,9 +34,9 @@ def boundary_czz(im,lop):
 def embedded_norm(im,lop):
     return embedded_obs(im,lop,im)
 def boundary_norm(im,lop):
-    st=open_boundary_im(t)
-    apply(lop,st)
-    return boundary_obs(im,lop,im)
+    t=int(np.log2(im.shape[0]))//2
+    st=lop@open_boundary_im(t)
+    return boundary_obs(im,st)
 # def im_czz(left_im,site_op=None,right_im=None):
 #     t=int(np.log2(left_im.shape[0]))
 #     return np.sum(zz_op(t)*left_im*site_op*right_im)
