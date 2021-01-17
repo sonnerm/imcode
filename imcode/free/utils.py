@@ -6,19 +6,13 @@ def me(L,i):
 def mo(L,i):
     return dense_kron([SX]*i+[SY]+[ID]*(L-i-1))
 def pe(L):
-    ret=np.ones((2**L,2**L))
-    for i in range(L):
-        ret=ret.reshape((2**i,2,2**(L-i-1)))
-        ret[:,0,:]*=-1
-    return ret
+    sxp=dense_kron([SX]*L)
+    return np.eye(2**L)/2-sxp/2
     # return ret/2+np.ones((2**L))/2
 def po(L):
-    ret=np.ones((2**L,2**L))
-    for i in range(L):
-        ret=ret.reshape((2**i,2,2**(L-i-1)))
-        ret[:,0,:]*=-1
-    return np.ravel(ret)
-    # return np.ones((2**L))/2-ret/2
+    sxp=dense_kron([SX]*L)
+    return np.eye(2**L)/2+sxp/2
+
 def _single_maj_to_quad(M):
     L=M.shape[0]//2
     assert M.shape[0]%2==0
@@ -60,7 +54,7 @@ def _manybody_to_maj(M,L):
     return ret*2#-np.diag(np.diag(ret))*(2*L-1)/(2*L)
 def quad_to_maj(H):
     L=int(np.log2(H[0].shape[0]))
-    return (_manybody_to_maj(H@pe(L),L),_manybody_to_maj(H@po(L),L))
+    return (_manybody_to_maj(H@pe(L),L)*2,_manybody_to_maj(H@po(L),L)*2)
 def trans_to_maj(H):
     L=int(np.log2(H[0].shape[0]))
     return (_manybody_to_maj(H@pe(L),L),_manybody_to_maj(H@po(L),L))
