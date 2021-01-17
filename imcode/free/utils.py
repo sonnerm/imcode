@@ -6,14 +6,14 @@ def me(L,i):
 def mo(L,i):
     return dense_kron([SX]*i+[SY]+[ID]*(L-i-1))
 def pe(L):
-    ret=np.ones((2**L))
+    ret=np.ones((2**L,2**L))
     for i in range(L):
         ret=ret.reshape((2**i,2,2**(L-i-1)))
         ret[:,0,:]*=-1
     return ret
     # return ret/2+np.ones((2**L))/2
 def po(L):
-    ret=np.ones((2**L))
+    ret=np.ones((2**L,2**L))
     for i in range(L):
         ret=ret.reshape((2**i,2,2**(L-i-1)))
         ret[:,0,:]*=-1
