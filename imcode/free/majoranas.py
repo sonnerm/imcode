@@ -1,16 +1,6 @@
 import numpy as np
 import scipy.linalg as la
 import functools
-sx=np.array([[0,1],[1,0]])
-sy=np.array([[0,1.0j],[-1.0j,0]])
-sz=np.array([[1,0],[0,-1]])
-id=np.array([[1,0],[0,1]])
-def dense_kron(Ms):
-    return functools.reduce(np.kron,Ms)
-def me(L,i):
-    return dense_kron([sx]*i+[sz]+[id]*(L-i-1))
-def mo(L,i):
-    return dense_kron([sx]*i+[sy]+[id]*(L-i-1))
 
 def maj_to_quad(M):
     #converts a quadratic operator from majorana single body to many body form
