@@ -25,3 +25,5 @@ def ising_F(J,g):
     U2o=la.expm(-0.5*U2ho)
     U2e=la.expm(-0.5*U2he)
     return (U2e@U1,U2o@U1)
+def ising_T(J,g):
+    pass
