@@ -12,7 +12,13 @@ def perfect_dephaser_im(t):
         ret[L|(i<<t)|i]=1
         ret[(i<<t)|i]=1
     return ret
-
+def dephaser_im(t,gamma):
+    ret=np.zeros((2**(2*t)))
+    mask_bw=(1<<(t-1))-1
+    mask_fw=mask_bw<<t
+    for i in range(2**(2*t)):
+        ret[i]=(1-gamma)**(popcount(i&mask_bw)-popcount(i&mask_fw))
+    return ret
 def im_iterative(T):
     '''
         Obtain the semi-infinite chain influence matrix by iterating the transfer matrix `T` 2T times.
