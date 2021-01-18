@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.linalg as la
 from ..dense import dense_kron
 from ..dense import SX,SZ,SY,ID
 def me(L,i):
@@ -30,20 +31,11 @@ def maj_to_quad(maj):
     return _single_maj_to_quad(maj[0])@pe(L)+_single_maj_to_quad(maj[1])@po(L)
 
 def _single_maj_to_trans(M):
-    L=M.shape[0]//2
-    assert M.shape[0]%2==0
-    ret=np.eye(2**L,dtype=complex)
-    for i in range(L):
-        for j in range(L):
-            ret=ret@me(L,i)@me(L,j)*M[2*i,2*j]
-            ret=ret@me(L,i)@mo(L,j)*M[2*i,2*j+1]
-            ret=ret@mo(L,i)@me(L,j)*M[2*i+1,2*j]
-            ret=ret@mo(L,i)@mo(L,j)*M[2*i+1,2*j+1]
-    return ret/4
+    return la.expm(_single_maj_to_quad(la.logm(M)))
 def maj_to_trans(maj):
     L=maj[0].shape[0]//2
-    return _single_maj_to_trans(maj[0])@pe(L)+_single_maj_to_quad(maj[1])@po(L)
-def _manybody_to_maj(M,L):
+    return _single_maj_to_trans(maj[0])@pe(L)+_single_maj_to_trans(maj[1])@po(L)
+def _single_quad_to_maj(M,L):
     ret=np.zeros((2*L,2*L),dtype=complex)
     for i in range(L):
         for j in range(L):
@@ -51,10 +43,13 @@ def _manybody_to_maj(M,L):
             ret[2*i+1,2*j]+=np.trace(mo(L,i)@M@me(L,j))/2**L
             ret[2*i,2*j+1]+=np.trace(me(L,i)@M@mo(L,j))/2**L
             ret[2*i+1,2*j+1]+=np.trace(mo(L,i)@M@mo(L,j))/2**L
-    return ret*2#-np.diag(np.diag(ret))*(2*L-1)/(2*L)
+    return ret*4#-np.diag(np.diag(ret))*(2*L-1)/(2*L)
+
+def _single_trans_to_maj(M,L):
+    return _single_quad_to_maj(M,L)/np.trace(M)
 def quad_to_maj(H):
     L=int(np.log2(H[0].shape[0]))
-    return (_manybody_to_maj(H@pe(L),L)*2,_manybody_to_maj(H@po(L),L)*2)
+    return (_single_quad_to_maj(H@pe(L),L),_single_quad_to_maj(H@po(L),L))
 def trans_to_maj(H):
     L=int(np.log2(H[0].shape[0]))
-    return (_manybody_to_maj(H@pe(L),L),_manybody_to_maj(H@po(L),L))
+    return (_single_trans_to_maj(H@pe(L),L),_single_trans_to_maj(H@po(L),L))

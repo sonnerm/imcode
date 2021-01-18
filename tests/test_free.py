@@ -1,4 +1,5 @@
 import imcode.free as free
+import numpy.linalg as la
 import numpy as np
 from .utils import seed_rng
 import pytest
@@ -63,19 +64,20 @@ def test_quad_maj():
     qtm=free.quad_to_maj(Om)
     assert qtm[0] == pytest.approx(Oe)
     assert qtm[1] == pytest.approx(Oo)
-@pytest.mark.skip
 def test_trans_maj():
-    L=4
+    L=3
     seed_rng("free_trans_maj")
-    He=1.0j*np.random.normal(size=(2*L,2*L))
-    He-=He.T
-    Ho=1.0j*np.random.normal(size=(2*L,2*L))
-    Ho-=Ho.T
-    Hm=free.maj_to_trans((He,Ho))
-    assert Hm.T.conj()==pytest.approx(Hm)
-    ttm=free.trans_to_maj(Hm)
-    assert ttm[0] == pytest.approx(He)
-    assert ttm[1] == pytest.approx(Ho)
+    He=np.random.normal(size=(2*L,2*L))
+    Ue=la.eigh(He)[1]
+    Ho=np.random.normal(size=(2*L,2*L))
+    Uo=la.eigh(Ho)[1]
+    Um=free.maj_to_trans((Ue,Uo))
+    assert Um.T.conj()@Um==pytest.approx(np.eye(2**L))
+    ttm=free.trans_to_maj(Um)
+    print(np.abs(ttm[0]))
+    print(np.abs(Ue))
+    assert ttm[0] == pytest.approx(Ue)
+    assert ttm[1] == pytest.approx(Uo)
     Oe=1.0j*np.random.normal(size=(2*L,2*L))+np.random.normal(size=(2*L,2*L))
     Oo=1.0j*np.random.normal(size=(2*L,2*L))+np.random.normal(size=(2*L,2*L))
     Om=free.trans_to_quad((Oe,Oo))
@@ -127,7 +129,7 @@ def test_trans_maj_prod():
     assert free.maj_to_trans((O1e@O2e,O1o@O2o)) == pytest.approx(Om1@Om2)
 
 def test_quad_commute():
-    L=4
+    L=5
     seed_rng("free_quad_commute")
     O1e=1.0j*np.random.normal(size=(2*L,2*L))+np.random.normal(size=(2*L,2*L))
     O1e-=O1e.T
