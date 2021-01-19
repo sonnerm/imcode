@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.linalg as la
+from .utils import popcount
 def open_boundary_im(t):
     return np.ones((2**(2*t)))
 def perfect_dephaser_im(t):

@@ -92,29 +92,7 @@ def hr_operator(T):
     return DiagonalLinearOperator(_hr_diagonal(T))
 @lru_cache(None)
 def Jr_operator(T):
-    # D=np.ones(2**(2*T))
-    # for i in range(1,T):
-    #     D=D.reshape((2**i,2,2**(2*T-i-1)))
-    #     D[:,0,:]*=-1
-    #     D=D.reshape((2**(T+i),2,2**(T-i-1)))
-    #     D[:,0,:]*=-1
-    # D[D<0]=0
-    # for i in range(1,T):
-    #     D=D.reshape((2**i,2,2**(2*T-i-1)))
-    #     D[:,1,:]*=-1
-    #     D=D.reshape((2**(T+i),2,2**(T-i-1)))
-    #     D[:,1,:]*=-1
-    # D[D<0]=0
-    # for i in range(1,T):
-    #     D=D.reshape((2**i,2,2**(2*T-i-1)))
-    #     D[:,1,:]*=-1
-    #     D=D.reshape((2**(T+i),2,2**(T-i-1)))
-    #     D[:,1,:]*=1
-    # D=D.reshape((2,2**(2*T-1)))
-    # D[1,:]*=0
-    # D[0,:]*=2
-    # D=D.reshape((2**(T),2,2**(T-1)))
-    # D[:,1,:]*=0
+    # D=
     # return SxDiagonalLinearOperator(np.ravel(D))
     return None
 

@@ -45,11 +45,15 @@ def _single_quad_to_maj(M,L):
             ret[2*i+1,2*j+1]+=np.trace(mo(L,i)@M@mo(L,j))/2**L
     return ret*4#-np.diag(np.diag(ret))*(2*L-1)/(2*L)
 
+# def _single_trans_to_maj(M,L):
+#     return _single_quad_to_maj(M,L)@la.inv(_single_quad_to_maj(M,L).T)
 def _single_trans_to_maj(M,L):
-    return _single_quad_to_maj(M,L)/np.trace(M)
+    pass
 def quad_to_maj(H):
     L=int(np.log2(H[0].shape[0]))
     return (_single_quad_to_maj(H@pe(L),L),_single_quad_to_maj(H@po(L),L))
 def trans_to_maj(H):
     L=int(np.log2(H[0].shape[0]))
-    return (_single_trans_to_maj(H@pe(L),L),_single_trans_to_maj(H@po(L),L))
+    ret=quad_to_maj(la.logm(H))
+    return la.expm(ret[0]),la.expm(ret[1])
+    # return (_single_trans_to_maj(H@pe(L),L),_single_trans_to_maj(H@po(L),L))
