@@ -34,7 +34,7 @@ def _single_maj_to_trans(M):
     return la.expm(_single_maj_to_quad(la.logm(M)))
 def maj_to_trans(maj):
     L=maj[0].shape[0]//2
-    return _single_maj_to_trans(maj[0])@pe(L)+_single_maj_to_trans(maj[1])@po(L)
+    return -_single_maj_to_trans(maj[0])@pe(L)-_single_maj_to_trans(maj[1])@po(L)
 def _single_quad_to_maj(M,L):
     ret=np.zeros((2*L,2*L),dtype=complex)
     for i in range(L):

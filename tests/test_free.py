@@ -133,7 +133,7 @@ def test_trans_maj_prod():
     ttm=free.trans_to_maj(Om1@Om2)
     assert ttm[0] == pytest.approx(O1e@O2e)
     assert ttm[1] == pytest.approx(O1o@O2o)
-    assert free.maj_to_trans((O1e@O2e,O1o@O2o)) == pytest.approx(-Om1@Om2)
+    assert free.maj_to_trans((O1e@O2e,O1o@O2o)) == pytest.approx(Om1@Om2)
 
 def test_quad_commute():
     L=5
@@ -169,27 +169,42 @@ def test_quad_commute():
 #     assert ttm[0] == pytest.approx(O1e@O2e-O2e@O1e)
 #     assert ttm[1] == pytest.approx(O1o@O2o-O2o@O1o)
 #     assert free.maj_to_trans((O1e@O2e-O2e@O1e,O1o@O2o-O2o@O1o)) == pytest.approx(Om1@Om2-Om2@Om1)
-
 @pytest.mark.skip
 def test_diag_herm():
-    H=genop(4,True)
-    D,U=la.eigh(H)
-    D=np.diag(D)
-    Hm=maj_to_quad(H)
-    Um=maj_to_exp(U)
-    assert np.allclose(exp_to_maj(Um),U)
-    assert np.allclose(U.T.conj()@H@U,D)
+    seed_rng("free_diag_herm")
+    L=5
+    He=1.0j*np.random.normal(size=(2*L,2*L))
+    He-=He.T
+    Ho=1.0j*np.random.normal(size=(2*L,2*L))
+    Ho-=Ho.T
+    De,Ue=la.eigh(He)
+    De=np.diag(De)
+    Do,Uo=la.eigh(Ho)
+    Do=np.diag(Do)
+    Hm=free.maj_to_quad((He,Ho))
+    Um=free.maj_to_trans((Ue,Uo))
+    ttm=free.trans_to_maj(Um)
+    print(ttm[0])
+    print(Ue)
+    assert ttm[0]==pytest.approx(Ue)
+    assert ttm[1]==pytest.approx(Uo)
     Dm=Um.T.conj()@Hm@Um
-    assert np.allclose(Dm,np.diag(np.diag(Dm)))
+    assert np.diag(np.diag(Dm))==pytest.approx(Dm)
 
 @pytest.mark.skip
 def test_diag_gen():
-    O=genop(4,True)
-    D,U=la.eig(O)
-    D=np.diag(D)
-    Om=maj_to_quad(O)
-    Um=maj_to_exp(U)
-    assert np.allclose(exp_to_maj(Um),U)
-    assert np.allclose(U.T.conj()@O@U,D)
-    Dm=Um.T.conj()@Om@Um
-    assert np.allclose(Dm,np.diag(np.diag(Dm)))
+    seed_rng("free_diag_gen")
+    L=5
+    He=1.0j*np.random.normal(size=(2*L,2*L))+np.random.normal(size=(2*L,2*L))
+    He-=He.T
+    Ho=1.0j*np.random.normal(size=(2*L,2*L))+np.random.normal(size=(2*L,2*L))
+    Ho-=Ho.T
+    De,Ue=la.eig(He)
+    De=np.diag(De)
+    Do,Uo=la.eig(Ho)
+    Do=np.diag(Do)
+    Hm=free.maj_to_quad((He,Ho))
+    Um=free.maj_to_trans((Ue,Uo))
+    assert free.trans_to_maj(Um)==pytest.approx((Ue,Uo))
+    Dm=la.inv(Um)@Hm@Um
+    assert np.diag(np.diag(Dm))==pytest.approx(Dm)
