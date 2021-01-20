@@ -8,8 +8,6 @@ def test_mps_dephaser_im():
     t=3
     seed_rng("mps_dephaser_im")
     gamma=np.abs(np.random.normal())
-    print(dense.dephaser_im(t,gamma))
-    print(mps.mps_to_dense(fold.dephaser_im(t,gamma)))
     assert mps.mps_to_dense(fold.dephaser_im(t,gamma))==pytest.approx(dense.dephaser_im(t,gamma))
 
 def test_dephaser_perfect_dephaser_im():

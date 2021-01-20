@@ -51,13 +51,13 @@ def test_fold_ising_Jr_im_iterative(dense_ising_Jr_im):
 def test_fold_ising_Jr_im_iterative(dense_ising_Jr_im):
     assert mps.mps_to_dense(mps.im_zipup(mps.fold.ising_Jr_T(*dense_ising_Jr_im[1]),chi=64))==pytest.approx(dense_ising_Jr_im[0])
 
-@pytest.mark.xfail
-def test_flat_ising_Jr_im_iterative(dense_ising_Jr_im):
-    assert mps.mps_to_dense(mps.im_iterative(mps.flat.ising_Jr_T(*dense_ising_Jr_im[1])))==pytest.approx(dense_ising_Jr_im[0])
+# @pytest.mark.xfail
+# def test_flat_ising_Jr_im_iterative(dense_ising_Jr_im):
+#     assert mps.mps_to_dense(mps.im_iterative(mps.flat.ising_Jr_T(*dense_ising_Jr_im[1])))==pytest.approx(dense_ising_Jr_im[0])
 @pytest.mark.xfail
 def test_fold_ising_Jr_im_dmrg(dense_ising_Jr_im):
     assert mps.mps_to_dense(mps.im_dmrg(mps.fold.ising_Jr_T(*dense_ising_Jr_im[1])))==pytest.approx(dense_ising_Jr_im[0])
 
-@pytest.mark.xfail
-def test_flat_ising_Jr_im_dmrg(dense_ising_Jr_im):
-    assert mps.mps_to_dense(mps.im_dmrg(mps.flat.ising_Jr_T(*dense_ising_Jr_im[1])))==pytest.approx(dense_ising_Jr_im[0])
+# @pytest.mark.xfail
+# def test_flat_ising_Jr_im_dmrg(dense_ising_Jr_im):
+#     assert mps.mps_to_dense(mps.im_dmrg(mps.flat.ising_Jr_T(*dense_ising_Jr_im[1])))==pytest.approx(dense_ising_Jr_im[0])
