@@ -91,10 +91,10 @@ def _hr_diagonal(T):
 def hr_operator(T):
     return DiagonalLinearOperator(_hr_diagonal(T))
 @lru_cache(None)
-def Jr_operator(T):
-    # D=
-    # return SxDiagonalLinearOperator(np.ravel(D))
-    return None
+# def Jr_operator(T):
+#     # D=
+#     # return SxDiagonalLinearOperator(np.ravel(D))
+#     return None
 
 def ising_hr_T(T,J,g):
     '''
@@ -111,32 +111,32 @@ def ising_hr_Tp(T,J,g):
     U2=ising_J(T,J)
     Up=hr_operator(T)
     return Up@U2@U1
-def ising_Jr_T(T,g,h):
-
-    '''
-        Calculate a dense spatial transfer matrix for the J disorder averaged
-        influence matrix formalism similar to arXiv:2012.00777
-        Site ordering as in ising_T.
-    '''
-    U1=DiagonalLinearOperator(ising_h(T,h).diag*ising_W(T,g).diag)
-    U2=Jr_operator(T)
-    return U2@U1
+# def ising_Jr_T(T,g,h):
+#
+#     '''
+#         Calculate a dense spatial transfer matrix for the J disorder averaged
+#         influence matrix formalism similar to arXiv:2012.00777
+#         Site ordering as in ising_T.
+#     '''
+#     U1=DiagonalLinearOperator(ising_h(T,h).diag*ising_W(T,g).diag)
+#     U2=Jr_operator(T)
+#     return U2@U1
 #TODO add new ref if available
-def ising_Jhr_T(T,g):
-    '''
-        Calculate a dense spatial transfer matrix for the disorder averaged
-        influence matrix formalism with averaging over both J and h.
-        Site ordering as in ising_T.
-    '''
-    #TODO add new ref if available
-    U1=DiagonalLinearOperator(hr_operator(T).diag*ising_W(T,g).diag)
-    U2=Jr_operator(T)
-    return U2@U1
-def ising_Jhr_Tp(T,g):
-    U1=ising_W(T,g)
-    U2=Jr_operator(T)
-    Up=hr_operator(T)
-    return Up@U2@U1
+# def ising_Jhr_T(T,g):
+#     '''
+#         Calculate a dense spatial transfer matrix for the disorder averaged
+#         influence matrix formalism with averaging over both J and h.
+#         Site ordering as in ising_T.
+#     '''
+#     #TODO add new ref if available
+#     U1=DiagonalLinearOperator(hr_operator(T).diag*ising_W(T,g).diag)
+#     U2=Jr_operator(T)
+#     return U2@U1
+# def ising_Jhr_Tp(T,g):
+#     U1=ising_W(T,g)
+#     U2=Jr_operator(T)
+#     Up=hr_operator(T)
+#     return Up@U2@U1
 
 def ising_SFF(T,J,g,h):
     pass

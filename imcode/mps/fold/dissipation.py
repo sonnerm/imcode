@@ -1,6 +1,7 @@
 from ..utils import multiply_mpos,wrap_ndarray
 from .utils import FoldSite
 from tenpy.networks.mpo import MPO
+from tenpy.linalg.charges import LegCharge
 from tenpy.networks.mps import MPS
 import tenpy.linalg.np_conserved as npc
 import numpy as np
@@ -26,11 +27,3 @@ def depolarizer_operator(t,p):
     Cea=np.einsum("ab,cd->abcd",np.eye(1),Ceprim)
     Ce=npc.Array.from_ndarray(Cea,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
     return MPO(sites,[Ce]*(t+1))
-def ising_hr_dephase_T(t,J,g,gamma):
-    return multiply_mpos([ising_hr_T(t,J,g),dephaser_operator(t,gamma)])
-def ising_hr_dephase_Tp(t,J,g,gamma):
-    return multiply_mpos([ising_hr_Tp(t,J,g),dephaser_operator(t,gamma)])
-def ising_hr_depolarize_T(t,J,g,gamma):
-    return multiply_mpos([ising_hr_T(t,J,g),depolarizer_operator(t,gamma)])
-def ising_hr_depolarize_Tp(t,J,g,gamma):
-    return multiply_mpos([ising_hr_Tp(t,J,g),depolarizer_operator(t,gamma)])

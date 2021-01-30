@@ -68,3 +68,16 @@ def simple_to_maj(H):
             ret[2*i,2*j+1]+=np.trace(me(L,i)@H@mo(L,j)@Hi)/2**L
             ret[2*i+1,2*j+1]+=np.trace(mo(L,i)@H@mo(L,j)@Hi)/2**L
     return ret
+
+# def simple_to_maj(H):
+#     L=int(np.log2(H[0].shape[0]))
+#     # Hi=la.inv(H)
+#     ret=np.zeros((2*L,2*L),dtype=complex)
+#     tr=np.trace(H)
+#     for i in range(L):
+#         for j in range(L):
+#             ret[2*i,2*j]+=np.trace(me(L,i)@H@me(L,j))/tr
+#             ret[2*i+1,2*j]+=np.trace(mo(L,i)@H@me(L,j))/tr
+#             ret[2*i,2*j+1]+=np.trace(me(L,i)@H@mo(L,j))/tr
+#             ret[2*i+1,2*j+1]+=np.trace(mo(L,i)@H@mo(L,j))/tr
+#     return ret

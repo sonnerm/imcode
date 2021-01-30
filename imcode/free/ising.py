@@ -38,5 +38,22 @@ def ising_F(J,g):
     U2o=la.expm(-U2ho*2)
     U2e=la.expm(-U2he*2)
     return (U2e@U1,U2o@U1)
-def ising_T(J,g):
-    pass
+
+def etat(g):
+    return np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
+def Jt(g):
+    return -np.pi/4-np.log(np.tan(g))*0.5j
+def gt(J):
+    return np.arctan(1.0j*np.exp(2j*J))
+
+def dualU(eta,J,g):
+    gn=gt(J)
+    Jn=Jt(g)
+    etan=eta+etat(g)-etat(gn)
+    return (etan,Jn,gn)
+def ising_T(T,J,g):
+    THR=1e-5
+    ret=np.array((4*T,4*T))
+    gs=[gt(THR)]+[gt(J)]*(T-1)+[gt(THR)]+[np.conj(gt(J))]*(T-1)
+    Js=[Jt(g)]*T+[np.conj(Jt(g))]*T
+    return ising_F(Js,gs)*np.exp(2*T*eta-2*T*np.conj(eta))
