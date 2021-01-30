@@ -16,10 +16,10 @@ def dense_ising_dephase_T():
     gamma=np.random.random()
     return (dense.ising_dephase_T(T,J,g,h,gamma),(T,J,g,h,gamma))
 
-def test_dense_ising_dephase_hr_T(dense_ising_dephase_hr_T):
-    diT=dense_ising_dephase_hr_T[0]
+def test_dense_ising_dephase_T(dense_ising_dephase_T):
+    diT=dense_ising_dephase_T[0]
     assert diT.dtype==np.complex_
-    proj=la.matrix_power(diT,dense_ising_dephase_hr_T[1][0]*2)
+    proj=la.matrix_power(diT,dense_ising_dephase_T[1][0]*2)
     assert proj==pytest.approx(diT@proj)
 def test_sparse_ising_dephase_hr_T(dense_ising_dephase_hr_T):
     sih=sparse.ising_dephase_hr_T(*dense_ising_dephase_hr_T[1])
