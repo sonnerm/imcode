@@ -1,6 +1,7 @@
 from ..utils import multiply_mpos
 from .dissipation import dephaser_operator,depolarizer_operator
 from .ising_hr import ising_hr_T,ising_hr_Tp
+from .ising import ising_T
 # from .ising_Jr import ising_Jhr_T,ising_Jhr_Tp
 def ising_dephase_T(t,J,g,h,gamma):
     return multiply_mpos([ising_T(t,J,g,h),dephaser_operator(t,gamma)])
