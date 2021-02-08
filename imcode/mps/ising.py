@@ -4,6 +4,7 @@ from tenpy.linalg.charges import LegCharge
 from tenpy.networks.mpo import MPO
 import tenpy.linalg.np_conserved as npc
 from ..dense import SZ,ID,SX
+from .utils import multiply_mpos
 ZE=np.zeros_like(ID)
 def ising_H(J,g,h):
     L=len(h) # maybe change to explicit length?
@@ -35,17 +36,26 @@ def ising_F(J,g,h):
     g=np.array(g)
     h=np.array(h)
     leg_p=LegCharge.from_trivial(2)
-    leg_m=LegCharge.from_trivial(3)
     leg_b=LegCharge.from_trivial(1)
     Wg=[np.array([[[[np.cos(gc),1.0j*np.sin(gc)],[1.0j*np.sin(gc),np.cos(gc)]]]]) for gc in g]
     Wg=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in Wg]
-    mpg=MPO(Sites,Wg,bc="finite")
+    mpg=MPO(sites,Wg,bc="finite")
     Wh=[np.array([[[[np.exp(1.0j*hc),0],[0,np.exp(-1.0j*hc)]]]]) for hc in h]
     Wh=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in Wh]
-    mph=MPO(Sites,Wh,bc="finite")
+    mph=MPO(sites,Wh,bc="finite")
     if len(J)==L and L>1:
         raise NotImplementedError("PBE's don't work yet")
     if L==1:
         return multiply_mpos([mph,mpg])
-    WJ=[]
+    UP=np.array([[1,0],[0,0]])
+    DO=np.array([[0,0],[0,1]])
+    WJ=[npc.Array.from_ndarray(np.array([[UP,DO]]),[leg_b,leg_p.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])]
+    for Jc in J[:-1]:
+        wjc=np.array([[UP*np.exp(1.0j*Jc),DO*np.exp(-1.0j*Jc)],[UP*np.exp(-1.0j*Jc),DO*np.exp(1.0j*Jc)]])
+        WJ.append(npc.Array.from_ndarray(wjc,[leg_p,leg_p.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]))
+    UI=np.array([[np.exp(1.0j*J[-1]),0],[0,np.exp(-1.0j*J[-1])]])
+    DI=np.array([[np.exp(-1.0j*J[-1]),0],[0,np.exp(1.0j*J[-1])]])
+    wjc=np.array([[UI],[DI]])
+    WJ.append(npc.Array.from_ndarray(wjc,[leg_p,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]))
+    mpJ=MPO(sites,WJ,bc="finite")
     return multiply_mpos([mpJ,mph,mpg])

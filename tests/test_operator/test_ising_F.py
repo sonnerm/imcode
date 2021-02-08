@@ -13,6 +13,14 @@ def dense_ising_F_complex():
     g=np.random.normal(size=(L,))+np.random.normal(size=(L,))*1.0j
     h=np.random.normal(size=(L,))+np.random.normal(size=(L,))*1.0j
     return (dense.ising_F(J,g,h),(J,g,h))
+@pytest.fixture(scope="module")
+def dense_ising_F_complex_obc():
+    L=5
+    seed_rng("dense_ising_F_complex_obc")
+    J=np.random.normal(size=(L-1,))+np.random.normal(size=(L-1,))*1.0j
+    g=np.random.normal(size=(L,))+np.random.normal(size=(L,))*1.0j
+    h=np.random.normal(size=(L,))+np.random.normal(size=(L,))*1.0j
+    return (dense.ising_F(J,g,h),(J,g,h))
 
 @pytest.fixture(scope="module")
 def dense_ising_F_real():
@@ -49,12 +57,7 @@ def test_sparse_ising_F_real(dense_ising_F_real):
 def test_sparse_ising_F_complex(dense_ising_F_complex):
     siF=sparse.ising_F(*dense_ising_F_complex[1])
     assert sparse.sparse_to_dense(siF)==pytest.approx(dense_ising_F_complex[0])
-@pytest.mark.xfail
-def test_mps_ising_F_real(dense_ising_F_real):
-    miF=mps.ising_F(*dense_ising_F_real[1])
-    assert mps.mps_to_dense(miF)==pytest.approx(dense_ising_F_real[0])
 
-@pytest.mark.xfail
-def test_mps_ising_F_complex(dense_ising_F_complex):
-    miF=sparse.ising_F(*dense_ising_F_complex[1])
-    assert mps.mps_to_dense(miF)==pytest.approx(dense_ising_F_complex[0])
+def test_mps_ising_F_complex_obc(dense_ising_F_complex_obc):
+    miF=mps.ising_F(*dense_ising_F_complex_obc[1])
+    assert mps.mpo_to_dense(miF)==pytest.approx(dense_ising_F_complex_obc[0])
