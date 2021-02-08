@@ -9,13 +9,15 @@ def mpo_to_dense(mpo):
     ed=ExactDiag.from_H_mpo(mpo)
     ed.build_full_H_from_mpo()
     nda=ed.full_H.to_ndarray()
-    nda=nda.reshape((2,2,4**(mpo.L-2),2,2,2,2,4**(mpo.L-2),2,2))[0,:,:,0,:,0,:,:,0,:]
-    for i in range(mpo.L-2):
-        nda = nda.reshape(2*4**i,4,4**(mpo.L*2-4-i)*2)[:,[0,2,3,1],:]
-        nda = nda.reshape(4**(mpo.L-1+i)*2,4,4**(mpo.L-3-i)*2)[:,[0,2,3,1],:]
-    nda = nda.reshape((2,)*(mpo.L*2-2)+(4**(mpo.L-1),)).transpose([0,]+[x for x in range(1,2*mpo.L-4,2)]+[2*mpo.L-3]+[x for x in list(range(2,2*mpo.L-2,2))[::-1]]+[2*mpo.L-2])
-    nda = nda.reshape((4**(mpo.L-1),)+(2,)*(mpo.L*2-2)).transpose([0,1]+[x+1 for x in range(1,2*mpo.L-4,2)]+[2*mpo.L-2]+[x+1 for x in list(range(2,2*mpo.L-2,2))[::-1]])
-    return nda.reshape(4**(mpo.L-1),4**(mpo.L-1))
+    if isinstance(mpo.sites[0],fold.FoldSite):
+        nda=nda.reshape((2,2,4**(mpo.L-2),2,2,2,2,4**(mpo.L-2),2,2))[0,:,:,0,:,0,:,:,0,:]
+        for i in range(mpo.L-2):
+            nda = nda.reshape(2*4**i,4,4**(mpo.L*2-4-i)*2)[:,[0,2,3,1],:]
+            nda = nda.reshape(4**(mpo.L-1+i)*2,4,4**(mpo.L-3-i)*2)[:,[0,2,3,1],:]
+        nda = nda.reshape((2,)*(mpo.L*2-2)+(4**(mpo.L-1),)).transpose([0,]+[x for x in range(1,2*mpo.L-4,2)]+[2*mpo.L-3]+[x for x in list(range(2,2*mpo.L-2,2))[::-1]]+[2*mpo.L-2])
+        nda = nda.reshape((4**(mpo.L-1),)+(2,)*(mpo.L*2-2)).transpose([0,1]+[x+1 for x in range(1,2*mpo.L-4,2)]+[2*mpo.L-2]+[x+1 for x in list(range(2,2*mpo.L-2,2))[::-1]])
+        return nda.reshape(4**(mpo.L-1),4**(mpo.L-1))
+    return nda
 
 
 def mps_to_dense(mps):
