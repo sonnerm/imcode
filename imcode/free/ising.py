@@ -39,21 +39,47 @@ def ising_F(J,g):
     U2e=la.expm(-U2he*2)
     return (U2e@U1,U2o@U1)
 
-def etat(g):
-    return np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
-def Jt(g):
-    return -np.pi/4-np.log(np.tan(g))*0.5j
-def gt(J):
-    return np.arctan(1.0j*np.exp(2j*J))
+# def etat(g):
+#     return np.pi/4.0j+np.log(np.sin(g))/2+np.log(np.cos(g))/2
+# def Jt(g):
+#     return -np.pi/4-np.log(np.tan(g))*0.5j
+# def gt(J):
+#     return np.arctan(1.0j*np.exp(2j*J))
+#
+# def dualU(eta,J,g):
+#     gn=gt(J)
+#     Jn=Jt(g)
+#     etan=eta+etat(g)-etat(gn)
+#     return (etan,Jn,gn)
 
-def dualU(eta,J,g):
-    gn=gt(J)
-    Jn=Jt(g)
-    etan=eta+etat(g)-etat(gn)
-    return (etan,Jn,gn)
+def ising_J(T,J):
+    bd=np.array([[1,1.0j],[-1.0j,1]])/np.sqrt(2)
+    fw=np.array([[np.exp(1.0*J),1.0j*np.exp(-1.0j*J)],[-1.0j*np.exp(-1.0j*J),np.exp(1.0*J)]])
+    bw=np.array([[np.exp(-1.0*J),1.0j*np.exp(1.0j*J)],[-1.0j*np.exp(1.0j*J),np.exp(-1.0*J)]])
+    ret=np.zeros((4*T,4*T),dtype=complex)
+    ret[(0,1),:][:,(0,1)] = bd
+    for i in range(1,T):
+        ret[(2*i,2*i+1),:][:,(2*i,2*i+1)] = fw
+    ret[(2*T,2*T+1),:][:,(2*T,2*T+1)] = bd
+    for i in range(T+1,2*T):
+        ret[(2*i,2*i+1),:][:,(2*i,2*i+1)] = bw
+    return ret
+
+def ising_W(T,g):
+    fw=np.array([[np.cos(g),np.sin(g)],[-np.sin(g),np.cos(g)]])
+    bw=np.array([[np.cos(g),-np.sin(g)],[np.sin(g),np.cos(g)]])
+    ret=np.zeros((4*T,4*T))
+    for i in range(T):
+        ret[(2*i+1,2*i+2),:][:,(2*i,2*i+1)] = fw
+    for i in range(T,2*T-1):
+        ret[(2*i+1,2*i+2),:][:,(2*i,2*i+1)] = bw
+    rete=np.copy(ret)
+    rete[(0,-1),:][:,(0,-1)]=bw
+    reto=ret
+    reto[(0,-1),:][:,(0,-1)]=-bw
+    return (rete,reto)
+
 def ising_T(T,J,g):
-    THR=1e-5
-    ret=np.array((4*T,4*T))
-    gs=[gt(THR)]+[gt(J)]*(T-1)+[gt(THR)]+[np.conj(gt(J))]*(T-1)
-    Js=[Jt(g)]*T+[np.conj(Jt(g))]*T
-    return ising_F(Js,gs)*np.exp(2*T*eta-2*T*np.conj(eta))
+    U1=ising_J(T,J)
+    U2e,U2o=ising_W(T,g)
+    return (U1@U2e,U1@U2o)
