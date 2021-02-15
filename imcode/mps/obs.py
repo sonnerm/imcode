@@ -1,6 +1,8 @@
 import tenpy
 import numpy as np
 from .utils import apply,multiply_mpos
+from .channel import unitary_channel,mpo_to_state
+from ..dense import SZ
 from . import fold
 from . import flat
 from tenpy.networks.mpo import MPOEnvironment,MPO
@@ -20,8 +22,6 @@ def flat_entropy(im):
 def fold_entropy(im):
     assert isinstance(im.sites[0],fold.FoldSite) # for now
     return im.entanglement_entropy()
-def op_entropy(mpo):
-    pass
 
 def zz_operator(t):
     sites=[fold.FoldSite() for _ in range(t+1)]
@@ -196,3 +196,21 @@ def get_blip_average_ud(mps):
     lstate= [[1,0,0,0]]+[[0,0,1,1]]*(mps.L-2)+[[0,1,0,0]]
     lmps=MPS.from_product_state(mps.sites,lstate)
     return mps.overlap(lmps)
+
+def direct_czz(F,t,i,j,chi=None,options=None):
+    L=F.L
+    leg_p=LegCharge.from_trivial(2)
+    leg_b=LegCharge.from_trivial(1)
+    assert isinstance(F.sites[0],flat.FlatSite)
+    szop=[np.array([[np.eye(2)]]) for _ in range(L)]
+    szop[i]=np.array([[SZ]])
+    szop=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in szop]
+    state=mpo_to_state(MPO(F.sites,szop))
+    uchannel=unitary_channel(F)
+    for _ in range(t):
+        apply(uchannel,state,chi,options)
+    szop=[np.array([[np.eye(2)]]) for _ in range(L)]
+    szop[j]=np.array([[SZ]])
+    szop=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in szop]
+    ostate=mpo_to_state(MPO(F.sites,szop))
+    return state.overlap(ostate)/2**L,state

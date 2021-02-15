@@ -1,5 +1,7 @@
+import numpy as np
 from . import flat
 from . import fold
+from .channel import OperatorSite
 from tenpy.algorithms.exact_diag import ExactDiag
 import tenpy.linalg.np_conserved as npc
 
@@ -17,6 +19,8 @@ def mpo_to_dense(mpo):
         nda = nda.reshape((2,)*(mpo.L*2-2)+(4**(mpo.L-1),)).transpose([0,]+[x for x in range(1,2*mpo.L-4,2)]+[2*mpo.L-3]+[x for x in list(range(2,2*mpo.L-2,2))[::-1]]+[2*mpo.L-2])
         nda = nda.reshape((4**(mpo.L-1),)+(2,)*(mpo.L*2-2)).transpose([0,1]+[x+1 for x in range(1,2*mpo.L-4,2)]+[2*mpo.L-2]+[x+1 for x in list(range(2,2*mpo.L-2,2))[::-1]])
         return nda.reshape(4**(mpo.L-1),4**(mpo.L-1))
+    if nda.shape[-1]==1:
+        nda=nda[:,:,0]
     return nda
 
 
@@ -33,5 +37,11 @@ def mps_to_dense(mps):
         psi = npc.trace(psi,'vL', 'vR')
         psi = psi.to_ndarray()
         return psi.ravel()*mps.norm
+    elif isinstance(mps.sites[0],OperatorSite) and isinstance(mps.sites[0].base_site,flat.FlatSite):
+        psi = npc.trace(psi,'vL', 'vR')
+        psi = psi.to_ndarray()
+        psi=psi.reshape((2,2)*mps.L)
+        psi=np.transpose(psi,list(range(0,2*mps.L,2))+list(range(1,2*mps.L,2)))
+        return psi.reshape((2**mps.L,2**mps.L))*mps.norm
     else:
         assert False
