@@ -96,13 +96,13 @@ def hr_operator(T):
 #     # return SxDiagonalLinearOperator(np.ravel(D))
 #     return None
 
-def ising_hr_T(T,J,g):
+def ising_hr_T(T,J,g,init=(0.5,0.5)):
     '''
         Calculate a dense spatial transfer matrix for the disorder averaged
         influence matrix formalism described in arXiv:2012.00777. The averaging
         is performed over parameter h. Site ordering as in ising_T.
     '''
-    U1=DiagonalLinearOperator(hr_operator(T).diag*ising_W(T,g).diag)
+    U1=DiagonalLinearOperator(hr_operator(T).diag*ising_W(T,g,init).diag)
     U2=ising_J(T,J)
     return U2@U1
 

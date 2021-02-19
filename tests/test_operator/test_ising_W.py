@@ -10,14 +10,16 @@ def dense_ising_W_complex():
     T=3
     seed_rng("dense_ising_W_complex")
     g=np.random.normal()+np.random.normal()*1.0j
-    return (dense.ising_W(T,g),(T,g))
+    i=np.abs(np.random.normal())
+    return (dense.ising_W(T,g,(i,1-i)),(T,g,(i,1-i)))
 
 @pytest.fixture(scope="module")
 def dense_ising_W_real():
     T=3
     seed_rng("dense_ising_W_real")
     g=np.random.normal()
-    return (dense.ising_W(T,g),(T,g))
+    i=np.abs(np.random.normal())
+    return (dense.ising_W(T,g,(i,1-i)),(T,g,(i,1-i)))
 
 def test_dense_ising_W_real(dense_ising_W_real):
     diW=dense_ising_W_real[0]

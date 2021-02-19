@@ -13,7 +13,8 @@ def dense_ising_T():
     J=np.random.normal()
     g=np.random.normal()
     h=np.random.normal()
-    return (dense.ising_T(T,J,g,h),(T,J,g,h))
+    i=np.abs(np.random.normal())
+    return (dense.ising_T(T,J,g,h,(i,1-i)),(T,J,g,h,(i,1-i)))
 
 def test_dense_ising_T(dense_ising_T):
     diT=dense_ising_T[0]

@@ -13,30 +13,30 @@ def Jr_operator(T):
             for j in range(2**(2*T)):
                 ret[j,j^i]=1
     return ret#/2
-def ising_Jr_T(T,g,h):
+def ising_Jr_T(T,g,h,init=(0.5,0.5)):
 
     r'''
         Calculate a dense spatial transfer matrix for the J disorder averaged
         influence matrix formalism similar to arXiv:2012.00777
         Site ordering as in ising_T.
     '''
-    U1=ising_h(T,h)*ising_W(T,g)
+    U1=ising_h(T,h)*ising_W(T,g,init)
     U2=Jr_operator(T)
     return U2@U1
 #TODO add new ref if available
-def ising_Jhr_T(T,g):
+def ising_Jhr_T(T,g,init=(0.5,0.5)):
     r'''
         Calculate a dense spatial transfer matrix for the disorder averaged
         influence matrix formalism with averaging over both J and h.
         Site ordering as in ising_T.
     '''
     #TODO add new ref if available
-    U1=hr_operator(T)*ising_W(T,g)
+    U1=hr_operator(T)*ising_W(T,g,init)
     U2=Jr_operator(T)
     return U2@U1
 
-def ising_Jhr_Tp(T,g):
-    U1=ising_W(T,g)
+def ising_Jhr_Tp(T,g,init=(0.5,0.5)):
+    U1=ising_W(T,g,init)
     U2=Jr_operator(T)
     Up=hr_operator(T)
     return Up@U2@U1
