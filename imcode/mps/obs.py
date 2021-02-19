@@ -10,11 +10,11 @@ from tenpy.networks.mps import MPS
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
 def boundary_obs(im,obs):
-    return im.overlap(obs)/2
+    return im.overlap(obs)
 def embedded_obs(left_im,obs_mpo,right_im):
     obs_mpo.IdL[0]=0
     obs_mpo.IdR[-1]=0
-    return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm/2
+    return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm
 def flat_entropy(im):
     assert isinstance(im.sites[0],flat.FlatSite) # not possible for folded mpo
     t=im.L//2

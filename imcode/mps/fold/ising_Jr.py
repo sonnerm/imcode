@@ -11,8 +11,7 @@ import tenpy.linalg.np_conserved as npc
 def Jr_operator(t):
     sites=[FoldSite() for t in range(t+1)]
     # Iprim=np.ones((4,4))/np.sqrt(2)
-    Iprim=np.ones((4,4))/np.sqrt(2)
-    Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])/np.sqrt(2)
+    Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])#/np.sqrt(2)
     leg_t=LegCharge.from_trivial(1)
     leg_p=LegCharge.from_trivial(4)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)

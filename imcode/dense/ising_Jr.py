@@ -12,7 +12,7 @@ def Jr_operator(T):
         if popcount((i>>T)&(~(1<<(T-1))))==popcount((i^((i>>T)<<T))&(~(1<<(T-1)))):
             for j in range(2**(2*T)):
                 ret[j,j^i]=1
-    return ret/2
+    return ret#/2
 def ising_Jr_T(T,g,h):
 
     r'''

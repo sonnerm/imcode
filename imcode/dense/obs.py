@@ -17,9 +17,9 @@ def op_entropy(dm):
     assert False #For now
 
 def boundary_obs(im,obs):
-    return np.sum(im*obs)/2
+    return np.sum(im*obs)
 def embedded_obs(left_im,obs_op,right_im):
-    return np.sum(left_im*(obs_op@right_im))/2
+    return np.sum(left_im*(obs_op@right_im))
 def zz_state(t):
     ret=np.zeros((2,2**(t-1),2,2**(t-1)))
     ret[0,:,0,:]=1

@@ -38,7 +38,7 @@ def ising_F(J,g,h):
 
 
 def ising_J(T,J):
-    Pm=np.array([[1,1],[1,1]])/np.sqrt(2)
+    Pm=np.array([[1,1],[1,1]])#/np.sqrt(2)
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*np.conj(J))],[np.exp(-1.0j*np.conj(J)),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
     return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))
@@ -48,7 +48,7 @@ def ising_h(T,h):
     U1=np.diag(np.exp(1.0j*np.array(ising_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
     return U1
 
-def ising_W(T,g):
+def ising_W(T,g,init=(0.5,0.5)):
     ret=np.ones((2**(2*T)),dtype=complex)
     for i in range(T):
         ret=ret.reshape((2**i,2,2,2**(2*T-2-i)))
@@ -65,19 +65,19 @@ def ising_W(T,g):
         ret[:,0,1,:]*=np.conj(np.sin(g)*1.0j)
 
     ret=ret.reshape((2,2**(2*T-2),2))
-    ret[1,:,1]*=np.conj(np.cos(g))
-    ret[0,:,0]*=np.conj(np.cos(g))
-    ret[1,:,0]*=np.conj(np.sin(g)*1.0j)
-    ret[0,:,1]*=np.conj(np.sin(g)*1.0j)
+    ret[1,:,1]*=np.conj(np.cos(g))*init[1]
+    ret[0,:,0]*=np.conj(np.cos(g))*init[0]
+    ret[1,:,0]*=np.conj(np.sin(g)*1.0j)*init[1]
+    ret[0,:,1]*=np.conj(np.sin(g)*1.0j)*init[0]
     return np.diag(np.ravel(ret))
 
-def ising_T(T,J,g,h):
+def ising_T(T,J,g,h,init=(0.5,0.5)):
     r'''
         Calculate a dense IM approach transfer matrix for the kicked ising
         chain. See arXiv:2009.10105 for details. The sites are ordered as
         follows: [s_0 forward s_T backward].
     '''
-    U1=ising_h(T,h)*ising_W(T,g)
+    U1=ising_h(T,h)*ising_W(T,g,init)
     U2=ising_J(T,J)
     return U2@U1
 

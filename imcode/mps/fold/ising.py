@@ -4,7 +4,7 @@ from tenpy.networks.mpo import MPO
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
 import numpy as np
-def ising_W(t,g):
+def ising_W(t,g,init=(0.5,0.5)):
     sites=[FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
@@ -18,7 +18,8 @@ def ising_W(t,g):
                     [mx,px,c2,s2],
                     [px,mx,s2,c2]
     ])
-    W_0a=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(4),np.eye(1))
+    init=np.diag(list(init)+[0,0])
+    W_0a=np.einsum("cd,cb,ac->abcd",init,np.eye(4),np.eye(1))
     W_ia=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(4),Wprim)
     W_Ta=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(1),Wprim)
     W_0=npc.Array.from_ndarray(W_0a,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
@@ -41,7 +42,7 @@ def ising_J(t,J):
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
     # Iprim=np.array([[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]])/np.sqrt(2)
-    Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])/np.sqrt(2)
+    Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])#/np.sqrt(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
     pj=np.exp(2.0j*J)
     mj=np.exp(-2.0j*np.conj(J))
@@ -55,5 +56,5 @@ def ising_J(t,J):
     J=npc.Array.from_ndarray(Ja,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     return MPO(sites,[Id]+[J]*(t-1)+[Id])
-def ising_T(t,J,g,h):
-    return multiply_mpos([ising_J(t,J),ising_W(t,g),ising_h(t,h)])
+def ising_T(t,J,g,h,init=(0.5,0.5)):
+    return multiply_mpos([ising_J(t,J),ising_W(t,g,init),ising_h(t,h)])

@@ -33,7 +33,7 @@ def ising_F(J,g,h):
     opsx=SxDiagonalLinearOperator(np.exp(1.0j*ising_diag(np.zeros_like(J),g)))
     return opsz@opsx
 
-def ising_W(T,g):
+def ising_W(T,g,init=(0.5,0.5)):
     ret=np.ones((2**(2*T)),dtype=complex)
     for i in range(T):
         ret=ret.reshape((2**i,2,2,2**(2*T-2-i)))
@@ -50,10 +50,10 @@ def ising_W(T,g):
         ret[:,0,1,:]*=np.conj(np.sin(g)*1.0j)
 
     ret=ret.reshape((2,2**(2*T-2),2))
-    ret[1,:,1]*=np.conj(np.cos(g))
-    ret[0,:,0]*=np.conj(np.cos(g))
-    ret[1,:,0]*=np.conj(np.sin(g)*1.0j)
-    ret[0,:,1]*=np.conj(np.sin(g)*1.0j)
+    ret[1,:,1]*=np.conj(np.cos(g))*init[1]
+    ret[0,:,0]*=np.conj(np.cos(g))*init[0]
+    ret[1,:,0]*=np.conj(np.sin(g)*1.0j)*init[1]
+    ret[0,:,1]*=np.conj(np.sin(g)*1.0j)*init[0]
     return DiagonalLinearOperator(np.ravel(ret))
 def ising_J(T,J):
     D=np.ones(2**(2*T),dtype=complex)
@@ -66,7 +66,7 @@ def ising_J(T,J):
         D[:,0,:]*=np.exp(1.0j*J)+np.exp(-1.0j*np.conj(J))
     D=D.reshape((2,2**(2*T-1)))
     D[1,:]*=0
-    D[0,:]*=2
+    D[0,:]*=4
     D=D.reshape((2**(T),2,2**(T-1)))
     D[:,1,:]*=0
     return SxDiagonalLinearOperator(np.ravel(D))
@@ -75,10 +75,10 @@ def ising_h(T,h):
     D1=np.exp(1.0j*ising_diag(np.zeros_like(h),h))
     return DiagonalLinearOperator(D1)
 
-def ising_T(t,J,g,h):
+def ising_T(t,J,g,h,init=(0.5,0.5)):
     '''
     '''
-    U1=DiagonalLinearOperator(ising_h(t,h).diag*ising_W(t,g).diag)#slight optimization
+    U1=DiagonalLinearOperator(ising_h(t,h).diag*ising_W(t,g,init).diag)#slight optimization
     U2=ising_J(t,J)
     return U2@U1
 @lru_cache(None)
