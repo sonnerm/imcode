@@ -1,8 +1,8 @@
 from .utils import apply
 from . import fold
 from . import flat
-def im_iterative(mpo,chi=None,options=None):
-    return im_finite([mpo]*(2*(mpo.L-1)),chi=chi,options=options)
+def im_iterative(mpo,chi=None,options=None,boundary=None):
+    return im_finite([mpo]*(2*(mpo.L-1)),chi=chi,options=options,boundary=boundary)
 
 def im_zipup(mpo,chi):
     options={"trunc_params":{"chi_max":chi},"m_temp":4,"verbose":False,"compression_method":"zip_up"}

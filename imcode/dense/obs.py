@@ -29,6 +29,7 @@ def zz_state(t):
     return np.ravel(ret)
 def embedded_czz(im,lop):
     t=int(np.log2(im.shape[0]))//2
+    # return embedded_obs(im,lop@np.diag(zz_state(t)),im)
     return embedded_obs(im,lop,zz_state(t)*im)
 def boundary_czz(im,lop):
     t=int(np.log2(im.shape[0]))//2
@@ -44,9 +45,12 @@ def boundary_norm(im,lop):
 #     t=int(np.log2(left_im.shape[0]))
 #     return np.sum(zz_op(t)*left_im*site_op*right_im)
 
-def direct_czz(F,t,i,j):
+def direct_czz(F,t,i,j,init=None):
     L=int(np.log2(F.shape[0]))
-    return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))/(2**L)
+    if init is None:
+        return np.trace(la.matrix_power(F,t)@sz(L,i)@la.matrix_power(F.T.conj(),t)@sz(L,j))/(2**L)
+    else:
+        return np.trace(la.matrix_power(F,t)@sz(L,i)@init@la.matrix_power(F.T.conj(),t)@sz(L,j))/(2**L)
 
 def direct_norm(F,t,i,j): #lol
     L=int(np.log2(F.shape[0]))

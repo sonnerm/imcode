@@ -10,10 +10,16 @@ from tenpy.networks.mps import MPS
 from tenpy.linalg.charges import LegCharge
 import tenpy.linalg.np_conserved as npc
 def boundary_obs(im,obs):
+    im=im.copy()
+    for i in range(im.L):
+        im.get_B(i).conj(True,True).conj(False,True)
     return im.overlap(obs)
 def embedded_obs(left_im,obs_mpo,right_im):
     obs_mpo.IdL[0]=0
     obs_mpo.IdR[-1]=0
+    left_im=left_im.copy()
+    for i in range(left_im.L):
+        left_im.get_B(i).conj(True,True).conj(False,True)
     return MPOEnvironment(left_im,obs_mpo,right_im).full_contraction(0)*left_im.norm*right_im.norm
 def flat_entropy(im):
     assert isinstance(im.sites[0],flat.FlatSite) # not possible for folded mpo
@@ -197,7 +203,7 @@ def get_blip_average_ud(mps):
     lmps=MPS.from_product_state(mps.sites,lstate)
     return mps.overlap(lmps)
 
-def direct_czz(F,t,i,j,chi=None,options=None):
+def direct_czz(F,t,i,j,chi=None,options=None,init=None):
     L=F.L
     leg_p=LegCharge.from_trivial(2)
     leg_b=LegCharge.from_trivial(1)
@@ -205,7 +211,10 @@ def direct_czz(F,t,i,j,chi=None,options=None):
     szop=[np.array([[np.eye(2)]]) for _ in range(L)]
     szop[i]=np.array([[SZ]])
     szop=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in szop]
-    state=mpo_to_state(MPO(F.sites,szop))
+    mop=MPO(F.sites,szop)
+    if init is not None:
+        mop=multiply_mpos([init,mop])
+    state=mpo_to_state(mop)
     uchannel=unitary_channel(F)
     for _ in range(t):
         apply(uchannel,state,chi,options)

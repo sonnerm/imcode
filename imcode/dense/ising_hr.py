@@ -13,8 +13,7 @@ def hr_operator(T):
 
 def ising_hr_T(T,J,g,init=(0.5,0.5)):
     r'''
-        Calculate a dense spatial transfer matrix for the disorder averaged
-        influence matrix formalism described in arXiv:2012.00777. The averaging
+        Calculate a dense spatial transfer matrix for the disorder averaged influence matrix formalism described in arXiv:2012.00777. The averaging
         is performed over parameter h. Site ordering as in ising_T.
     '''
     U1=hr_operator(T)*ising_W(T,g,init)

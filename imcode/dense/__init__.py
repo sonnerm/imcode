@@ -9,7 +9,7 @@ from .ising_dis import ising_depolarize_Jr_T,ising_depolarize_Jhr_T,ising_depola
 from .im import im_finite,im_iterative,im_diag
 from .im import open_boundary_im,perfect_dephaser_im,dephaser_im
 from .utils import SX,SY,SZ,SM,SP,ID,sx,sy,sz,sm,sp,one,rdm,dense_kron
-from .obs import embedded_obs,boundary_obs
+from .obs import embedded_obs,boundary_obs,zz_state
 from .obs import embedded_czz,boundary_czz,direct_czz
 from .obs import embedded_norm,boundary_norm,direct_norm
 from .obs import flat_entropy,fold_entropy,op_entropy

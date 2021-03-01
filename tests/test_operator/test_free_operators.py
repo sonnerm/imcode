@@ -67,6 +67,7 @@ def test_free_dense_ising_F_obc_L5():
     J[-1]=0.0
     ttm=free.simple_to_maj(dense.ising_F(J,g,np.zeros_like(J)))
     assert ttm == pytest.approx(free.ising_F(J,g)[0],1e-9,1e-9)
+@pytest.mark.skip()
 def test_free_dense_ising_J_T1():
     seed_rng("free_dense_ising_J_T1")
     T=1
@@ -74,6 +75,7 @@ def test_free_dense_ising_J_T1():
     ttm=free.simple_to_maj(dense.ising_J(T,J))
     assert ttm == pytest.approx(free.ising_J(T,J)[0],1e-9,1e-9)
 
+@pytest.mark.skip()
 def test_free_dense_ising_J_T2():
     seed_rng("free_dense_ising_J_T2")
     T=2
@@ -81,6 +83,7 @@ def test_free_dense_ising_J_T2():
     ttm=free.simple_to_maj(dense.ising_J(T,J))
     assert ttm == pytest.approx(free.ising_J(T,J)[0],1e-9,1e-9)
 
+@pytest.mark.skip()
 def test_free_dense_ising_J_T3():
     seed_rng("free_dense_ising_J_T3")
     T=3

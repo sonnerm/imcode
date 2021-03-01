@@ -12,9 +12,10 @@ def dense_ising_im():
     J=np.random.normal()
     g=np.random.normal()
     h=np.random.normal()
-    dt=dense.ising_T(t,J,g,h)
+    i=np.random.random()
+    dt=dense.ising_T(t,J,g,h,(i,1-i))
     im=dense.im_iterative(dt)
-    return (im,(t,J,g,h))
+    return (im,(t,J,g,h,(i,1-i)))
 def test_dense_ising_im_iterative(dense_ising_im):
     check_dense_im(dense_ising_im[0])
 
@@ -30,7 +31,11 @@ def test_sparse_ising_im_diag(dense_ising_im):
     assert sparse.im_diag(sparse.ising_T(*dense_ising_im[1]))[0]==pytest.approx(dense_ising_im[0])
 
 def test_fold_ising_im_iterative(dense_ising_im):
-    assert mps.mps_to_dense(mps.im_iterative(mps.fold.ising_T(*dense_ising_im[1])))==pytest.approx(dense_ising_im[0])
+    im=mps.im_iterative(mps.fold.ising_T(*dense_ising_im[1]))
+    psi = im.get_theta(0, im.L).take_slice([0, 0], ['vL', 'vR']).to_ndarray()
+    assert np.max(np.abs(psi.reshape((2,2,4**(im.L-2),2,2))[1,:,:,:,:]))<1e-16
+    assert np.max(np.abs(psi.reshape((2,2,4**(im.L-2),2,2))[:,:,:,1,:]))<1e-16
+    assert mps.mps_to_dense(im)==pytest.approx(dense_ising_im[0])
 
 # @pytest.mark.xfail
 # def test_flat_ising_im_iterative(dense_ising_im):
