@@ -42,6 +42,14 @@ def brickwork_L(t,lop,init=(0.5,0.5)):
     for i in range(1,2*t):
         ret=np.einsum("xy,ab->xayb",ret,lop.conj()).reshape((ret.shape[0]*lop.shape[0],ret.shape[1]*lop.shape[1]))
     return ret
+def brickwork_zz_operator(t):
+    ret=np.array([1.0,-1.0]).reshape((2,1))
+    for i in range(1,2*t):
+        ret=np.einsum("xy,ab->xayb",ret,np.eye(2)).reshape((ret.shape[0]*2,ret.shape[1]*2))
+    ret=np.einsum("xy,a->xya",ret,np.array((1.0,-1.0))).reshape(ret.shape[0],ret.shape[1]*2)
+    for i in range(1,2*t):
+        ret=np.einsum("xy,ab->xayb",ret,np.eye(2)).reshape((ret.shape[0]*2,ret.shape[1]*2))
+    return ret
 def brickwork_open_boundary_im(t):
     ret=dense_kron([np.eye(2)]*(2*t)).ravel()
     ret=ret.reshape([2**(2*t-1),2,2,2**(2*t-1)])[:,(0,1),(0,1),:].ravel()
