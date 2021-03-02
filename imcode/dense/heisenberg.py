@@ -36,7 +36,10 @@ def heisenberg_F(Jx,Jy,Jz,hx,hy,hz):
     ods+=[np.array(x)/2 for x in (hx,hy,hz)]
     return la.expm(1.0j*heisenberg_H(*evs))@la.expm(1.0j*heisenberg_H(*ods))
 def heisenberg_gate(Jx,Jy,Jz):
-    return np.array(np.kron(SX,SX)*Jx+np.kron(SX,SX)*Jx+np.kron(SX,SX)*Jy).reshape((2,2,2,2)).transpose([0,2,1,3])
+    H=np.kron(SX,SX)*Jx+np.kron(SX,SX)*Jx+np.kron(SX,SX)*Jy
+    print(H)
+    return la.expm(1.0j*np.array(H)).reshape((2,2,2,2)).transpose([0,2,1,3])
+
 def heisenberg_lop(hx,hy,hz):
     return SX*hx+SY*hy+SZ*hz
 def heisenberg_S(t,Jx,Jy,Jz):

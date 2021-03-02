@@ -10,6 +10,7 @@ def dense_heisenberg_czz():
     t=3
     seed_rng("dense_heisenberg_czz")
     Jx,Jy,Jz,hx,hy,hz=np.random.normal(size=6)
+    Jx=Jy=Jz=hx=hy=hz=0
     i=np.random.random()
     T=dense.heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,(i,1.0-i))
     im=dense.im_finite([T]*(2*t),dense.brickwork_open_boundary_im(t))
