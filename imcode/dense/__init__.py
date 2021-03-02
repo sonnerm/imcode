@@ -6,6 +6,8 @@ from .ising_dis import ising_dephase_T,ising_dephase_hr_T,ising_dephase_hr_Tp
 from .ising_dis import ising_dephase_Jr_T,ising_dephase_Jhr_T,ising_dephase_Jhr_Tp
 from .ising_dis import ising_depolarize_T,ising_depolarize_hr_T,ising_depolarize_hr_Tp
 from .ising_dis import ising_depolarize_Jr_T,ising_depolarize_Jhr_T,ising_depolarize_Jhr_Tp
+from .brickwork import brickwork_L,brickwork_S,brickwork_T,brickwork_open_boundary_im,fuse_final,fuse_initial
+from .heisenberg import heisenberg_H,heisenberg_F,heisenberg_T,heisenberg_S,heisenberg_L
 from .im import im_finite,im_iterative,im_diag
 from .im import open_boundary_im,perfect_dephaser_im,dephaser_im
 from .utils import SX,SY,SZ,SM,SP,ID,sx,sy,sz,sm,sp,one,rdm,dense_kron
