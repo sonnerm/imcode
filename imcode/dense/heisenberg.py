@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg as la
 from .utils import dense_kron,SX,SY,SZ,ID
-from .brickwork import brickwork_L,brickwork_S,brickwork_T
+from .brickwork import brickwork_L,brickwork_S,brickwork_T,brickwork_F
 
 def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
     L=len(hx) # maybe change to explicit length?
@@ -26,25 +26,17 @@ def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
     return ret
 
 def heisenberg_F(Jx,Jy,Jz,hx,hy,hz):
-    evs=[np.array(x).copy() for x in (Jx,Jy,Jz)]
-    for x in evs:
-        x[1::2]=0
-    evs+=[np.array(x)/2 for x in (hx,hy,hz)]
-    ods=[np.array(x).copy() for x in (Jx,Jy,Jz)]
-    for x in ods:
-        x[::2]=0
-    ods+=[np.array(x)/2 for x in (hx,hy,hz)]
-    return la.expm(1.0j*heisenberg_H(*evs))@la.expm(1.0j*heisenberg_H(*ods))
+    gates=[heisenberg_gate(jx,jy,jz) for (jx,jy,jz) in zip(Jx,Jy,Jz)]
+    lop=[heisenberg_lop(chx,chy,chz) for (chx,chy,chz) in zip(hx,hy,hz)]
+    return brickwork_F(gates,lop)
 def heisenberg_gate(Jx,Jy,Jz):
-    H=np.kron(SX,SX)*Jx+np.kron(SX,SX)*Jx+np.kron(SX,SX)*Jy
-    print(H)
-    return la.expm(1.0j*np.array(H)).reshape((2,2,2,2)).transpose([0,2,1,3])
-
+    H=np.kron(SX,SX)*Jx+np.kron(SY,SY)*Jy+np.kron(SZ,SZ)*Jz
+    return la.expm(1.0j*np.array(H))
 def heisenberg_lop(hx,hy,hz):
-    return SX*hx+SY*hy+SZ*hz
+    return la.expm(0.5j*(SX*hx+SY*hy+SZ*hz))
 def heisenberg_S(t,Jx,Jy,Jz):
     return brickwork_S(t,heisenberg_gate(Jx,Jy,Jz))
-def heisenberg_L(t,hx,hy,hz,init=(0.5,0.5)):
-    return brickwork_L(t,heisenberg_lop(hx/2,hy/2,hz/2))
-def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=(0.5,0.5)):
-    return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_lop(hx/2,hy/2,hz/2))
+def heisenberg_L(t,hx,hy,hz,init=(0.5,0.0,0.0,0.5)):
+    return brickwork_L(t,heisenberg_lop(hx,hy,hz),init)
+def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=(0.5,0.0,0.0,0.5)):
+    return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_lop(hx,hy,hz),init)#TODO fix

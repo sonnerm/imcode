@@ -4,26 +4,27 @@ import imcode.mps as mps
 import pytest
 from ..utils import seed_rng
 import numpy as np
-
 @pytest.fixture
 def dense_heisenberg_czz():
-    t=3
+    t=1
     seed_rng("dense_heisenberg_czz")
     Jx,Jy,Jz,hx,hy,hz=np.random.normal(size=6)
-    Jx=Jy=Jz=hx=hy=hz=0
-    i=np.random.random()
-    T=dense.heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,(i,1.0-i))
+    # Jx=Jy=Jz=0#=hx=hy=hz=0
+    T=dense.heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz)
     im=dense.im_finite([T]*(2*t),dense.brickwork_open_boundary_im(t))
-    lop=dense.heisenberg_L(t,hx,hy,hz,(i,1.0-i))@dense.brickwork_zz_operator(t)
-    return (dense.embedded_obs(im,lop,im),dense.embedded_obs(im,lop,dense.brickwork_open_boundary_im(t)),(t,Jx,Jy,Jz,hx,hy,hz,i))
+    lop=dense.heisenberg_L(t,hx,hy,hz)@dense.brickwork_zz_operator(t)
+    dense.embedded_obs(im,lop,im)
+    dense.embedded_obs(im,lop,dense.brickwork_open_boundary_im(t))
+    return (dense.embedded_obs(im,lop,im),dense.embedded_obs(im,lop,dense.brickwork_open_boundary_im(t)),(t,Jx,Jy,Jz,hx,hy,hz))
 
 
 
 def test_dense_direct_heisenberg(dense_heisenberg_czz):
-    t,Jx,Jy,Jz,hx,hy,hz,i=dense_heisenberg_czz[-1]
-    L=7
+    t,Jx,Jy,Jz,hx,hy,hz=dense_heisenberg_czz[-1]
+    L=8
     F=dense.heisenberg_F([Jx]*(L-1),[Jy]*(L-1),[Jz]*(L-1),[hx]*L,[hy]*L,[hz]*L)
-    init=dense.dense_kron([np.array([[1.0-i,0.0],[0.0,i]])]*7)
+    init=dense.dense_kron([np.array([[1.0,0.0],[0.0,1.0]])]*L)
+
     assert dense.direct_czz(F,t,3,3,init=init)==pytest.approx(dense_heisenberg_czz[0])
     assert dense.direct_czz(F,t,0,0,init=init)==pytest.approx(dense_heisenberg_czz[1])
 # @pytest.mark.xfail
