@@ -29,7 +29,9 @@ def fold_entropy(im):
     assert isinstance(im.sites[0],fold.FoldSite) # for now
     return im.entanglement_entropy()
 
-def zz_operator(t):
+def zz_operator(t,ti=0,tj=None):
+    if tj==None:
+        tj=t
     sites=[fold.FoldSite() for _ in range(t+1)]
     leg_t=LegCharge.from_trivial(1)
     leg_p=sites[0].leg
@@ -37,20 +39,26 @@ def zz_operator(t):
     Za=np.einsum("ab,cd->abcd",np.eye(1),np.diag([1.0,-1.0,0.0,0.0]))
     Z=npc.Array.from_ndarray(Za,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    return MPO(sites,[Z]+[Id]*(t-1)+[Z])
+    return MPO(sites,[Id]*ti+[Z]+[Id]*(tj-ti-1)+[Z]+[Id]*(t-tj))
 
-def zz_state(t):
+def zz_state(t,ti=0,tj=None):
+    if tj==None:
+        tj=t
     sites=[fold.FoldSite() for _ in range(t+1)]
-    state=[[1,-1,0,0]]+[[1,1,1,1]]*(t-1)+[[1,-1,0,0]]
+    state=[[1,-1,0,0]]+[[1,1,1,1]]*(tj-ti-1)+[[1,-1,0,0]]
+    if ti!=0:
+        state=[[1,1,0,0]]+[[1,1,1,1]]*(ti-1)+state
+    if tj!=t:
+        state=state+[[1,1,1,1]]*(t-tj-1)+[[1,1,0,0]]
     return MPS.from_product_state(sites,state)
 
-def embedded_czz(im,lop):
+def embedded_czz(im,lop,ti=0,tj=None):
     t=im.L-1
-    op=multiply_mpos([lop,zz_operator(t)])
+    op=multiply_mpos([lop,zz_operator(t,ti,tj)])
     return embedded_obs(im,op,im)
-def boundary_czz(im,lop):
+def boundary_czz(im,lop,ti=0,tj=None):
     t=im.L-1
-    st=zz_state(t)
+    st=zz_state(t,ti=0,tj=None)
     apply(lop,st)
     return boundary_obs(im,st)
 def embedded_norm(im,lop):
