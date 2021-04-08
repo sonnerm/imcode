@@ -12,10 +12,10 @@ def im_finite(Ts,boundary=None,chi=None,options=None):
     if boundary is None:
         if isinstance(Ts[0].sites[0],fold.FoldSite):
             t=Ts[0].L-1
-            vec=fold.open_boundary_im(t)
-        elif isinstance(Ts[0].sites[0],flat.FlatSite):
-            t=Ts[0].L//2
-            vec=flat.open_boundary_im(t)
+            vec=fold.perfect_dephaser_im(t)
+        # elif isinstance(Ts[0].sites[0],flat.FlatSite):
+            # t=Ts[0].L//2
+            # vec=flat.perfect_dephaser_im(t)
         else:
             assert False
     else:
