@@ -6,13 +6,16 @@ from ..utils import seed_rng
 import numpy as np
 @pytest.fixture
 def dense_heisenberg_czz():
-    t=1
+    t=3
     seed_rng("dense_heisenberg_czz")
     Jx,Jy,Jz,hx,hy,hz=np.random.normal(size=6)
+    # hx,hy,hz=0.0,0.0,0.0
+    # Jx,Jy=0,0
     # Jx=Jy=Jz=0#=hx=hy=hz=0
     T=dense.heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz)
     im=dense.im_finite([T]*(2*t),dense.brickwork_open_boundary_im(t))
-    lop=dense.heisenberg_L(t,hx,hy,hz)@dense.brickwork_zz_operator(t)
+    # hx,hy,hz=0.0,0.0,0.0
+    lop=dense.heisenberg_L(t,hx,hy,hz,init=(0.5,0.0,0.0,-0.5),final=(1.0,0.0,0.0,-1.0))
     dense.embedded_obs(im,lop,im)
     dense.embedded_obs(im,lop,dense.brickwork_open_boundary_im(t))
     return (dense.embedded_obs(im,lop,im),dense.embedded_obs(im,lop,dense.brickwork_open_boundary_im(t)),(t,Jx,Jy,Jz,hx,hy,hz))

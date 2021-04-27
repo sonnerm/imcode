@@ -33,10 +33,10 @@ def heisenberg_gate(Jx,Jy,Jz):
     H=np.kron(SX,SX)*Jx+np.kron(SY,SY)*Jy+np.kron(SZ,SZ)*Jz
     return la.expm(1.0j*np.array(H))
 def heisenberg_lop(hx,hy,hz):
-    return la.expm(0.5j*(SX*hx+SY*hy+SZ*hz))
+    return la.expm(1j*(SX*hx+SY*hy+SZ*hz))
 def heisenberg_S(t,Jx,Jy,Jz):
     return brickwork_S(t,heisenberg_gate(Jx,Jy,Jz))
-def heisenberg_L(t,hx,hy,hz,init=(0.5,0.0,0.0,0.5)):
-    return brickwork_L(t,heisenberg_lop(hx,hy,hz),init)
-def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=(0.5,0.0,0.0,0.5)):
-    return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_lop(hx,hy,hz),init)#TODO fix
+def heisenberg_L(t,hx,hy,hz,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
+    return brickwork_L(t,heisenberg_lop(hx,hy,hz),init,final)
+def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
+    return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_lop(hx,hy,hz),init,final)#TODO fix

@@ -6,6 +6,12 @@ def dense_kron(Ms):
         Calculates the dense kronecker product over a list of matrices
     '''
     return reduce(np.kron,Ms)
+
+def dense_outer(vs):
+    '''
+        Calculates the dense kronecker product over a list of matrices
+    '''
+    return reduce(np.outer,vs)
 #Defining primitive pauli matrices
 SY=np.array([[0,-1.0j],[1.0j,0]])
 SM=np.array([[0,0],[1.0,0]])
