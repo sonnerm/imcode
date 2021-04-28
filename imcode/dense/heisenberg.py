@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg as la
 from .utils import dense_kron,SX,SY,SZ,ID
-from .brickwork import brickwork_L,brickwork_S,brickwork_T,brickwork_F
+from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb
 
 def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
     L=len(hx) # maybe change to explicit length?
@@ -29,14 +29,23 @@ def heisenberg_F(Jx,Jy,Jz,hx,hy,hz):
     gates=[heisenberg_gate(jx,jy,jz) for (jx,jy,jz) in zip(Jx,Jy,Jz)]
     lop=[heisenberg_lop(chx,chy,chz) for (chx,chy,chz) in zip(hx,hy,hz)]
     return brickwork_F(gates,lop)
-def heisenberg_gate(Jx,Jy,Jz):
-    H=np.kron(SX,SX)*Jx+np.kron(SY,SY)*Jy+np.kron(SZ,SZ)*Jz
-    return la.expm(1.0j*np.array(H))
 def heisenberg_lop(hx,hy,hz):
     return la.expm(1j*(SX*hx+SY*hy+SZ*hz))
-def heisenberg_S(t,Jx,Jy,Jz):
-    return brickwork_S(t,heisenberg_gate(Jx,Jy,Jz))
-def heisenberg_L(t,hx,hy,hz,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
-    return brickwork_L(t,heisenberg_lop(hx,hy,hz),init,final)
-def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
-    return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_lop(hx,hy,hz),init,final)#TODO fix
+def heisenberg_gate(Jx,Jy,Jz,hx=0,hy=0,hz=0):
+    H=np.kron(SX,SX)*Jx+np.kron(SY,SY)*Jy+np.kron(SZ,SZ)*Jz
+    lop=heisenberg_lop(hx,hy,hz)
+    return la.expm(1.0j*np.array(H))@np.kron(lop,lop)
+def heisenberg_Sa(t,Jx,Jy,Jz):
+    return brickwork_Sa(t,heisenberg_gate(Jx,Jy,Jz))
+def heisenberg_Sb(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
+    return brickwork_Sb(t,heisenberg_gate(Jx,Jy,Jz,hx,hy,hz),init,final)
+def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
+    return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_gate(Jx,Jy,Jz,hx,hy,hz),init,final)
+
+def heisenberg_La(t):
+    return brickwork_La(t)
+
+def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2),final=np.eye(2)):
+    return brickwork_Lb(t,heisenberg_lop(hx,hy,hz),init,final)
+# def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
+#     return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_lop(hx,hy,hz),init,final)#TODO fix
