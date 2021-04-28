@@ -1,6 +1,6 @@
 import numpy as np
 from tenpy.linalg.charges import LegCharge
-from tenpy.networks.mpo import MPO
+from tenpy.networks.mpo import MPO,MPOEnvironment
 from tenpy.networks.mps import MPS
 from tenpy.networks.site import Site
 import tenpy.linalg.np_conserved as npc
@@ -53,8 +53,8 @@ def brickwork_La(t):
     leg_p=LegCharge.from_trivial(4)
     M1a=np.eye(4).reshape(1,4,4)
     M2a=np.eye(4).reshape(4,1,4)
-    M1an=npc.Array.from_ndarray(M1a,[leg_t,leg_m.conj(),leg_p],labels=["vL","wR","p"])
-    M2an=npc.Array.from_ndarray(M2a,[leg_m,leg_t.conj(),leg_p],labels=["vL","wR","p"])
+    M1an=npc.Array.from_ndarray(M1a,[leg_t,leg_m.conj(),leg_p],labels=["vL","vR","p"])
+    M2an=npc.Array.from_ndarray(M2a,[leg_m,leg_t.conj(),leg_p],labels=["vL","vR","p"])
     Ws=[M1an,M2an]*t
     Svs=[np.ones(W.shape[0]) / np.sqrt(W.shape[1]) for W in Ws]
     Svs.append([1.0])
@@ -67,10 +67,10 @@ def brickwork_Lb(t,lop,init=np.eye(2),final=np.eye(2)):
     M2a=np.eye(4).reshape(4,1,4)
     inita=(lop@init.ravel()).reshape(1,1,4)
     finala=final.reshape(1,1,4)
-    initan=npc.Array.from_ndarray(inita,[leg_t,leg_t.conj(),leg_p],labels=["vL","wR","p"])
-    finalan=npc.Array.from_ndarray(finala,[leg_t,leg_t.conj(),leg_p],labels=["vL","wR","p"])
-    M1an=npc.Array.from_ndarray(M1a,[leg_t,leg_m.conj(),leg_p],labels=["vL","wR","p"])
-    M2an=npc.Array.from_ndarray(M2a,[leg_m,leg_t.conj(),leg_p],labels=["vL","wR","p"])
+    initan=npc.Array.from_ndarray(inita,[leg_t,leg_t.conj(),leg_p],labels=["vL","vR","p"])
+    finalan=npc.Array.from_ndarray(finala,[leg_t,leg_t.conj(),leg_p],labels=["vL","vR","p"])
+    M1an=npc.Array.from_ndarray(M1a,[leg_t,leg_m.conj(),leg_p],labels=["vL","vR","p"])
+    M2an=npc.Array.from_ndarray(M2a,[leg_m,leg_t.conj(),leg_p],labels=["vL","vR","p"])
     return MPS([BrickworkSite() for _ in range(2*t)],[initan]+[M1an,M2an]*(t-1)+[finalan])
     Ws=[M1an,M2an]*t
     Svs=[np.ones(W.shape[0]) / np.sqrt(W.shape[1]) for W in Ws]
