@@ -1,6 +1,7 @@
 import numpy as np
 from . import flat
 from . import fold
+from . import brickwork
 from .channel import OperatorSite
 from tenpy.algorithms.exact_diag import ExactDiag
 import tenpy.linalg.np_conserved as npc
@@ -33,7 +34,7 @@ def mps_to_dense(mps):
             psi = psi.reshape(2*4**i,4,4**(mps.L-3-i)*2)[:,[0,2,3,1],:]
         psi = psi.reshape((2,)*(mps.L*2-2)).transpose([0,]+[x for x in range(1,2*mps.L-4,2)]+[2*mps.L-3]+[x for x in list(range(2,2*mps.L-2,2))[::-1]])
         return psi.ravel()*mps.norm
-    elif isinstance(mps.sites[0],flat.FlatSite):
+    elif isinstance(mps.sites[0],flat.FlatSite) or isinstance(mps.sites[0],brickwork.BrickworkSite):
         psi = npc.trace(psi,'vL', 'vR')
         psi = psi.to_ndarray()
         return psi.ravel()*mps.norm

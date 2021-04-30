@@ -10,7 +10,7 @@ def brickwork_F(gates):
 #     bs=brickwork_S(t,gate)
 #     bl=brickwork_L(t,lop,init,final)
 #     return bs@bl.T@bs@bl
-def brickwork_T(t,even,odd,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
+def brickwork_T(t,even,odd,init=np.eye(4),final=np.eye(4)):
     sa=brickwork_Sa(t,odd)
     sb=brickwork_Sb(t,even,init,final)
     return sa@sb
@@ -25,9 +25,10 @@ def brickwork_Sa(t, gate):
 
 def brickwork_Sb(t, gate,init=np.eye(4),final=np.eye(4)):
     gate=gate.reshape((2,2,2,2))
-    dual=np.einsum("abcd,efgh->aecgbfdh",gate,gate.conj()).reshape(16,16)
-    init=np.einsum("abcd,abef,cdgh->egfh",init.reshape((2,2,2,2)),gate,gate.conj())
-    init.reshape((4,4))
+    dual=np.einsum("abcd,efgh->aecgbfdh",gate,gate.conj()).reshape((16,16))
+    init=np.einsum("cdab,abef,cdgh->egfh",init.reshape((2,2,2,2)),gate,gate.conj()) #No idea why init.T but works
+    init=init.reshape((4,4))
+    # print(init)
     final=np.einsum("abcd->acbd",final.reshape((2,2,2,2))).reshape((4,4))
     return dense_kron([init]+[dual]*(t-1)+[final])
 
