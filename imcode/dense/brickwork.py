@@ -37,5 +37,7 @@ def brickwork_La(t):
     return ret
 
 def brickwork_Lb(t,lop,init=np.eye(2),final=np.eye(2)):
-    ret=dense_outer([init.ravel()]+[np.eye(4).ravel()]*(t-1)+[final.ravel()]).ravel()
+    init=np.einsum("ab,cd,ca->bd",lop,lop.conj(),init)
+    lop=np.kron(lop,lop.conj())
+    ret=dense_outer([init.ravel()]+[lop.ravel()]*(t-1)+[final.ravel()]).ravel()
     return ret
