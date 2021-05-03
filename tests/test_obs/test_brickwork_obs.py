@@ -130,3 +130,36 @@ def test_mps_brickwork_L2_obc():
         S=bw.brickwork_Sb(t,U,init=init,final=final)
         czz=mps.embedded_obs(B,S,B)
         assert czz==pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
+def test_dense_brickwork_L3():
+    seed_rng("bw_L3")
+    gop1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    gop2=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    gop1=gop1+gop1.T.conj()
+    gop1=la.expm(1.0j*gop1)
+    gop2=gop2+gop2.T.conj()
+    gop2=la.expm(1.0j*gop2)
+    lop=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    U=dense.brickwork_F([gop1,np.kron(np.eye(2),lop)@gop2])
+    init1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    final1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+
+    init1=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    final1=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    for t in range(1,MAX_T):
+        Sb=dense.brickwork_Sb(t,gop1)
+        Sa=dense.brickwork_Sa(t,gop2)
+        B1=dense.brickwork_La(t)
+        B2=dense.brickwork_Lb(t,lop)
+        assert B1@Sb@Sa@B2==pytest.approx(8)
+
+        czzc=pytest.approx(np.trace(SZ3@nla.matrix_power(U,t)@SZ3@nla.matrix_power(U.T.conj(),t)))
+        Sb=dense.brickwork_Sb(t,gop1,init=SZ2,final=SZ2)
+        czz=B1@Sb@Sa@B2
+        print(czz)
+        assert czz==czzc
+
+        Sb=dense.brickwork_Sb(t,gop1,init=init1,final=final1)
+        B2=dense.brickwork_Lb(t,lop,init=init2,final=final2)
+        init=np.kron(init1,init2)
+        final=np.kron(final1,final2)
+        assert czz==pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
