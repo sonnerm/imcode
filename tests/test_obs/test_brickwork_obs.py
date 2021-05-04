@@ -140,21 +140,13 @@ def test_dense_brickwork_L3():
     gop2=gop2+gop2.T.conj()
     gop2=la.expm(1.0j*gop2)
     lop=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    lop=lop+lop.T.conj()
+    lop=la.expm(1.0j*lop)
+
     init1=np.random.random((4,4))+np.random.random((4,4))*1.0j
     final1=np.random.random((4,4))+np.random.random((4,4))*1.0j
-    lop=np.eye(2)
     init2=np.random.random((2,2))+np.random.random((2,2))*1.0j
     final2=np.random.random((2,2))+np.random.random((2,2))*1.0j
-    # init2=np.diag(np.diag(init2))
-    # final2=np.diag(np.diag(final2))
-    init1=np.kron(init2,np.diag(np.diag([1j,-1])))
-    final1=np.kron(final2,np.diag(np.diag([1+1.0j,4-1.0j])))
-    init2=np.random.random((2,2))+np.random.random((2,2))*1.0j
-    final2=np.random.random((2,2))+np.random.random((2,2))*1.0j
-    init1=np.eye(4)
-    final1=np.eye(4)
-    # init2=np.eye(2)
-    # final2=np.eye(2)
 
     U=dense.brickwork_F([gop1,np.kron(np.eye(2),lop)@gop2])
     for t in range(1,MAX_T):
@@ -193,10 +185,6 @@ def test_dense_brickwork_L4_obc():
     final1=np.random.random((4,4))+np.random.random((4,4))*1.0j
     init2=np.random.random((4,4))+np.random.random((4,4))*1.0j
     final2=np.random.random((4,4))+np.random.random((4,4))*1.0j
-    # init1=np.eye(4)
-    # final1=np.eye(4)
-    init2=np.eye(4)
-    final2=np.eye(4)
     U=dense.brickwork_F([gop1,gop2,gop3])
     for t in range(1,MAX_T):
         Sb1=dense.brickwork_Sb(t,gop1)
