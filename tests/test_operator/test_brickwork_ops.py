@@ -61,11 +61,11 @@ def test_mps_brickwork_La(dense_brickwork_La):
     mih=bw.brickwork_La(*dense_brickwork_La[1])
     assert mps.mps_to_dense(mih)==pytest.approx(dense_brickwork_La[0])
 #
-# def test_mps_brickwork_Lb(dense_brickwork_Lb):
-#     mih=bw.brickwork_Lb(*dense_brickwork_Lb[1])
-#     assert mps.mps_to_dense(mih)==pytest.approx(dense_brickwork_Lb[0])
+def test_mps_brickwork_Lb(dense_brickwork_Lb):
+    mih=bw.brickwork_Lb(*dense_brickwork_Lb[1])
+    assert mps.mps_to_dense(mih)==pytest.approx(dense_brickwork_Lb[0])
 #
-# def test_mps_brickwork_T(dense_brickwork_T):
-#     mih=bw.brickwork_T(*dense_brickwork_T[1])
-#     assert mps.mpo_to_dense(mih)==pytest.approx(dense_brickwork_T[0])
-#     assert mih.chi==[1]+[16]*(mih.L-1)+[1]
+def test_mps_brickwork_T(dense_brickwork_T):
+    mih=bw.brickwork_T(*dense_brickwork_T[1])
+    assert mps.mpo_to_dense(mih)==pytest.approx(dense_brickwork_T[0])
+    assert mih.chi==[1]+[16]*(mih.L-1)+[1]

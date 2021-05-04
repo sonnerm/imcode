@@ -169,6 +169,81 @@ def test_dense_brickwork_L3():
         print(czz)
         assert czz==pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
 
+def test_mps_brickwork_L3():
+    return
+    seed_rng("bw_mps_L3")
+    gop1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    gop2=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    gop1=gop1+gop1.T.conj()
+    gop1=la.expm(1.0j*gop1)
+    gop2=gop2+gop2.T.conj()
+    gop2=la.expm(1.0j*gop2)
+    lop=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    lop=lop+lop.T.conj()
+    lop=la.expm(1.0j*lop)
+
+    init1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    final1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    init2=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    final2=np.random.random((2,2))+np.random.random((2,2))*1.0j
+
+    U=dense.brickwork_F([gop1,np.kron(np.eye(2),lop)@gop2])
+    for t in range(1,10):
+        Sb=bw.brickwork_Sb(t,gop1)
+        Sa=bw.brickwork_Sa(t,gop2)
+        B1=bw.brickwork_La(t)
+        B2=bw.brickwork_Lb(t,lop)
+        T=bw.brickwork_T(t,gop1,gop2)
+        assert mps.embedded_obs(B1,T,B2)==pytest.approx(8)
+        Ba=bw.brickwork_Lb(t,lop)
+        mps.apply(T,Ba)
+        assert mps.boundary_obs(B1,Ba)==pytest.approx(8)
+        Ba=bw.brickwork_Lb(t,lop)
+        mps.apply(Sa,Ba)
+        mps.apply(Sb,Ba)
+        assert mps.boundary_obs(B1,Ba)==pytest.approx(8)
+        Ba=bw.brickwork_La(t)
+        mps.apply(Sb,Ba)
+        mps.apply(Sa,Ba)
+        assert mps.boundary_obs(Ba,B2)==pytest.approx(8)
+
+        czzc=pytest.approx(np.trace(SZ3@nla.matrix_power(U,t)@SZ3@nla.matrix_power(U.T.conj(),t)))
+        Sb=bw.brickwork_Sb(t,gop1,init=SZ2,final=SZ2)
+        T=bw.brickwork_T(t,gop1,gop2,init=SZ2,final=SZ2)
+        assert mps.embedded_obs(B1,T,B2)==czzc
+        Ba=bw.brickwork_Lb(t,lop)
+        mps.apply(T,Ba)
+        assert mps.boundary_obs(B1,Ba)==czzc
+        Ba=bw.brickwork_Lb(t,lop)
+        mps.apply(Sa,Ba)
+        mps.apply(Sb,Ba)
+        assert mps.boundary_obs(B1,Ba)==czzc
+        Ba=bw.brickwork_La(t)
+        mps.apply(Sb,Ba)
+        mps.apply(Sa,Ba)
+        assert mps.boundary_obs(Ba,B2)==czzc
+
+        Sb=bw.brickwork_Sb(t,gop1,init=init1,final=final1)
+        B2=bw.brickwork_Lb(t,lop,init=init2,final=final2)
+
+        init=np.einsum("abcd,ef->abecdf",init1.reshape((2,2,2,2)),init2).reshape((8,8))
+        final=np.einsum("abcd,ef->abecdf",final1.reshape((2,2,2,2)),final2).reshape((8,8))
+        czzc=pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
+
+        assert mps.embedded_obs(B1,T,B2)==czzc
+        Ba=bw.brickwork_Lb(t,lop,init=init2,final=final2)
+        mps.apply(T,Ba)
+        assert mps.boundary_obs(B1,Ba)==czzc
+        Ba=bw.brickwork_Lb(t,lop,init=init2,final=final2)
+        mps.apply(Sa,Ba)
+        mps.apply(Sb,Ba)
+        assert mps.boundary_obs(B1,Ba)==czzc
+        Ba=bw.brickwork_La(t)
+        mps.apply(Sb,Ba)
+        mps.apply(Sa,Ba)
+        assert mps.boundary_obs(Ba,B2)==czzc
+
+
 def test_dense_brickwork_L4_obc():
     return
     seed_rng("bw_L4_obc")
