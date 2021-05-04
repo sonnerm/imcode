@@ -41,11 +41,7 @@ def heisenberg_Sb(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
     return brickwork_Sb(t,heisenberg_gate(Jx,Jy,Jz,hx,hy,hz),init,final)
 def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
     return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_gate(Jx,Jy,Jz,hx,hy,hz),init,final)
-
 def heisenberg_La(t):
     return brickwork_La(t)
-
 def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2),final=np.eye(2)):
     return brickwork_Lb(t,heisenberg_lop(hx,hy,hz),init,final)
-# def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
-#     return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_lop(hx,hy,hz),init,final)#TODO fix

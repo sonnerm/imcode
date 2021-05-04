@@ -12,6 +12,7 @@ SZ=np.array([[1.0,0.0],[0.0,-1.0]])
 SX=np.array([[0.0,1.0],[1.0,0.0]])
 SZ2=np.kron(SZ,np.eye(2))
 SZ3=np.kron(SZ,np.eye(4))
+SZ4=np.kron(SZ,np.eye(8))
 
 def test_dense_brickwork_L2_obc():
     seed_rng("bw_L2_obc")
@@ -139,12 +140,23 @@ def test_dense_brickwork_L3():
     gop2=gop2+gop2.T.conj()
     gop2=la.expm(1.0j*gop2)
     lop=np.random.random((2,2))+np.random.random((2,2))*1.0j
-    U=dense.brickwork_F([gop1,np.kron(np.eye(2),lop)@gop2])
     init1=np.random.random((4,4))+np.random.random((4,4))*1.0j
     final1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    lop=np.eye(2)
+    init2=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    final2=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    # init2=np.diag(np.diag(init2))
+    # final2=np.diag(np.diag(final2))
+    init1=np.kron(init2,np.diag(np.diag([1j,-1])))
+    final1=np.kron(final2,np.diag(np.diag([1+1.0j,4-1.0j])))
+    init2=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    final2=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    init1=np.eye(4)
+    final1=np.eye(4)
+    # init2=np.eye(2)
+    # final2=np.eye(2)
 
-    init1=np.random.random((2,2))+np.random.random((2,2))*1.0j
-    final1=np.random.random((2,2))+np.random.random((2,2))*1.0j
+    U=dense.brickwork_F([gop1,np.kron(np.eye(2),lop)@gop2])
     for t in range(1,MAX_T):
         Sb=dense.brickwork_Sb(t,gop1)
         Sa=dense.brickwork_Sa(t,gop2)
@@ -155,11 +167,52 @@ def test_dense_brickwork_L3():
         czzc=pytest.approx(np.trace(SZ3@nla.matrix_power(U,t)@SZ3@nla.matrix_power(U.T.conj(),t)))
         Sb=dense.brickwork_Sb(t,gop1,init=SZ2,final=SZ2)
         czz=B1@Sb@Sa@B2
-        print(czz)
         assert czz==czzc
 
         Sb=dense.brickwork_Sb(t,gop1,init=init1,final=final1)
         B2=dense.brickwork_Lb(t,lop,init=init2,final=final2)
+        init=np.einsum("abcd,ef->abecdf",init1.reshape((2,2,2,2)),init2).reshape((8,8))
+        final=np.einsum("abcd,ef->abecdf",final1.reshape((2,2,2,2)),final2).reshape((8,8))
+        czz=B1@Sb@Sa@B2
+        print(czz)
+        assert czz==pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
+
+def test_dense_brickwork_L4_obc():
+    return
+    seed_rng("bw_L4_obc")
+    gop1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    gop2=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    gop3=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    gop1=gop1+gop1.T.conj()
+    gop1=la.expm(1.0j*gop1)
+    gop2=gop2+gop2.T.conj()
+    gop2=la.expm(1.0j*gop2)
+    gop3=gop3+gop3.T.conj()
+    gop3=la.expm(1.0j*gop3)
+    init1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    final1=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    init2=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    final2=np.random.random((4,4))+np.random.random((4,4))*1.0j
+    # init1=np.eye(4)
+    # final1=np.eye(4)
+    init2=np.eye(4)
+    final2=np.eye(4)
+    U=dense.brickwork_F([gop1,gop2,gop3])
+    for t in range(1,MAX_T):
+        Sb1=dense.brickwork_Sb(t,gop1)
+        Sa=dense.brickwork_Sa(t,gop2)
+        Sb2=dense.brickwork_Sb(t,gop3)
+        B=dense.brickwork_La(t)
+        assert B@Sb1@Sa@Sb2@B==pytest.approx(16)
+        czzc=pytest.approx(np.trace(SZ4@nla.matrix_power(U,t)@SZ4@nla.matrix_power(U.T.conj(),t)))
+        Sb1=dense.brickwork_Sb(t,gop1,init=SZ2,final=SZ2)
+        czz=B@Sb1@Sa@Sb2@B
+        print(czz)
+        assert czz==czzc
+
+        Sb1=dense.brickwork_Sb(t,gop1,init=init1,final=final1)
+        Sb2=dense.brickwork_Sb(t,gop3,init=init2,final=final2)
         init=np.kron(init1,init2)
         final=np.kron(final1,final2)
+        czz=B@Sb1@Sa@Sb2@B
         assert czz==pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
