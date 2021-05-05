@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg as la
 from .utils import dense_kron,SX,SY,SZ,ID
-from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb
+from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb,brickwork_F
 
 def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
     L=len(hx) # maybe change to explicit length?
@@ -34,7 +34,7 @@ def heisenberg_lop(hx,hy,hz):
 def heisenberg_gate(Jx,Jy,Jz,hx=0,hy=0,hz=0):
     H=np.kron(SX,SX)*Jx+np.kron(SY,SY)*Jy+np.kron(SZ,SZ)*Jz
     lop=heisenberg_lop(hx,hy,hz)
-    return la.expm(1.0j*np.array(H))@np.kron(lop,lop)
+    return np.kron(lop,lop)@la.expm(1.0j*np.array(H))
 def heisenberg_Sa(t,Jx,Jy,Jz):
     return brickwork_Sa(t,heisenberg_gate(Jx,Jy,Jz))
 def heisenberg_Sb(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
