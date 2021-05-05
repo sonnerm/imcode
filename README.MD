@@ -7,8 +7,8 @@
   Benchmark for approximative methods, Usefull in regimes where those approximations don't work well
 ### Matrix Product states using tenpy
   Efficient approximations near low entanglement points
-  - flat mps/mpo
-  - folded mps/mpo
+  - diagonal interaction mps/mpo
+  - brickwork mps/mpo
 ### Shallow bath
   Calculate influence matrix elements using the quantum echo representation
   works only for short systems but for long times
