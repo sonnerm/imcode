@@ -9,6 +9,7 @@ from .ising_dis import ising_depolarize_Jr_T,ising_depolarize_Jhr_T,ising_depola
 from .brickwork import brickwork_La,brickwork_Lb,brickwork_Sa,brickwork_Sb,brickwork_T
 from .brickwork import brickwork_F
 from .heisenberg import heisenberg_H,heisenberg_F,heisenberg_T,heisenberg_Sa,heisenberg_Sb,heisenberg_La,heisenberg_Lb
+from .heisenberg import heisenberg_gate,heisenberg_lop
 from .im import im_finite,im_iterative,im_diag
 from .im import open_boundary_im,perfect_dephaser_im,dephaser_im
 from .utils import SX,SY,SZ,SM,SP,ID,sx,sy,sz,sm,sp,one,rdm,dense_kron
