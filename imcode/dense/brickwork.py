@@ -5,7 +5,7 @@ def brickwork_F(gates):
         return gates[0]
     evs=dense_kron([g for g in gates[::2]]+([np.eye(2)] if len(gates)%2==0 else []))
     ods=dense_kron([np.eye(2)]+[g for g in gates[1::2]]+([np.eye(2)] if len(gates)%2==1 else []))
-    return evs@ods
+    return ods@evs
 # def brickwork_T(t,gate,lop,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
 #     bs=brickwork_S(t,gate)
 #     bl=brickwork_L(t,lop,init,final)

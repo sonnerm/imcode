@@ -148,29 +148,31 @@ def test_dense_brickwork_L3():
     init2=np.random.random((2,2))+np.random.random((2,2))*1.0j
     final2=np.random.random((2,2))+np.random.random((2,2))*1.0j
 
-    U=dense.brickwork_F([gop1,np.kron(np.eye(2),lop)@gop2])
-    for t in range(1,MAX_T):
+    U=dense.brickwork_F([np.kron(lop,np.eye(2))@gop2,gop1])
+    for t in range(2,MAX_T):
         Sb=dense.brickwork_Sb(t,gop1)
         Sa=dense.brickwork_Sa(t,gop2)
         B1=dense.brickwork_La(t)
         B2=dense.brickwork_Lb(t,lop)
-        assert B1@Sb@Sa@B2==pytest.approx(8)
+        assert B2@Sa@Sb@B1==pytest.approx(8)
 
         czzc=pytest.approx(np.trace(SZ3@nla.matrix_power(U,t)@SZ3@nla.matrix_power(U.T.conj(),t)))
-        Sb=dense.brickwork_Sb(t,gop1,init=SZ2,final=SZ2)
-        czz=B1@Sb@Sa@B2
+        # Sb=dense.brickwork_Sb(t,gop1,init=SZ2,final=SZ2)
+        B2=dense.brickwork_Lb(t,lop,init=SZ,final=SZ)
+        czz=B2@Sa@Sb@B1
         assert czz==czzc
 
         Sb=dense.brickwork_Sb(t,gop1,init=init1,final=final1)
         B2=dense.brickwork_Lb(t,lop,init=init2,final=final2)
-        init=np.einsum("abcd,ef->abecdf",init1.reshape((2,2,2,2)),init2).reshape((8,8))
-        final=np.einsum("abcd,ef->abecdf",final1.reshape((2,2,2,2)),final2).reshape((8,8))
-        czz=B1@Sb@Sa@B2
-        print(czz)
-        assert czz==pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
+        init=np.einsum("abcd,ef->eabfcd",init1.reshape((2,2,2,2)),init2).reshape((8,8))
+        final=np.einsum("abcd,ef->eabfcd",final1.reshape((2,2,2,2)),final2).reshape((8,8))
+        czzc=pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
+        print(czzc)
+        czz=B2@Sa@Sb@B1
+        assert czz==czzc
 
 def test_mps_brickwork_L3():
-    seed_rng("bw_mps_L3")
+    seed_rng("bw_L3")
     gop1=np.random.random((4,4))+np.random.random((4,4))*1.0j
     gop2=np.random.random((4,4))+np.random.random((4,4))*1.0j
     gop1=gop1+gop1.T.conj()
@@ -226,15 +228,13 @@ def test_mps_brickwork_L3():
         Sb=bw.brickwork_Sb(t,gop1,init=init1,final=final1)
         T=bw.brickwork_T(t,gop1,gop2,init=init1,final=final1)
         B2=bw.brickwork_Lb(t,lop,init=init2,final=final2)
-
-        init=np.einsum("abcd,ef->abecdf",init1.reshape((2,2,2,2)),init2).reshape((8,8))
-        final=np.einsum("abcd,ef->abecdf",final1.reshape((2,2,2,2)),final2).reshape((8,8))
+        init=np.einsum("abcd,ef->eabfcd",init1.reshape((2,2,2,2)),init2).reshape((8,8))
+        final=np.einsum("abcd,ef->eabfcd",final1.reshape((2,2,2,2)),final2).reshape((8,8))
         czzc=pytest.approx(np.trace(init@nla.matrix_power(U,t)@final@nla.matrix_power(U.T.conj(),t)))
-
-        # assert mps.embedded_obs(B2,T,B1)==czzc
-        # Ba=bw.brickwork_La(t)
-        # mps.apply(T,Ba)
-        # assert mps.boundary_obs(B2,Ba)==czzc
+        assert mps.embedded_obs(B2,T,B1)==czzc
+        Ba=bw.brickwork_La(t)
+        mps.apply(T,Ba)
+        assert mps.boundary_obs(B2,Ba)==czzc
         Ba=bw.brickwork_La(t)
         mps.apply(Sb,Ba)
         mps.apply(Sa,Ba)
