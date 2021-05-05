@@ -58,7 +58,7 @@ def brickwork_Sb(t, gate,init=np.eye(4),final=np.eye(4)):
     gatebn=npc.Array.from_ndarray(gateb,[leg_m,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
     return MPO([BrickworkSite() for _ in range(2*t)],[initan]+[gatean,gatebn]*(t-1)+[finalan])
 def brickwork_T(t,even,odd,init=np.eye(4),final=np.eye(4)):
-    return multiply_mpos([brickwork_Sa(t,odd),brickwork_Sb(t,even,init,final)])
+    return multiply_mpos([brickwork_Sa(t,even),brickwork_Sb(t,odd,init,final)])
 def brickwork_La(t):
     leg_m=LegCharge.from_trivial(4)
     leg_t=LegCharge.from_trivial(1)
