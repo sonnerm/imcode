@@ -1,0 +1,12 @@
+* [2/2] Checks
+  - [X] Dimension checks
+  - [X] Isometry checks
+
+* [0/2] Contraction
+  - [ ] Contraction
+  - [ ] Wbar calculation
+
+* [0/3] Test
+   - [ ] Random isometry generation
+   - [ ] Random unitary generation
+   - [ ] Run the contraction script
