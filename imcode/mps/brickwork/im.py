@@ -35,7 +35,7 @@ def brickwork_La(t):
     Svs[0]=[1.0]
     return MPS([BrickworkSite() for _ in range(2*t)],Ws,Svs)
 def brickwork_pd(t):
-    sites=[BrickworkSite() for _ in range(t+1)]
+    sites=[BrickworkSite() for _ in range(2*t)]
     state = [[1,0,0,1]] * len(sites)
     psi = MPS.from_product_state(sites, state)
     return psi
