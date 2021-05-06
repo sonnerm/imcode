@@ -2,11 +2,12 @@
   - [X] Dimension checks
   - [X] Isometry checks
 
-* [0/2] Contraction
-  - [ ] Contraction
-  - [ ] Wbar calculation
+* [2/2] Contraction
+  - [X] Contraction
+  - [X] Wbar calculation
 
 * [0/3] Test
    - [ ] Random isometry generation
    - [ ] Random unitary generation
+   - [ ] Random tensor contraction (dimensions must match.)
    - [ ] Run the contraction script
