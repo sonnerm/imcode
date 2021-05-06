@@ -1,6 +1,7 @@
 from .utils import BrickworkSite
 from tenpy.networks.mps import MPS
 import tenpy.linalg.np_conserved as npc
+from tenpy.linalg.charges import LegCharge
 import numpy as np
 def brickwork_Lb(t,lop,init=np.eye(2),final=np.eye(2)):
     leg_m=LegCharge.from_trivial(4)
