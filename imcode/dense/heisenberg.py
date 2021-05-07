@@ -31,10 +31,17 @@ def heisenberg_F(Jx,Jy,Jz,hx,hy,hz):
     return brickwork_F(gates,lop)
 def heisenberg_lop(hx,hy,hz):
     return la.expm(1j*(SX*hx+SY*hy+SZ*hz))
-def heisenberg_gate(Jx,Jy,Jz,hx=0,hy=0,hz=0):
+def heisenberg_gate(Jx,Jy,Jz,hx=0,hy=0,hz=0,hxe=None,hye=None,hze=None):
     H=np.kron(SX,SX)*Jx+np.kron(SY,SY)*Jy+np.kron(SZ,SZ)*Jz
-    lop=heisenberg_lop(hx,hy,hz)
-    return np.kron(lop,lop)@la.expm(1.0j*np.array(H))
+    if hxe is None:
+        hxe=hx
+    if hye is None:
+        hye=hy
+    if hze is None:
+        hze=hz
+    lop1=heisenberg_lop(hx,hy,hz)
+    lop2=heisenberg_lop(hxe,hye,hze)
+    return np.kron(lop1,lop2)@la.expm(1.0j*np.array(H))
 def heisenberg_Sa(t,Jx,Jy,Jz):
     return brickwork_Sa(t,heisenberg_gate(Jx,Jy,Jz))
 def heisenberg_Sb(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
