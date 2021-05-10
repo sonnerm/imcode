@@ -136,3 +136,20 @@ def Wpcheck(Wp):
 
     diff = Wpr @ Wpr.conj().T - np.eye(Wpshape[0])
     return np.sum(abs(diff))
+
+
+def randV(n, m):
+    """
+    Random n x m isometry
+
+    Args:
+        n(int): Number of rows
+        m(int): Number of columns
+
+    Returns:
+        np.ndarray: Isometry
+    """
+    X = (np.random.randn(n,m) + 1j * np.random.randn(n,m))/np.sqrt(2)
+    Q, R = np.linalg.qr(X)
+    R = np.diag(np.diag(R)/abs(np.diag(R)));
+    return Q@R;

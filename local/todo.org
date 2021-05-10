@@ -6,8 +6,8 @@
   - [X] Contraction
   - [X] Wbar calculation
 
-* [0/3] Test
-   - [ ] Random isometry generation
-   - [ ] Random unitary generation
+* [2/4] Test
+   - [X] Random isometry generation
+   - [X] Random unitary generation
    - [ ] Random tensor contraction (dimensions must match.)
    - [ ] Run the contraction script
