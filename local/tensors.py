@@ -132,7 +132,7 @@ def Wpcheck(Wp):
     """
     Wpshape = Wp.shape
 
-    Wpr = Wp.reshape(Wpshape[0] Wpshape[1] * Wpshape[2] * Wpshape[3])
+    Wpr = Wp.reshape(Wpshape[0], Wpshape[1] * Wpshape[2] * Wpshape[3])
 
     diff = Wpr @ Wpr.conj().T - np.eye(Wpshape[0])
     return np.sum(abs(diff))
@@ -171,6 +171,8 @@ class Unit():
         Wp(np.ndarray): (D_M, D_M, d, d)-dimensional array
     """
     def __init__(self, D_D, D_M, D_M_p, d):
-        self.M = np.random.rand((D_D, D_M, d, D_M_p, d))
-        self.W = np.random.rand((D_D, D_D))
-        self.Wp = np.random.rand((D_M, D_M, d, d))
+        M = np.eye(D_D * D_M * d, D_M_p * d)
+        self.M = M.reshape((D_D, D_M, d, D_M_p, d))
+        self.W = np.eye(D_D, D_D)
+        Wp = np.eye(D_M, D_M*d*d)
+        self.Wp = Wp.reshape((D_M, D_M, d, d))
