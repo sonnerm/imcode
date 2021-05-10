@@ -153,3 +153,24 @@ def randV(n, m):
     Q, R = np.linalg.qr(X)
     R = np.diag(np.diag(R)/abs(np.diag(R)));
     return Q@R;
+
+
+class Unit():
+    """
+    A collection of tensors for a single Floquet time step
+
+    Explanation for the dimensions:
+        D_D: Bond dimension of the virtual dissipative space
+        D_M: Bond dimension of the new virtual memory space
+        D_M_p: Bond dimension of the old virtual memory space
+        d: Local qudit dimension
+
+    Attributes:
+        M(np.ndarray): (D_D, D_M, d, D_M_p, d)-dimensional array
+        W(np.ndarray): (D_D, D_D)-dimensional array
+        Wp(np.ndarray): (D_M, D_M, d, d)-dimensional array
+    """
+    def __init__(self, D_D, D_M, D_M_p, d):
+        self.M = np.random.rand((D_D, D_M, d, D_M_p, d))
+        self.W = np.random.rand((D_D, D_D))
+        self.Wp = np.random.rand((D_M, D_M, d, d))
