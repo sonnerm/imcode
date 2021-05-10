@@ -6,8 +6,8 @@
   - [X] Contraction
   - [X] Wbar calculation
 
-* [0/2] Unit class
-   - [ ] First commit
+* [1/2] Unit class
+   - [X] First commit
    - [ ] Initial tensors should satisfy the correct isometry condition.
 * [2/4] Test
    - [X] Random isometry generation
