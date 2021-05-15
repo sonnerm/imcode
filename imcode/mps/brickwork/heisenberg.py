@@ -4,7 +4,20 @@ from ...dense import dense_kron,SX,SY,SZ,ID,heisenberg_lop,heisenberg_gate
 from . import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb
 def heisenberg_Sa(t,Jx,Jy,Jz):
     return brickwork_Sa(t,heisenberg_gate(Jx,Jy,Jz))
-def heisenberg_Sb(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
+def heisenberg_Sb(t,Jx,Jy,Jz,hx,hy,hz,Jxe=None,Jye=None,Jze=None,hxe=None,hye=None,hze=None,init=np.eye(4),final=np.eye(4)):
+    if Jxe is None:
+        Jxe=Jx
+    if Jye is None:
+        Jye=Jy
+    if Jze is None:
+        Jze=Jz
+
+    if hxe is None:
+        hxe=hx
+    if hye is None:
+        hye=hy
+    if hze is None:
+        hze=hz
     return brickwork_Sb(t,heisenberg_gate(Jx,Jy,Jz,hx,hy,hz),init,final)
 def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,Jxe=None,Jye=None,Jze=None,hxe=None,hye=None,hze=None,init=np.eye(4),final=np.eye(4)):
     if Jxe is None:
