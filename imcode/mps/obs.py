@@ -231,3 +231,23 @@ def direct_czz(F,t,i,j,chi=None,options=None,init=None):
     szop=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in szop]
     ostate=mpo_to_state(MPO(F.sites,szop))
     return state.overlap(ostate)/2**L,state
+def dm_state(T,t,i,lop,init):
+    sites=[fold.FoldSite() for _ in range(T+1)]
+    ar=[0,0,0,0]
+    ar[i]=1
+    state=[init]+[[1,1,1,1]]*(t)+[ar]+[[1,1,1,1]]*(T-t-1)
+    im=MPS.from_product_state(sites,state)
+    mps.apply(lop,im)
+    return im
+
+def get_dm_evolution(im,lop,init):
+    dms=[]
+    T=im.L-1
+    for t in range(1,T):
+        cdm=np.zeros((2,2))
+        cdm[0,0]=boundary_obs(im,get_dm_state(T,t,0,lop,init))
+        cdm[1,1]=boundary_obs(im,get_dm_state(T,t,1,lop,init))
+        cdm[0,1]=boundary_obs(im,get_dm_state(T,t,2,lop,init))
+        cdm[1,0]=boundary_obs(im,get_dm_state(T,t,3,lop,init))
+        dms.append(cdm)
+    return dms
