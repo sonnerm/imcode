@@ -1,4 +1,5 @@
 from tenpy.networks.mps import MPS
+import numpy as np
 from functools import reduce
 from tenpy.networks.mpo import MPO
 from tenpy.linalg.charges import LegCharge
@@ -34,3 +35,11 @@ def apply(mpo,mps,chi=None,options=None):
 
 def apply_naively(mpo,mps):
     mpo.apply_naively(mps,options)
+def expand_im(mps):
+    # assert isinstance(mps.sites[0],fold.FoldSite)
+    sites=[mps.sites[0]]+mps.sites+[mps.sites[0]]
+    leg_t=LegCharge.from_trivial(1)
+    bd=npc.Array.from_ndarray(np.array([1,1,0,0]).reshape(1,1,4),[leg_t,leg_t.conj(),sites[0].leg],labels=["vL","vR","p"])
+    Bs=[bd]+mps._B+[bd]
+    Svs=[[1.0]]+mps._S+[[1.0]]
+    return MPS(sites,Bs,Svs)
