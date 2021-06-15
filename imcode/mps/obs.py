@@ -232,22 +232,85 @@ def direct_czz(F,t,i,j,chi=None,options=None,init=None):
     ostate=mpo_to_state(MPO(F.sites,szop))
     return state.overlap(ostate)/2**L,state
 def dm_state(T,t,i,lop,init):
+    im=fold.open_boundary_im(T)
     sites=[fold.FoldSite() for _ in range(T+1)]
-    ar=[0,0,0,0]
-    ar[i]=1
-    state=[init]+[[1,1,1,1]]*(t)+[ar]+[[1,1,1,1]]*(T-t-1)
-    im=MPS.from_product_state(sites,state)
-    mps.apply(lop,im)
+    leg_t=LegCharge.from_trivial(1)
+    leg_p=sites[0].leg
+    Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
+    ar=[0.0,0.0,0.0,0.0]
+    ar[i]=1.0
+    ar=np.reshape(ar,(2,2))
+    ar=np.kron(ar,ar)
+    ar=ar[:,[0,2,3,1]][[0,2,3,1],:]
+    Pa=np.einsum("ab,cd->abcd",np.eye(1),ar)
+    Pf=npc.Array.from_ndarray(Pa,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+    ar=np.array(init)[[0,2,3,1]]
+    ar=np.reshape(ar,(2,2))
+    ar=np.kron(ar,ar)
+    ar=ar[:,[0,2,3,1]][[0,2,3,1],:]
+    Pa=np.einsum("ab,cd->abcd",np.eye(1),ar)
+    Pi=npc.Array.from_ndarray(Pa,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+    Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
+    dmop=MPO(sites,[Pi]+[Id]*t+[Pf]+[Id]*(T-t-1))
+    if lop is not None:
+        apply(lop,im)
+    apply(dmop,im)
     return im
 
-def get_dm_evolution(im,lop,init):
+def dm_evolution(im,lop,init):
     dms=[]
     T=im.L-1
-    for t in range(1,T):
-        cdm=np.zeros((2,2))
-        cdm[0,0]=boundary_obs(im,get_dm_state(T,t,0,lop,init))
-        cdm[1,1]=boundary_obs(im,get_dm_state(T,t,1,lop,init))
-        cdm[0,1]=boundary_obs(im,get_dm_state(T,t,2,lop,init))
-        cdm[1,0]=boundary_obs(im,get_dm_state(T,t,3,lop,init))
-        dms.append(cdm)
+    for t in range(T-1):
+        cdm=np.zeros((2,2),dtype=complex)
+        cdm[0,0]=boundary_obs(im,dm_state(T,t,0,lop,init))
+        cdm[1,1]=boundary_obs(im,dm_state(T,t,1,lop,init))
+        cdm[0,1]=boundary_obs(im,dm_state(T,t,2,lop,init))
+        cdm[1,0]=boundary_obs(im,dm_state(T,t,3,lop,init))
+        dms.append(cdm*2)
+    return dms
+def direct_dm_evolution(F,i,tmax,chi=None,options=None,init=None,linit=None):
+    assert isinstance(F.sites[0],flat.FlatSite)
+    channel=unitary_channel(F)
+    L=F.L
+    if init is None:
+        leg_p=LegCharge.from_trivial(2)
+        leg_b=LegCharge.from_trivial(1)
+        ws=[np.array([[np.eye(2)/2]]) for _ in range(L)]#default is infinite temperature
+        if linit is None:
+            linit=np.array([[1,0],[0,0]])
+        ws[i]=[[linit]]
+        ws=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in ws]
+        fdm=mpo_to_state(MPO(F.sites,ws))
+    elif isinstance(init,MPO):
+        fdm=mpo_to_state(init)
+    else:
+        fdm=init.copy()
+    ws=[np.array([[np.eye(2)]]) for _ in range(L)]
+    ws[i]=np.array([[[[1,0],[0,0]]]])
+    ws=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in ws]
+    state0=mpo_to_state(MPO(F.sites,ws))
+
+    ws=[np.array([[np.eye(2)]]) for _ in range(L)]
+    ws[i]=np.array([[[[0,1],[0,0]]]])
+    ws=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in ws]
+    state1=mpo_to_state(MPO(F.sites,ws))
+
+    ws=[np.array([[np.eye(2)]]) for _ in range(L)]
+    ws[i]=np.array([[[[0,0],[1,0]]]])
+    ws=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in ws]
+    state2=mpo_to_state(MPO(F.sites,ws))
+
+    ws=[np.array([[np.eye(2)]]) for _ in range(L)]
+    ws[i]=np.array([[[[0,0],[0,1]]]])
+    ws=[npc.Array.from_ndarray(w,[leg_b,leg_b.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) for w in ws]
+    state3=mpo_to_state(MPO(F.sites,ws))
+    dms=[]
+    for ts in range(tmax):
+        apply(channel,fdm,chi)
+        dm=np.zeros((2,2),dtype=complex)
+        dm[0,0]=boundary_obs(state0,fdm)
+        dm[0,1]=boundary_obs(state1,fdm)
+        dm[1,0]=boundary_obs(state2,fdm)
+        dm[1,1]=boundary_obs(state3,fdm)
+        dms.append(dm)
     return dms
