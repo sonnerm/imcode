@@ -19,31 +19,6 @@ def reorder_eigenvecs(M, half_matrix_dimension, mode=1):
     # rearrange M to bring it into from ((A, B.conj()), (B, A.conj()))
     counter = 0  # to check if rearrangement was correct
     if mode == 1:
-        """
-        for column in range(0, half_matrix_dimension):
-            for i in range(column + 1, 2 * half_matrix_dimension):
-                checker = 0
-                diff_plus_1 = 0
-                diff_plus_2 = 0
-                diff_minus_1 = 0
-                diff_minus_2 = 0
-                for j in range(0, half_matrix_dimension):
-                    diff_plus_1 = abs(
-                        M[j,column] - M[j + half_matrix_dimension,i].conj())
-                    diff_plus_2 = abs(
-                        M[j + half_matrix_dimension,column] - M[j,i].conj())
-                    diff_minus_1 = abs(
-                        M[j,column] + M[j + half_matrix_dimension,i].conj())
-                    diff_minus_2 = abs(
-                        M[j + half_matrix_dimension,column] + M[j,i].conj())
-                    if (diff_minus_1 < 1e-6 and diff_minus_2 < 1e-6) or (diff_plus_1 < 1e-6 and diff_plus_2 < 1e-6):
-                        checker += 1
-                if checker == half_matrix_dimension:
-                    M[:, [column + half_matrix_dimension, i]] = M[:,
-                                                                  [i, column + half_matrix_dimension]]
-                    # print 'switched columns', column + half_matrix_dimension,  'and ', i
-                    break
-        """
         # adjust relative phases of eigenvectors
         for i in range(half_matrix_dimension):
             for j in range(half_matrix_dimension):
@@ -194,7 +169,6 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
         U_XY = np.matmul(expm(1.j * G_XY_even), expm(1.j * G_XY_odd))
         U_XY = np.matmul(U_XY, expm(G_1))
 
-
     if abs(g) > 1e-8:
         U = np.matmul(expm(1j*G_g), U_XY)
     else:
@@ -202,16 +176,16 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
 
     print('U= ', U)
     # G_eff is equivalent to generator for composed map (in principle obtainable through Baker-Campbell-Hausdorff)
-    random_part = np.random.rand(2 * nsites, 2 * nsites) * 1e-10
-    # symmetrize random part
-    for i in range(2*nsites):
-        for j in range(i, 2*nsites):
-            random_part[i, j] = random_part[j, i]
     G_eff = -1j * linalg.logm(U)
 
     print('G_eff = ')
     print(G_eff)
 
+    random_part = np.random.rand(2 * nsites, 2 * nsites) * 1e-10
+    # symmetrize random part
+    for i in range(2*nsites):
+        for j in range(i, 2*nsites):
+            random_part[i, j] = random_part[j, i]
     G_eff += random_part
     # compute eigensystem of G_eff. Set of eigenvectors "eigenvectors_G_eff" diagnonalizes G_eff
 
@@ -229,12 +203,11 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
             eigenvalues_G_eff[i], eigenvectors_G_eff[:, i]))
     print 'eigenvector_check', eigenvector_check
 
-
     argsort = np.argsort(- eigenvalues_G_eff)
     ves_sorted = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
     ews_sorted = np.zeros(2 * nsites, dtype=np.complex_)
 
-    for i in range(nsites):#sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
+    for i in range(nsites):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
         ves_sorted[:, i] = eigenvectors_G_eff[:, argsort[i]]
         ves_sorted[:, 2 * nsites - 1 -
                    i] = eigenvectors_G_eff[:, argsort[i + nsites]]
@@ -249,7 +222,6 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     for i in range(nsites):
         eigenvector_check += linalg.norm(np.dot(G_eff,
                                          M[:, i]) - np.dot(ews_sorted[i], M[:, i]))
-        # print i, np.dot(U,M[:,i]) , np.dot(ews_sorted[i], M[:,i])
     print 'eigenvector_check 2', eigenvector_check
 
     print('M\n')
@@ -258,8 +230,7 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     # diagonalize G_eff with eigenvectors to check:
     # D_temp = np.dot(M.conj().T, G_eff)#works only in unitary case
     D_temp = np.dot(linalg.inv(M), G_eff)
-    # this is the diagonal matrix with eigenvalues of G_eff on the diagonal
-    D = np.dot(D_temp, M)
+    D = np.dot(D_temp, M)# this is the diagonal matrix with eigenvalues of G_eff on the diagonal
     print('D= ')
     print(D)
     diag_check = 0
@@ -269,14 +240,14 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
             diag_check += abs(D[i, j])
     print 'diag_check', diag_check
 
-    #print ('eigenvalues of G_eff: ')
-    # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
-    #eigenvalues_G_eff = D.diagonal()
-    eigenvalues_G_eff = ews_sorted
+
+    eigenvalues_G_eff = D.diagonal()# this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
+    #eigenvalues_G_eff = ews_sorted
+    print ('eigenvalues of G_eff: ')
     print(eigenvalues_G_eff)
 
     print('Diagonalization of Generator completed..')
-    return M, np.real(eigenvalues_G_eff), eigenvalues_G_eff.size / 2
+    return M, np.real(eigenvalues_G_eff), eigenvalues_G_eff.size / 2 # this is only valid in the unitary case where the eigenvalues are indeed real
 
 
 # i and j are site indices, s and sp specify whether the fermionic operators have a dagger (=1) or not (=0), t2 and t1 denote times, M is the matrix of eigenvetors (as columns) and eigenvalues_G_eff contains eigenvalues of G_eff )
@@ -659,23 +630,20 @@ def entropy(correlation_block, ntimes, time_cut):
     return entropy
 
 
-max_time1 = 4
-max_time2 = 150
-stepsize1 = 2
+max_time1 = 20
+max_time2 = 100
+stepsize1 = 8
 stepsize2 = 16
 entropy_values = np.zeros(
     (int(max_time1/stepsize1) + int(max_time2/stepsize2) + 3, max_time2 + stepsize2))
 times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))
 print 'here', int(max_time1/stepsize1), int(max_time2/stepsize2)
-nsites = 3
+nsites = 150
 
-#Jx = 0
-#Jy = 0.31
-#g = np.pi/4
 
-Jx = 0.3
-Jy = 0.4
-g = 0
+Jx = 0
+Jy = 1.06
+g = np.pi/4
 beta = 0
 iterator = 1
 
@@ -700,16 +668,17 @@ for time in range(stepsize1, max_time1, stepsize1):  # 90, nsites = 200,
         entropy_values[iterator, cut] = entropy(correlation_block, time, cut)
     iterator += 1
 
-"""
+
 for time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
-    correlation_block = create_correlation_block(M, eigenvalues_G_eff, nsites, time, Jx, Jy, g, beta, T_xy, f)
-    time_cuts = np.arange(1,time)
+    correlation_block = create_correlation_block(
+        M, eigenvalues_G_eff, nsites, time, Jx, Jy, g, beta, T_xy, f)
+    time_cuts = np.arange(1, time)
     #times[iterator] = time
-    entropy_values[iterator,0] = time
+    entropy_values[iterator, 0] = time
     for cut in time_cuts:
-        entropy_values[iterator,cut]= entropy(correlation_block, time,cut)
+        entropy_values[iterator, cut] = entropy(correlation_block, time, cut)
     iterator += 1
-"""
+
 print(entropy_values)
 
 max_entropies = np.zeros(iterator)
