@@ -631,7 +631,7 @@ def entropy(correlation_block, ntimes, time_cut):
 
 
 max_time1 = 20
-max_time2 = 100
+max_time2 = 20
 stepsize1 = 8
 stepsize2 = 16
 entropy_values = np.zeros(
@@ -735,9 +735,9 @@ ax[1].yaxis.set_ticks_position('both')
 ax[1].tick_params(axis="y", direction="in")
 ax[1].tick_params(axis="x", direction="in")
 
-np.savetxt('ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_beta=' +
+np.savetxt('../../../../data/correlation_approach/ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_beta=' +
            str(beta) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
 
 
-plt.savefig('ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' +
+plt.savefig('../../../../data/correlation_approach/ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' +
             str(g) + '_beta=' + str(beta) + '_L=' + str(nsites) + '.png')
