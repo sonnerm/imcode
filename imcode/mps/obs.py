@@ -240,8 +240,10 @@ def dm_state(T,t,i,lop,init):
     ar=[0.0,0.0,0.0,0.0]
     ar[i]=1.0
     ar=np.reshape(ar,(2,2))
-    ar=np.kron(ar,ar)
-    ar=ar[:,[0,2,3,1]][[0,2,3,1],:]
+    if t==1:
+        ar=np.kron(ar,np.eye(2))
+    else:
+        ar=np.kron(np.eye(2),ar)
     Pa=np.einsum("ab,cd->abcd",np.eye(1),ar)
     Pf=npc.Array.from_ndarray(Pa,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     ar=np.array(init)[[0,2,3,1]]
@@ -251,10 +253,10 @@ def dm_state(T,t,i,lop,init):
     Pa=np.einsum("ab,cd->abcd",np.eye(1),ar)
     Pi=npc.Array.from_ndarray(Pa,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
     Id=npc.Array.from_ndarray(Ida,[leg_t,leg_t,leg_p,leg_p.conj()],labels=["wL","wR","p","p*"]) # make sure
-    dmop=MPO(sites,[Pi]+[Id]*t+[Pf]+[Id]*(T-t-1))
+    dmop=MPO(sites,[Pi]+[Id]*(t-1)+[Pf1,Pf2]+[Id]*(T-t-1))
+    apply(dmop,im)
     if lop is not None:
         apply(lop,im)
-    apply(dmop,im)
     return im
 
 def dm_evolution(im,lop,init):
