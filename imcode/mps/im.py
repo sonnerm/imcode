@@ -25,7 +25,7 @@ def im_finite(Ts,boundary=None,chi=None,options=None):
         apply(T,vec,chi,options)
     return vec
 def im_triangle(Ts,chi=None,options=None):
-    mps=MPS.from_product_state([fold.FoldSite()],[[1,1,0,0]])
+    mps=MPS.from_product_state([[1,1,0,0]])
     for T in Ts:
         mps=expand_im(mps)
         apply(T,mps,chi,options)
