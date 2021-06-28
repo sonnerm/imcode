@@ -1,44 +1,29 @@
 import numpy as np
-from tenpy.linalg.charges import LegCharge
-from tenpy.networks.mpo import MPO,MPOEnvironment
-from tenpy.networks.mps import MPS
-import tenpy.linalg.np_conserved as npc
 import numpy.linalg as la
-from ..utils import multiply_mpos
-from .utils import BrickworkSite
+from .. import MPO
 def brickwork_Fe(gatese):
-    leg_m=LegCharge.from_trivial(4)
-    leg_t=LegCharge.from_trivial(1)
-    leg_p=LegCharge.from_trivial(2)
     Bs=[]
     for g in gatese:
         u,s,v=la.svd(gate)
         gateb=(v).reshape((4,1,2,2))
         gatea=(u*s).T.reshape((1,4,2,2))
-        gatean=npc.Array.from_ndarray(gatea,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-        gatebn=npc.Array.from_ndarray(gateb,[leg_m,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-        Bs.append(gatebn)
-        Bs.append(gatean)
-    return MPO([FlatSite() for _ in range(2*len(gatese))],Bs)
+        Bs.append(gateb)
+        Bs.append(gatea)
+    return MPO.from_matrices(Bs)
 
 def brickwork_Fo(gateso):
-    leg_m=LegCharge.from_trivial(4)
-    leg_t=LegCharge.from_trivial(1)
-    leg_p=LegCharge.from_trivial(2)
-    gatebound=npc.Array.from_ndarray([[np.eye(2)]],[leg_t,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
+    gatebound=np.array([[np.eye(2)]])
     Bs=[gatebound]
     for g in gateso:
         u,s,v=la.svd(gate)
         gateb=(v).reshape((16,1,4,4))
         gatea=(u*s).T.reshape((1,16,4,4))
-        gatean=npc.Array.from_ndarray(gatea,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-        gatebn=npc.Array.from_ndarray(gateb,[leg_m,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-        Bs.append(gatebn)
-        Bs.append(gatean)
+        Bs.append(gateb)
+        Bs.append(gatea)
     Bs.append(gatebound)
-    return MPO([FlatSite() for _ in range(2*len(gateso)+2)],Bs)
+    return MPO.from_matrices(Bs)
 def brickwork_F(gates):
-    return multiply_mpos([brickwork_Fe(gates[::2]),brickwork_Fo(gates[1::2])])
+    return (brickwork_Fe(gates[::2])@brickwork_Fo(gates[1::2])).contract()
 def brickwork_Sa(t, gate):
     '''
         dual layer of the brickwork transfer matrix without boundary states
@@ -48,18 +33,7 @@ def brickwork_Sa(t, gate):
     u,s,v=la.svd(gate)
     gateb=(v).reshape((16,1,4,4))
     gatea=(u*s).T.reshape((1,16,4,4))
-    leg_m=LegCharge.from_trivial(16)
-    leg_t=LegCharge.from_trivial(1)
-    leg_p=LegCharge.from_trivial(4)
-    gatean=npc.Array.from_ndarray(gatea,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-    gatebn=npc.Array.from_ndarray(gateb,[leg_m,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-    return MPO([BrickworkSite() for _ in range(2*t)],[gatean,gatebn]*t)
-# gate=np.random.random((4,4))+1.0j*np.random.random((4,4))
-# import scipy.linalg as sla
-# gate=sla.expm(1.0j*gate)
-# u,s,v=la.svd(np.kron(gate,gate.conj()))
-# dual=np.einsum("abcd,efgh->aecgbfdh",gate.reshape((2,2,2,2)),gate.conj().reshape((2,2,2,2))).reshape(16,16)
-# np.allclose((u@np.diag(np.sqrt(s)))@(np.diag(np.sqrt(s))@v),np.kron(gate,gate.conj()))
+    return MPO.from_matrices([gatea,gateb]*t)
 
 
 
@@ -76,13 +50,6 @@ def brickwork_Sb(t, gate,init=np.eye(4),final=np.eye(4)):
     u,s,v=la.svd(gate)
     gateb=(v).reshape((16,1,4,4))
     gatea=(u*s).T.reshape((1,16,4,4))
-    leg_m=LegCharge.from_trivial(16)
-    leg_t=LegCharge.from_trivial(1)
-    leg_p=LegCharge.from_trivial(4)
-    initan=npc.Array.from_ndarray(inita,[leg_t,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-    finalan=npc.Array.from_ndarray(finala,[leg_t,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-    gatean=npc.Array.from_ndarray(gatea,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-    gatebn=npc.Array.from_ndarray(gateb,[leg_m,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
-    return MPO([BrickworkSite() for _ in range(2*t)],[initan]+[gatean,gatebn]*(t-1)+[finalan])
+    return MPO.from_matrices([inita]+[gatea,gateb]*(t-1)+[finala])
 def brickwork_T(t,even,odd,init=np.eye(4),final=np.eye(4)):
-    return multiply_mpos([brickwork_Sa(t,even),brickwork_Sb(t,odd,init,final)])
+    return (brickwork_Sa(t,even)@brickwork_Sb(t,odd,init,final)).contract()
