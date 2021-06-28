@@ -176,13 +176,15 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     
 
     # diagonalize G_eff with eigenvectors to check:
-    D_fw = np.dot(linalg.inv(M_fw), G_eff_fw)
+    M_fw_inverse = linalg.inv(M_fw)
+    M_bw_inverse = linalg.inv(M_bw)
+    D_fw = np.dot(M_fw_inverse, G_eff_fw)
     D_fw = np.dot(D_fw, M_fw)# this is the diagonal matrix with eigenvalues of G_eff on the diagonal
     eigenvalues_G_eff_fw = D_fw.diagonal()# this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     print('D_fw= ')
     print(D_fw)
 
-    D_bw = np.dot(linalg.inv(M_bw), G_eff_bw)
+    D_bw = np.dot(M_bw_inverse, G_eff_bw)
     D_bw = np.dot(D_bw, M_bw)# this is the diagonal matrix with eigenvalues of G_eff on the diagonal
     eigenvalues_G_eff_bw = D_bw.diagonal()# this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     print('D_bw= ')
@@ -206,4 +208,4 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     print(eigenvalues_G_eff_bw)
 
     print('Diagonalization of Generator completed..')
-    return M_fw, M_bw,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, eigenvalues_G_eff_fw.size / 2 
+    return M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, eigenvalues_G_eff_fw.size / 2 
