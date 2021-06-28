@@ -38,3 +38,16 @@ def heisenberg_La(t):
     return brickwork_La(t)
 def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2),final=np.eye(2)):
     return brickwork_Lb(t,heisenberg_lop(hx,hy,hz),init,final)
+def heisenberg_F(Jx,Jy,Jz,hx=None,hy=None,hz=None):
+    gates=[]
+    assert len(hx)%2==0
+    assert len(Jx)==len(Jy)
+    assert len(Jx)==len(Jz)
+    assert len(hx)==len(Jx)+1
+    assert len(hx)==len(hy)
+    assert len(hx)==len(hz)
+    for i in range(len(Jx)//2):
+        gates.append(heisenberg_gate(Jx[2*i],Jy[2*i],Jz[2*i],hx[2*i],hy[2*i],hz[2*i],hx[2*i+1],hy[2*i+1],hz[2*i+1]))
+        gates.append(heisenberg_gate(Jx[2*i+1],Jy[2*i+1],Jz[2*i+1]))
+    gates.append(heisenberg_gate(Jx[-1],Jy[-1],Jz[-1],hx[-2],hy[-2],hz[-2],hx[-1],hy[-1],hz[-1]))
+    return brickwork_F(gates)

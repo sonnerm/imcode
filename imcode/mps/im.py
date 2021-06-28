@@ -1,4 +1,5 @@
-from .utils import apply
+from tenpy.networks.mps import MPS
+from .utils import apply,expand_im
 from . import fold
 from . import flat
 def im_iterative(mpo,chi=None,options=None,boundary=None):
@@ -23,6 +24,13 @@ def im_finite(Ts,boundary=None,chi=None,options=None):
     for T in Ts:
         apply(T,vec,chi,options)
     return vec
+def im_triangle(Ts,chi=None,options=None):
+    mps=MPS.from_product_state([fold.FoldSite()],[[1,1,0,0]])
+    for T in Ts:
+        mps=expand_im(mps)
+        apply(T,mps,chi,options)
+    return mps
+
 
 def im_dmrg(mpo,chi,initial=None,options=None):
     pass

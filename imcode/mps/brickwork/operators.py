@@ -6,9 +6,39 @@ import tenpy.linalg.np_conserved as npc
 import numpy.linalg as la
 from ..utils import multiply_mpos
 from .utils import BrickworkSite
+def brickwork_Fe(gatese):
+    leg_m=LegCharge.from_trivial(4)
+    leg_t=LegCharge.from_trivial(1)
+    leg_p=LegCharge.from_trivial(2)
+    Bs=[]
+    for g in gatese:
+        u,s,v=la.svd(gate)
+        gateb=(v).reshape((4,1,2,2))
+        gatea=(u*s).T.reshape((1,4,2,2))
+        gatean=npc.Array.from_ndarray(gatea,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
+        gatebn=npc.Array.from_ndarray(gateb,[leg_m,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
+        Bs.append(gatebn)
+        Bs.append(gatean)
+    return MPO([FlatSite() for _ in range(2*len(gatese))],Bs)
 
+def brickwork_Fo(gateso):
+    leg_m=LegCharge.from_trivial(4)
+    leg_t=LegCharge.from_trivial(1)
+    leg_p=LegCharge.from_trivial(2)
+    gatebound=npc.Array.from_ndarray([[np.eye(2)]],[leg_t,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
+    Bs=[gatebound]
+    for g in gateso:
+        u,s,v=la.svd(gate)
+        gateb=(v).reshape((16,1,4,4))
+        gatea=(u*s).T.reshape((1,16,4,4))
+        gatean=npc.Array.from_ndarray(gatea,[leg_t,leg_m.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
+        gatebn=npc.Array.from_ndarray(gateb,[leg_m,leg_t.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
+        Bs.append(gatebn)
+        Bs.append(gatean)
+    Bs.append(gatebound)
+    return MPO([FlatSite() for _ in range(2*len(gateso)+2)],Bs)
 def brickwork_F(gates):
-    pass
+    return multiply_mpos([brickwork_Fe(gates[::2]),brickwork_Fo(gates[1::2])])
 def brickwork_Sa(t, gate):
     '''
         dual layer of the brickwork transfer matrix without boundary states
