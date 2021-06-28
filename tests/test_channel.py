@@ -4,7 +4,6 @@ from tenpy.linalg.charges import LegCharge
 import pytest
 import numpy as np
 from imcode.mps import unitary_channel,mpo_to_state,state_to_mpo,mpo_to_dense,apply,mps_to_dense
-from imcode.mps.flat import FlatSite
 from .utils import seed_rng
 
 def test_mpo_state_L1():
