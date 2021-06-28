@@ -1,11 +1,6 @@
-from ..utils import multiply_mpos,wrap_ndarray
-from .utils import FoldSite
 from .ising import ising_W,ising_J
 from functools import lru_cache
-from tenpy.networks.mpo import MPO
 import numpy as np
-from tenpy.linalg.charges import LegCharge
-import tenpy.linalg.np_conserved as npc
 @lru_cache(None)
 def hr_operator(t):
     sites=[FoldSite() for t in range(t+1)]
@@ -17,9 +12,9 @@ def hr_operator(t):
     inc=[wrap_ndarray(_get_proj_inc(c)) for c in range((t-1)//2)]
     dec=[wrap_ndarray(_get_proj_dec(c)) for c in range((t-1)//2,0,-1)]
     if (t-1)%2:
-        return MPO(sites,[Id]+inc+[wrap_ndarray(_get_proj_cen(t//2-1))]+dec+[Id])
+        return MPO.from_matrices(sites,[Id]+inc+[wrap_ndarray(_get_proj_cen(t//2-1))]+dec+[Id])
     else:
-        return MPO(sites,[Id]+inc+dec+[Id])
+        return MPO.from_matrices(sites,[Id]+inc+dec+[Id])
 def _get_proj_cen(c):
     ret=np.zeros((2*c+1,2*c+1,4,4))
     for i in range(0,2*c+1):
