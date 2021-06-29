@@ -1,4 +1,6 @@
 import pytest
+import numpy as np
+import hashlib
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -16,3 +18,9 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
+class SeedRNG():
+    def __call__(self,stri):
+        np.random.seed(int.from_bytes(hashlib.md5(stri.encode('utf-8')).digest(),"big")%2**32)
+@pytest.fixture(scope="session")
+def seed_rng():
+    return SeedRNG()

@@ -1,4 +1,4 @@
-from .utils import dense_kron,SX,SZ,ID
+from .. import dense_kron,SX,SZ,ID
 from functools import lru_cache
 import numpy as np
 import scipy.linalg as scla

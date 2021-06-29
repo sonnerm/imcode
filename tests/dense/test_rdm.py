@@ -2,7 +2,7 @@ import numpy as np
 import numpy.linalg as la
 import imcode.dense as dense
 import pytest
-from .utils import seed_rng
+
 def test_fixed_rdm():
     vec=np.zeros((8,))
     vec[0]=1.0
@@ -24,7 +24,7 @@ def check_rdm(rdm):
     assert rdm==pytest.approx(rdm.T.conj())
     assert (la.eigvalsh(rdm)>-1e-15).all()
 
-def test_real_rdm():
+def test_real_rdm(seed_rng):
     seed_rng("real_rdm")
     vec=np.random.normal(size=(16,))
     vec/=np.sqrt(np.sum(vec.conj()*vec))
@@ -36,7 +36,7 @@ def test_real_rdm():
     check_rdm(dense.rdm(vec,[0,2,3]))
     check_rdm(dense.rdm(vec,[3,0]))
 
-def test_complex_rdm():
+def test_complex_rdm(seed_rng):
     seed_rng("complex_rdm")
     vec=np.random.normal(size=(16,))+1.0j*np.random.normal(size=(16,))
     vec/=np.sqrt(np.sum(vec.conj()*vec))
