@@ -45,7 +45,7 @@ def ising_F(J,g,h):
     WJ.append(wjc)
     mpJ=MPO.from_matrices(WJ)
     return (mpJ@mph@mpg).contract()
-def ising_W(t,g,init=(0.5,0.5)):
+def ising_W(t,g,init=np.eye(2)/2,final=np.eye(2)):
     s2=np.abs(np.sin(g))**2
     c2=np.abs(np.cos(g))**2
     mx=-1.0j*np.conj(np.sin(g))*np.cos(g)
@@ -55,7 +55,6 @@ def ising_W(t,g,init=(0.5,0.5)):
                     [mx,s2,c2,px],
                     [s2,mx,px,c2]
     ])
-    init=np.diag(list(init)+[0,0])
     W_0a=np.einsum("cd,cb,ac->abcd",init,np.eye(4),np.eye(1))
     W_ia=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(4),Wprim)
     W_Ta=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(1),Wprim)
@@ -80,5 +79,5 @@ def ising_J(t,J):
     ])
     Ja=np.einsum("ab,cd->abcd",np.eye(1),Jprim)
     return MPO.from_matrices([Ida]+[Ja]*(t-1)+[Ida])
-def ising_T(t,J,g,h,init=np.eye(2)/2):
-    return (ising_J(t,J)@ising_W(t,g,init)@ising_h(t,h)).contract()
+def ising_T(t,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
+    return (ising_J(t,J)@ising_W(t,g,init,final)@ising_h(t,h)).contract()

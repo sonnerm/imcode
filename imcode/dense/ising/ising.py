@@ -48,7 +48,7 @@ def ising_h(T,h):
     U1=np.diag(np.exp(1.0j*np.array(ising_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
     return U1
 
-def ising_W(T,g,init=(0.5,0.5)):
+def ising_W(T,g,init=np.eye(2)/2,final=np.eye(e)):
     ret=np.ones((2**(2*T)),dtype=complex)
     for i in range(T):
         ret=ret.reshape((2**i,2,2,2**(2*T-2-i)))
@@ -71,13 +71,13 @@ def ising_W(T,g,init=(0.5,0.5)):
     ret[0,:,1]*=np.conj(np.sin(g)*1.0j)*init[0]
     return np.diag(np.ravel(ret))
 
-def ising_T(T,J,g,h,init=(0.5,0.5)):
+def ising_T(T,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
     r'''
         Calculate a dense IM approach transfer matrix for the kicked ising
-        chain. See arXiv:2009.10105 for details. The sites are ordered as
-        follows: [s_0 forward s_T backward].
+        chain. See arXiv:2009.10105 for details. The sites are ordered according
+        to the folded picture.
     '''
-    U1=ising_h(T,h)*ising_W(T,g,init)
+    U1=ising_h(T,h)*ising_W(T,g,init,final)
     U2=ising_J(T,J)
     return U2@U1
 
