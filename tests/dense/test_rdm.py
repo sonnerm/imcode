@@ -25,7 +25,6 @@ def check_rdm(rdm):
     assert (la.eigvalsh(rdm)>-1e-15).all()
 
 def test_real_rdm(seed_rng):
-    seed_rng("real_rdm")
     vec=np.random.normal(size=(16,))
     vec/=np.sqrt(np.sum(vec.conj()*vec))
     check_rdm(dense.rdm(vec,[0]))
@@ -37,7 +36,6 @@ def test_real_rdm(seed_rng):
     check_rdm(dense.rdm(vec,[3,0]))
 
 def test_complex_rdm(seed_rng):
-    seed_rng("complex_rdm")
     vec=np.random.normal(size=(16,))+1.0j*np.random.normal(size=(16,))
     vec/=np.sqrt(np.sum(vec.conj()*vec))
     check_rdm(dense.rdm(vec,[0]))

@@ -1,5 +1,6 @@
 from .. import MPO
 import numpy as np
+ID=np.eye(2)
 ZE=np.zeros_like(ID)
 def ising_H(J,g,h):
     L=len(h) # maybe change to explicit length?

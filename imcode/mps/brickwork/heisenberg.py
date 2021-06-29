@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.linalg as la
-from ...dense import dense_kron,SX,SY,SZ,ID,heisenberg_lop,heisenberg_gate
+from ...dense.brickwork import heisenberg_lop,heisenberg_gate
 from . import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb
 def heisenberg_Sa(t,Jx,Jy,Jz):
     return brickwork_Sa(t,heisenberg_gate(Jx,Jy,Jz))

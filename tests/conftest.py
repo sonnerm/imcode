@@ -18,9 +18,8 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
-class SeedRNG():
-    def __call__(self,stri):
-        np.random.seed(int.from_bytes(hashlib.md5(stri.encode('utf-8')).digest(),"big")%2**32)
-@pytest.fixture(scope="session")
-def seed_rng():
-    return SeedRNG()
+@pytest.fixture(scope="function")
+def seed_rng(request):
+    stri=request.node.name
+    np.random.seed(int.from_bytes(hashlib.md5(stri.encode('utf-8')).digest(),"big")%2**32)
+    return None

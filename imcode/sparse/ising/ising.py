@@ -1,6 +1,6 @@
 import numpy as np
 from functools import lru_cache
-from .utils import fwht,DiagonalLinearOperator,SxDiagonalLinearOperator
+from .. import fwht,DiagonalLinearOperator,SxDiagonalLinearOperator
 from ..utils import popcount
 import scipy.sparse.linalg as spla
 

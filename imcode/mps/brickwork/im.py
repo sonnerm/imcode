@@ -1,4 +1,3 @@
-from .utils import BrickworkSite
 from .. import MPS
 import numpy as np
 def brickwork_Lb(t,lop,init=np.eye(2),final=np.eye(2)):
