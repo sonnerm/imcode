@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def correlation_coefficients(T_tilde):
+def correlation_coefficients(T_tilde, nsites, ntimes):
 
     # initialize correlation coefficients
     # first dimension 2 is for forward/backward branch (0 is forward, 1 is backward), second dimension 2 is for "Majorana" type (0 is THETA (relative MINUS sign), 1 is ZETA (relative PLUS sign)), third axis is for evolution times, fourth axis is for site arguments: (A_ij)-> site argument i=0 always, j in range (0,2L)
@@ -23,12 +23,12 @@ def correlation_coefficients(T_tilde):
 
         # fill array of correlation coefficients
         # arguments: forward branch, "Theta/- Majorana"
-        A[0, 0] = T_tilde_fw_0 - T_tilde_fw_L
+        A[0, 0, tau] = T_tilde_fw_0 - T_tilde_fw_L
         # arguments: forward branch, "Zeta/+ Majorana"
-        A[0, 1] = T_tilde_fw_0 + T_tilde_fw_L
+        A[0, 1, tau] = T_tilde_fw_0 + T_tilde_fw_L
         # arguments: backward branch, "Theta/- Majorana"
-        A[1, 0] = T_tilde_bw_0 - T_tilde_bw_L
+        A[1, 0, tau] = T_tilde_bw_0 - T_tilde_bw_L
         # arguments: backward branch, "Zeta/+ Majorana"
-        A[1, 1] = T_tilde_bw_0 + T_tilde_bw_L
+        A[1, 1, tau] = T_tilde_bw_0 + T_tilde_bw_L
 
     return A
