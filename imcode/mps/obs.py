@@ -1,14 +1,9 @@
-import tenpy
 import numpy as np
 from .utils import apply,multiply_mpos
 from .channel import unitary_channel,mpo_to_state
 from ..dense import SZ
 from . import fold
 from . import flat
-from tenpy.networks.mpo import MPOEnvironment,MPO
-from tenpy.networks.mps import MPS
-from tenpy.linalg.charges import LegCharge
-import tenpy.linalg.np_conserved as npc
 def zz_operator(t,ti=0,tj=None):
     if tj==None:
         tj=t

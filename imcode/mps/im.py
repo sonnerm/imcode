@@ -1,4 +1,3 @@
-from tenpy.networks.mps import MPS
 from .utils import apply,expand_im
 from . import fold
 from . import flat

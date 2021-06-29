@@ -1,6 +1,5 @@
 import numpy as np
 from .im import dephaser_im
-from .utils import dense_kron
 
 def dephaser_operator(t,gamma):
     return np.diag(dephaser_im(t,gamma))

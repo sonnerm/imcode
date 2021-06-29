@@ -1,13 +1,13 @@
 import numpy as np
 import numpy.linalg as la
 from functools import reduce
-def dense_kron(Ms):
+def kron(Ms):
     '''
         Calculates the dense kronecker product over a list of matrices
     '''
     return reduce(np.kron,Ms)
 
-def dense_outer(vs):
+def outer(vs):
     '''
         Calculates the dense kronecker product over a list of matrices
     '''
@@ -21,19 +21,19 @@ SZ=np.array([[1.0,0],[0,-1.0]])
 ID=np.array([[1.0,0],[0,1.0]])
 
 def sx(L,i):
-    return dense_kron([ID]*i+[SX]+[ID]*(L-i-1))
+    return kron([ID]*i+[SX]+[ID]*(L-i-1))
 def sz(L,i):
-    return dense_kron([ID]*i+[SZ]+[ID]*(L-i-1))
+    return kron([ID]*i+[SZ]+[ID]*(L-i-1))
 def sy(L,i):
-    return dense_kron([ID]*i+[SY]+[ID]*(L-i-1))
+    return kron([ID]*i+[SY]+[ID]*(L-i-1))
 
 
 def sm(L,i):
-    return dense_kron([ID]*i+[SM]+[ID]*(L-i-1))
+    return kron([ID]*i+[SM]+[ID]*(L-i-1))
 def sp(L,i):
-    return dense_kron([ID]*i+[SP]+[ID]*(L-i-1))
+    return kron([ID]*i+[SP]+[ID]*(L-i-1))
 def one(L):
-    return dense_kron([ID]*L)
+    return kron([ID]*L)
 
 def normalize_im(v):
     return v/v[0] #TODO: good for now

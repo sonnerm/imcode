@@ -1,17 +1,17 @@
 import numpy as np
 import scipy.linalg as la
-from ..dense import dense_kron
+from ..dense import kron
 from ..dense import SX,SZ,SY,ID
 def me(L,i):
-    return dense_kron([SX]*i+[SZ]+[ID]*(L-i-1))
+    return kron([SX]*i+[SZ]+[ID]*(L-i-1))
 def mo(L,i):
-    return dense_kron([SX]*i+[SY]+[ID]*(L-i-1))
+    return kron([SX]*i+[SY]+[ID]*(L-i-1))
 def pe(L):
-    sxp=dense_kron([SX]*L)
+    sxp=kron([SX]*L)
     return np.eye(2**L)/2-sxp/2
     # return ret/2+np.ones((2**L))/2
 def po(L):
-    sxp=dense_kron([SX]*L)
+    sxp=kron([SX]*L)
     return np.eye(2**L)/2+sxp/2
 
 def _single_maj_to_quad(M):

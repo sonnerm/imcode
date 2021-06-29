@@ -1,4 +1,4 @@
-from .. import dense_kron,SX,SZ,ID
+from .. import kron,SX,SZ,ID
 from functools import lru_cache
 import numpy as np
 import scipy.linalg as scla
@@ -17,13 +17,13 @@ def ising_H(J,g,h):
     h=np.array(h)
     ret=np.zeros((2**L,2**L),dtype=np.common_type(J,g,h,np.array(1.0)))
     for i,Jv in enumerate(J[:L-1]):
-        ret+=Jv*dense_kron([ID]*i+[SZ]+[SZ]+[ID]*(L-i-2))
+        ret+=Jv*kron([ID]*i+[SZ]+[SZ]+[ID]*(L-i-2))
     if len(J)==L and L>1:
-        ret+=J[-1]*dense_kron([SZ]+[ID]*(L-2)+[SZ])
+        ret+=J[-1]*kron([SZ]+[ID]*(L-2)+[SZ])
     for i,hv in enumerate(h):
-        ret+=hv*dense_kron([ID]*i+[SZ]+[ID]*(L-i-1))
+        ret+=hv*kron([ID]*i+[SZ]+[ID]*(L-i-1))
     for i,gv in enumerate(g):
-        ret+=gv*dense_kron([ID]*i+[SX]+[ID]*(L-i-1))
+        ret+=gv*kron([ID]*i+[SX]+[ID]*(L-i-1))
     return ret
 def ising_F(J,g,h):
     r'''
@@ -41,14 +41,14 @@ def ising_J(T,J):
     Pm=np.array([[1,1],[1,1]])#/np.sqrt(2)
     Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*np.conj(J))],[np.exp(-1.0j*np.conj(J)),np.exp(1.0j*J)]])
     Tm2=Tm1.conj()
-    return dense_kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))
+    return kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))
 
 def ising_h(T,h):
     h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
     U1=np.diag(np.exp(1.0j*np.array(ising_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
     return U1
 
-def ising_W(T,g,init=np.eye(2)/2,final=np.eye(e)):
+def ising_W(T,g,init=np.eye(2)/2,final=np.eye(2)):
     ret=np.ones((2**(2*T)),dtype=complex)
     for i in range(T):
         ret=ret.reshape((2**i,2,2,2**(2*T-2-i)))

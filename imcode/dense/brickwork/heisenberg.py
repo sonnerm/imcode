@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.linalg as la
-from .utils import dense_kron,SX,SY,SZ,ID
+from .utils import kron,SX,SY,SZ,ID
 from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb,brickwork_F
 
 def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
@@ -12,17 +12,17 @@ def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
     Jx,Jy,Jz,hx,hy,hz=np.array(Jx),np.array(Jy),np.array(Jz),np.array(hx),np.array(hy),np.array(hz),
     ret=np.zeros((2**L,2**L),dtype=np.common_type(Jx,Jy,Jz,hx,hy,hz,np.array(1.0j)))
     for i,Jxi,Jyi,Jzi in zip(range(L-1),Jx[:L-1],Jy[:L-1],Jz[:L-1]):
-        ret+=Jxi*dense_kron([ID]*i+[SX]+[SX]+[ID]*(L-i-2))
-        ret+=Jyi*dense_kron([ID]*i+[SY]+[SY]+[ID]*(L-i-2))
-        ret+=Jzi*dense_kron([ID]*i+[SZ]+[SZ]+[ID]*(L-i-2))
+        ret+=Jxi*kron([ID]*i+[SX]+[SX]+[ID]*(L-i-2))
+        ret+=Jyi*kron([ID]*i+[SY]+[SY]+[ID]*(L-i-2))
+        ret+=Jzi*kron([ID]*i+[SZ]+[SZ]+[ID]*(L-i-2))
     if len(Jx)==L and L>1:
-        ret+=Jx[-1]*dense_kron([SX]+[ID]*(L-2)+[SX])
-        ret+=Jy[-1]*dense_kron([SY]+[ID]*(L-2)+[SY])
-        ret+=Jz[-1]*dense_kron([SZ]+[ID]*(L-2)+[SZ])
+        ret+=Jx[-1]*kron([SX]+[ID]*(L-2)+[SX])
+        ret+=Jy[-1]*kron([SY]+[ID]*(L-2)+[SY])
+        ret+=Jz[-1]*kron([SZ]+[ID]*(L-2)+[SZ])
     for i,hxi,hyi,hzi in zip(range(L),hx,hy,hz):
-        ret+=hxi*dense_kron([ID]*i+[SX]+[ID]*(L-i-1))
-        ret+=hyi*dense_kron([ID]*i+[SY]+[ID]*(L-i-1))
-        ret+=hzi*dense_kron([ID]*i+[SZ]+[ID]*(L-i-1))
+        ret+=hxi*kron([ID]*i+[SX]+[ID]*(L-i-1))
+        ret+=hyi*kron([ID]*i+[SY]+[ID]*(L-i-1))
+        ret+=hzi*kron([ID]*i+[SZ]+[ID]*(L-i-1))
     return ret
 
 def heisenberg_F(Jx,Jy,Jz,hx,hy,hz):
