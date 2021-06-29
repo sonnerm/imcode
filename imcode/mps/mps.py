@@ -1,6 +1,14 @@
 import tenpy.linalg.np_conserved as npc
+from tenpy.linalg.charges import LegCharge
+from tenpy.networks.site import Site
+from tenpy.algorithms.exact_diag import ExactDiag
 import tenpy
-class MPS:
+from functools import reduce
+from abc import ABC,abstractmethod
+class MPS(ABC):
+    # @abstractmethod
+    # def __init__(self):
+    #     pass
     def __matmul__(self,other):
         if isinstance(other,MPS):
             self.overlap(self,other)
@@ -8,11 +16,23 @@ class MPS:
             if isinstance(self,ProductMPS):
                 return ProductMPS(other@self.mpo,self.mps)
             return ProductMPS(other,self)
-    def from_matrices(self,Bs,Svs):
-        pass
-    def from_tenpy(self,tpmps):
-        return SimpleMPS()
-    def from_product_state(self,vs):
+    @classmethod
+    def from_matrices(cls,Bs,Svs=None):
+        sites=[]
+        bss=[]
+        for b in Bs:
+            sites.append(Site(LegCharge.from_trivial(b.shape[2])))
+            leg_i=LegCharge.from_trivial(b.shape[0])
+            leg_o=LegCharge.from_trivial(b.shape[1])
+            leg_p=LegCharge.from_trivial(b.shape[2])
+            Bn=npc.Array.from_ndarray(b,[leg_i,leg_o.conj(),leg_p],labels=["vL","vR","p"])
+            bss.append(Bn)
+        return tenpy.networks.mps.MPS(sites,bss,Svs,norm,canonicalize)
+    @classmethod
+    def from_tenpy(cls,tpmps):
+        return SimpleMPS(tpmps)
+    @classmethod
+    def from_product_state(cls,vs):
         pass
 class ProductMPS(MPS):
     def __init__(self,mpo,mps):
@@ -34,19 +54,10 @@ class ProductMPS(MPS):
 
 
 class SimpleMPS(MPS):
-    def __init__(self,Bs,Ss=None,norm=1.0,canonicalize=0):
-        sites=[]
-        bss=[]
-        for b in Bs:
-            sites.append(LegCharge.from_trivial(b.shape[2]))
-            leg_i=LegCharge.from_trivial(b.shape[0])
-            leg_o=LegCharge.from_trivial(b.shape[1])
-            leg_p=LegCharge.from_trivial(b.shape[2])
-            Bn=npc.Array.from_ndarray(b,[leg_i,leg_o.conj(),leg_p],labels=["vL","vR","p"])
-            bss.append(Bn)
-        return tenpy.networks.mps.MPS(sites,bss,Ss,norm,canonicalize)
+    def __init__(self,tpmps):
+        self.tpmps=tpmps
     def canonicalize(self):
-        self.canonicalize
+        self.canonicalize(False)
     def overlap(self,other):
         if isinstance(other,ProductMPS):
             otpmpo=other.mpo.to_tenpy()
@@ -85,7 +96,7 @@ class SimpleMPS(MPS):
         ret=MPO(nsites,Bs)
         return ret
 
-class MPO:
+class MPO(ABC):
     def __matmul__(self,other):
         '''
             Implements lazy multiplication of two MPO's or of a MPO and a MPS
@@ -103,28 +114,28 @@ class MPO:
         else:
             return ProductMPO([self,other])
     @classmethod
-    def from_matrices(Ws):
-        return SimpleMPO(Ws)
-
-    @classmethod
-    def from_tenpy(tpmps):
-        return SimpleMPO(tpmps)
-    @classmethod
-    def from_product_operator(ops):
-        pass
-class SimpleMPO(MPO):
-    def __init__(self,Ws):
+    def from_matrices(cls,Ws):
         sites=[]
         wss=[]
         for w in Ws:
             assert w.shape[2]==w.shape[3] # For now only square MPO's are possible
-            sites.append(LegCharge.from_trivial(w.shape[2]))
+            sites.append(Site(LegCharge.from_trivial(w.shape[2])))
             leg_i=LegCharge.from_trivial(w.shape[0])
             leg_o=LegCharge.from_trivial(w.shape[1])
             leg_p=LegCharge.from_trivial(w.shape[2])
             Wn=npc.Array.from_ndarray(w,[leg_i,leg_o.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
             wss.append(Wn)
-        return tenpy.networks.mps.MPO(sites,wss)
+        return SimpleMPO(tenpy.networks.mpo.MPO(sites,wss))
+
+    @classmethod
+    def from_tenpy(cls,tpmpo):
+        return SimpleMPO(tpmpo)
+    @classmethod
+    def from_product_operator(cls,ops):
+        return cls.from_matrices([np.array([[o]]) for o in ops])
+class SimpleMPO(MPO):
+    def __init__(self,tpmpo):
+        self.tpmpo=tpmpo
     def contract(self):
         return self #already contracted
     def to_mps(self,split=None):
@@ -189,15 +200,16 @@ class SimpleMPO(MPO):
         pass
 class ProductMPO(MPO):
     def __init__(self,mpos):
-        pass
+        self.mpos=mpos
     def contract(self):
-        Wps=[[m.get_W(i) for m in self.mpos] for i in range(mpolist[0].L)]
-        return MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps])
-    def _multiply_W(w1,w2):
-        pre=npc.tensordot(w1,w2,axes=[("p*",),("p",)])
-        pre=pre.combine_legs([(0,3),(1,4)])
-        pre.ireplace_labels(["(?0.?3)","(?1.?4)"],["wL","wR"])
-        return pre
+        mpolist=[x.tpmpo for x in self.mpos]
+        def _multiply_W(w1,w2):
+            pre=npc.tensordot(w1,w2,axes=[("p*",),("p",)])
+            pre=pre.combine_legs([(0,3),(1,4)])
+            pre.ireplace_labels(["(?0.?3)","(?1.?4)"],["wL","wR"])
+            return pre
+        Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
+        return SimpleMPO(tenpy.networks.mpo.MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps]))
     def concat(self,other):
         pass
     def outer(self,other):
