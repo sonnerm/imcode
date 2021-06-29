@@ -1,9 +1,5 @@
 import numpy as np
 from numpy import version
-from numpy.lib.type_check import imag
-from scipy.linalg import expm, schur, eigvals
-from scipy import linalg
-from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 np.set_printoptions(suppress=False, linewidth=np.nan)
 

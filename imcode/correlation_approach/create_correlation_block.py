@@ -6,158 +6,18 @@ from scipy import linalg
 from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 np.set_printoptions(suppress=False, linewidth=np.nan)
+from IM_exponent import IM_exponent
 
-def create_correlation_block(M, eigenvalues_G_eff, nsites, ntimes, Jx, Jy, g, beta, T_xy, f):
+def create_correlation_block(M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy, g, beta,  T_xy, f):
     print('Creating Greens function for time ', ntimes)
 
     # compute all correlators from which we can construct Keldysh Greens functions
-
-    B = np.zeros((4 * ntimes, 4 * ntimes), dtype=np.complex_)
-    # zetazeta
-    for i in range(ntimes):
-        for j in range(ntimes):
-
-            G_lesser_zetazeta = 0
-            G_greater_zetazeta = 0
-            G_lesser_zetatheta = 0
-            G_greater_zetatheta = 0
-            G_lesser_thetazeta = 0
-            G_greater_thetazeta = 0
-            G_lesser_thetatheta = 0
-            G_greater_thetatheta = 0
-
-            # compute KIC_response function directly from analytical formula. Does not work for non-diagonal gates
-            KIC_response = False
-            if KIC_response:
-                gamma = 0
-                for k in range(nsites):
-                    gamma += abs(M[0, k] - M[nsites, k])**2 * \
-                        np.cos(eigenvalues_G_eff[k] * (j-i))
-
-                G_lesser_zetazeta = 1j * gamma
-                G_greater_zetazeta = - 1j * gamma
-
-            else:
-
-                downdown_ji = correlator(
-                    M, eigenvalues_G_eff, 0, 0, 0, 0, j, i, beta)
-                downup_ji = correlator(M, eigenvalues_G_eff,
-                                       0, 1, 0, 0, j, i, beta)
-                updown_ji = correlator(M, eigenvalues_G_eff,
-                                       1, 0, 0, 0, j, i, beta)
-                upup_ji = correlator(M, eigenvalues_G_eff,
-                                     1, 1, 0, 0, j, i, beta)
-
-                downdown_ij = correlator(
-                    M, eigenvalues_G_eff, 0, 0, 0, 0, i, j, beta)
-                downup_ij = correlator(M, eigenvalues_G_eff,
-                                       0, 1, 0, 0, i, j, beta)
-                updown_ij = correlator(M, eigenvalues_G_eff,
-                                       1, 0, 0, 0, i, j, beta)
-                upup_ij = correlator(M, eigenvalues_G_eff,
-                                     1, 1, 0, 0, i, j, beta)
-
-                G_lesser_zetazeta = 1j * \
-                    (- downdown_ji - upup_ji + updown_ji + downup_ji)
-                G_greater_zetazeta = - 1j * \
-                    (- downdown_ij - upup_ij + updown_ij + downup_ij)
-
-                G_lesser_zetatheta = - downdown_ji + upup_ji - updown_ji + downup_ji
-                G_greater_zetatheta = downdown_ij - upup_ij - updown_ij + downup_ij
-
-                G_lesser_thetazeta = - downdown_ji + upup_ji + updown_ji - downup_ji
-                G_greater_thetazeta = downdown_ij - upup_ij + updown_ij - downup_ij
-
-                G_lesser_thetatheta = 1j * \
-                    (downdown_ji + upup_ji + updown_ji + downup_ji)
-                G_greater_thetatheta = - 1j * \
-                    (downdown_ij + upup_ij + updown_ij + downup_ij)
-
-            G_Feynman_zetazeta = 0
-            G_AntiFeynman_zetazeta = 0
-            G_Feynman_zetatheta = 0
-            G_AntiFeynman_zetatheta = 0
-            G_Feynman_thetazeta = 0
-            G_AntiFeynman_thetazeta = 0
-            G_Feynman_thetatheta = 0
-            G_AntiFeynman_thetatheta = 0
-
-            if j > i:
-                G_Feynman_zetazeta = G_lesser_zetazeta
-                G_AntiFeynman_zetazeta = G_greater_zetazeta
-
-                G_Feynman_zetatheta = G_lesser_zetatheta
-                G_AntiFeynman_zetatheta = G_greater_zetatheta
-
-                G_Feynman_thetazeta = G_lesser_thetazeta
-                G_AntiFeynman_thetazeta = G_greater_thetazeta
-
-                G_Feynman_thetatheta = G_lesser_thetatheta
-                G_AntiFeynman_thetatheta = G_greater_thetatheta
-
-            elif j < i:  # for i=j, G_Feynman and G_AntiFeynman are zero
-                G_Feynman_zetazeta = G_greater_zetazeta
-                G_AntiFeynman_zetazeta = G_lesser_zetazeta
-
-                G_Feynman_zetatheta = G_greater_zetatheta
-                G_AntiFeynman_zetatheta = G_lesser_zetatheta
-
-                G_Feynman_thetazeta = G_greater_thetazeta
-                G_AntiFeynman_thetazeta = G_lesser_thetazeta
-
-                G_Feynman_thetatheta = G_greater_thetatheta
-                G_AntiFeynman_thetatheta = G_lesser_thetatheta
-
-            B[4 * i, 4 * j] = -1j * G_Feynman_zetazeta * \
-                np.tan(Jy)**2 / T_xy**2
-            B[4 * i, 4 * j + 1] = -1j * \
-                G_lesser_zetazeta * np.tan(Jy)**2 / T_xy**2
-            B[4 * i + 1, 4 * j] = -1j * \
-                G_greater_zetazeta * np.tan(Jy)**2 / T_xy**2
-            B[4 * i + 1, 4 * j + 1] = -1j * \
-                G_AntiFeynman_zetazeta * np.tan(Jy)**2 / T_xy**2
-
-            B[4 * i, 4 * j + 2] = -1 * G_Feynman_zetatheta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-            B[4 * i, 4 * j + 3] = G_lesser_zetatheta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-            B[4 * i + 1, 4 * j + 2] = -1 * G_greater_zetatheta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-            B[4 * i + 1, 4 * j + 3] = G_AntiFeynman_zetatheta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-
-            B[4 * i + 2, 4 * j] = -1 * G_Feynman_thetazeta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-            B[4 * i + 2, 4 * j + 1] = -1 * G_lesser_thetazeta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-            B[4 * i + 3, 4 * j] = G_greater_thetazeta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-            B[4 * i + 3, 4 * j + 1] = G_AntiFeynman_thetazeta * \
-                np.tan(Jy) * np.tan(Jx) / T_xy**2
-
-            B[4 * i + 2, 4 * j + 2] = 1j * \
-                G_Feynman_thetatheta * np.tan(Jx)**2 / T_xy**2
-            B[4 * i + 2, 4 * j + 3] = -1j * \
-                G_lesser_thetatheta * np.tan(Jx)**2 / T_xy**2
-            B[4 * i + 3, 4 * j + 2] = -1j * \
-                G_greater_thetatheta * np.tan(Jx)**2 / T_xy**2
-            B[4 * i + 3, 4 * j + 3] = 1j * \
-                G_AntiFeynman_thetatheta * np.tan(Jx)**2 / T_xy**2
-
-    for i in range(ntimes):  # trivial factor
-
-        B[4 * i, 4 * i + 2] += 0.5
-        B[4 * i + 1, 4 * i + 3] -= 0.5
-        B[4 * i + 2, 4 * i] -= 0.5
-        B[4 * i + 3, 4 * i + 1] += 0.5
-
-    # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
-    B = np.dot(2, B)
+    B = IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy,  beta, T_xy, f)
 
     real_check = 0
     for i in range(4 * ntimes):
         for j in range(4 * ntimes):
-            real_check += abs(np.imag(B[i, j]))
+            real_check += abs(np.imag(B[i, j])) 
     print 'real_check', real_check
 
     random_part_real = np.random.rand(4 * ntimes, 4 * ntimes) * 1e-10

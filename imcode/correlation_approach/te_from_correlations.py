@@ -14,6 +14,7 @@ from create_correlation_block import create_correlation_block
 from entropy import entropy
 
 
+
 def zero_to_nan(values):
     """Replace every 0 with 'nan' and return a copy."""
     return [float('nan') if x == 0 else x for x in values]
@@ -39,19 +40,15 @@ beta = 0
 iterator = 1
 
 fig, ax = plt.subplots(2)
+M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, f= matrix_diag(nsites, Jx, Jy, g)
 
-M, eigenvalues_G_eff, nsites = matrix_diag(nsites, Jx, Jy, g)
-f = 0
-for k in range(nsites):
-    f += abs(M[0, k])**2 - abs(M[nsites, k])**2 + \
-        2j * imag(M[0, k]*M[nsites, k].conj())
 T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
 print 'T_xy', T_xy, 'f=', f
 
 
 for time in range(stepsize1, max_time1, stepsize1):  # 90, nsites = 200,
     correlation_block = create_correlation_block(
-        M, eigenvalues_G_eff, nsites, time, Jx, Jy, g, beta, T_xy, f)
+        M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, time, Jx, Jy, g, beta, T_xy, f)
     time_cuts = np.arange(1, time)
     #times[iterator] = time
     entropy_values[iterator, 0] = time
@@ -98,14 +95,13 @@ ax[0].legend(loc="lower right")
 ax[0].set_xlabel(r'$t$')
 
 
-print eigenvalues_G_eff
 gamma_test_range = 100
 gamma_test_vals = np.zeros(gamma_test_range)
 for i in range(gamma_test_range):
     gamma_test = 0
     for k in range(nsites):
-        gamma_test += abs(M[0, k] - M[nsites, k])**2 * \
-            np.cos(eigenvalues_G_eff[k] * i)
+        gamma_test += abs(M_fw[0, k] - M_fw[nsites, k])**2 * \
+            np.cos(eigenvalues_G_eff_fw[k] * i)
     gamma_test_vals[i] = gamma_test
     # print 'i=',i, abs(M[0,i] - M[nsites,i])**2 , eigenvalues_G_eff[i], '\n'
     # print 'gamma_test', i, gamma_test
