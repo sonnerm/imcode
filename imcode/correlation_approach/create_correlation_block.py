@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 np.set_printoptions(suppress=False, linewidth=np.nan)
 from IM_exponent import IM_exponent
 
-def create_correlation_block(M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy, g, beta,  T_xy, f):
+def create_correlation_block(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy, g, beta,  T_xy, f):
     print('Creating Greens function for time ', ntimes)
 
     # compute all correlators from which we can construct Keldysh Greens functions
-    B = IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy,  beta, T_xy, f)
+    B = IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy,  beta, T_xy, f)
 
     real_check = 0
     for i in range(4 * ntimes):

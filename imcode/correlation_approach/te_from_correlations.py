@@ -44,11 +44,11 @@ M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff
 
 T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
 print 'T_xy', T_xy, 'f=', f
-
+N_t = np.identity( 2 * nsites, dtype=np.complex_) # must be initialized as matrix that diagonalizes dressed density matrix
 
 for time in range(stepsize1, max_time1, stepsize1):  # 90, nsites = 200,
     correlation_block = create_correlation_block(
-        M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, time, Jx, Jy, g, beta, T_xy, f)
+        M_fw, M_fw_inverse, M_bw, M_bw_inverse, N, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, time, Jx, Jy, g, beta, T_xy, f)
     time_cuts = np.arange(1, time)
     #times[iterator] = time
     entropy_values[iterator, 0] = time
