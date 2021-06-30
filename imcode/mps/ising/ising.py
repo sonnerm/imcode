@@ -46,19 +46,7 @@ def ising_F(J,g,h):
     mpJ=MPO.from_matrices(WJ)
     return (mpJ@mph@mpg).contract()
 def ising_W(t,g,init=np.eye(2)/2,final=np.eye(2)):
-    s2=np.abs(np.sin(g))**2
-    c2=np.abs(np.cos(g))**2
-    mx=-1.0j*np.conj(np.sin(g))*np.cos(g)
-    px=1.0j*np.sin(g)*np.conj(np.cos(g))
-    Wprim=np.array([[c2,px,mx,s2],
-                    [px,c2,s2,mx],
-                    [mx,s2,c2,px],
-                    [s2,mx,px,c2]
-    ])
-    W_0a=np.einsum("cd,cb,ac->abcd",init,np.eye(4),np.eye(1))
-    W_ia=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(4),Wprim)
-    W_Ta=np.einsum("cd,cb,ac->abcd",np.eye(4),np.eye(1),Wprim)
-    return MPO.from_matrices([W_0a]+[W_ia]*(t-1)+[W_Ta])
+    pass
 #TODO refactor
 
 def ising_h(t,h):

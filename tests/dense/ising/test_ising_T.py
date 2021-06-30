@@ -117,7 +117,9 @@ def test_dense_ising_T_real(seed_rng):
     print(diT)
     assert diT.dtype==np.complex_
     assert diT.shape==(4**T,4**T)
-    assert np.sort(la.eigvals(diT))==pytest.approx(np.sort([0.0]*(4**T-1)+[1.0])) #IM gets checked elsewhere
+    print(la.eigvals(diT))
+    assert np.sort(la.eigvals(diT).real)==pytest.approx(np.sort([0.0]*(4**T-1)+[1.0])) #IM gets checked elsewhere
+    assert la.eigvals(diT).imag==pytest.approx(np.zeros((4**T))) #IM gets checked elsewhere
 
 def test_dense_ising_T_pi4():
     T=3
