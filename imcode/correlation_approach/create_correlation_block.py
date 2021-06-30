@@ -7,35 +7,16 @@ from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 np.set_printoptions(suppress=False, linewidth=np.nan)
 from IM_exponent import IM_exponent
+from add_cmplx_random_antisym import add_cmplx_random_antisym
 
-def create_correlation_block(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy, g, beta,  T_xy, f):
+def create_correlation_block(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy, T_xy, rho_t):
     print('Creating Greens function for time ', ntimes)
 
     # compute all correlators from which we can construct Keldysh Greens functions
-    B = IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy,  beta, T_xy, f)
-
-    real_check = 0
-    for i in range(4 * ntimes):
-        for j in range(4 * ntimes):
-            real_check += abs(np.imag(B[i, j])) 
-    print 'real_check', real_check
-
-    random_part_real = np.random.rand(4 * ntimes, 4 * ntimes) * 1e-10
-    random_part_imag = np.random.rand(4 * ntimes, 4 * ntimes) * 1e-10 * 1j
-
-    for i in range(4*ntimes):
-        for j in range(i, 4*ntimes):
-            if i == j:
-                random_part_real[i, j] = 0
-                random_part_imag[i, j] = 0
-                B[i, j] = 0.
-            else:
-                random_part_real[j, i] = - random_part_real[i, j]
-                random_part_imag[j, i] = - random_part_imag[i, j]
-                B[i, j] = - B[j, i]
-
-    B += (random_part_real)
-
+    B = IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy, T_xy, rho_t)
+    print B
+    B = add_cmplx_random_antisym(B, 1e-8)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
+    print B
     print('computing all temporal correlations')
 
     print('B\n')
