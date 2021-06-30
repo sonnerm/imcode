@@ -32,12 +32,12 @@ def IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_f
             G_lesser_zetatheta = correlator(
                 A, rho_t, 0, 1, time_1, 1, 0, time_2, nsites)
             G_greater_zetatheta = - \
-                correlator(A, rho_t, 0, 0, tau_2, 1, 1, time_1, nsites)
+                correlator(A, rho_t, 0, 0, time_2, 1, 1, time_1, nsites)
 
             G_lesser_thetazeta = correlator(
                 A, rho_t, 0, 0, time_1, 1, 1, time_2, nsites)
             G_greater_thetazeta = - \
-                correlator(A, rho_t, 0, 0, time_2, 1, 0, time_1, nsites)
+                correlator(A, rho_t, 0, 1, time_2, 1, 0, time_1, nsites)
 
             G_lesser_thetatheta = -1j * \
                 correlator(A, rho_t, 0, 0, time_1, 1, 0, time_2, nsites)
@@ -115,12 +115,12 @@ def IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_f
             B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * \
                 G_AntiFeynman_zetazeta * alpha**2 * np.tan(Jx)**2 / T_xy**2
 
-    for i in range(ntimes):  # trivial factor
+    for tau in range(ntimes):  # trivial factor
 
-        B[4 * tau_1, 4 * tau_1 + 2] += 0.5
-        B[4 * tau_1 + 1, 4 * tau_1 + 3] -= 0.5
-        B[4 * tau_1 + 2, 4 * i] -= 0.5
-        B[4 * tau_1 + 3, 4 * tau_1 + 1] += 0.5
+        B[4 * tau, 4 * tau + 2] += 0.5
+        B[4 * tau + 1, 4 * tau + 3] -= 0.5
+        B[4 * tau + 2, 4 * tau] -= 0.5
+        B[4 * tau + 3, 4 * tau + 1] += 0.5
 
     # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
     B = np.dot(2., B)
