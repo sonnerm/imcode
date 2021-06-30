@@ -32,6 +32,6 @@ def test_mps_ising_T(seed_rng):
     h=np.random.normal()+np.random.normal()*1.0j
     init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
     final=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
-    diT=dense.ising.ising_W(t,J,g,h,init,final)
-    miT=mps.ising.ising_W(t,J,g,h,init,final)
+    diT=dense.ising.ising_T(t,J,g,h,init,final)
+    miT=mps.ising.ising_T(t,J,g,h,init,final)
     assert diT==pytest.approx(miT.to_dense())

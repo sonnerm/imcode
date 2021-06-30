@@ -5,10 +5,12 @@ import numpy as np
 
 @lru_cache(None)
 def hr_operator(T):
-    ret=np.zeros(2**(2*T))
-    for i in range(2**(2*T)):
-        if popcount((i>>T)&(~(1<<(T-1))))==popcount((i^((i>>T)<<T))&(~(1<<(T-1)))):
-            ret[i]=1
+    ret=np.zeros(4**T)
+    evm=int("01"*T,2)
+    odm=~evm
+    for i in range(4**(4*T)):
+        if popcount(i&evm)==popcount(i&odm)
+            ret[i]=1.0
     return np.diag(ret)
 
 def ising_hr_T(T,J,g,init=(0.5,0.5)):

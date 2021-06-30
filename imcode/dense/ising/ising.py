@@ -1,4 +1,4 @@
-from .. import kron,SX,SZ,ID
+from .. import kron,SX,SZ,ID,outer
 from functools import lru_cache
 import numpy as np
 import scipy.linalg as scla
@@ -38,37 +38,25 @@ def ising_F(J,g,h):
 
 
 def ising_J(T,J):
-    Pm=np.array([[1,1],[1,1]])#/np.sqrt(2)
-    Tm1=np.array([[np.exp(1.0j*J),np.exp(-1.0j*np.conj(J))],[np.exp(-1.0j*np.conj(J)),np.exp(1.0j*J)]])
-    Tm2=Tm1.conj()
-    return kron([Pm]+[Tm1]*(T-1)+[Pm]+[Tm2]*(T-1))
+    J=np.array(J)
+    K=-J.conj()
+    Tm=np.array([[+J+K,+J-K,-J+K,-J-K],[+J-K,+J+K,-J-K,-J+K],[-J+K,-J-K,+J+K,+J-K],[-J-K,-J+K,+J-K,+J+K]])
+    Tm=np.exp(1.0j*Tm)
+    return kron([Tm for _ in range(T)])
 
 def ising_h(T,h):
-    h=np.array([0]+[h]*(T-1)+[0]+[-np.array(h).conj()]*(T-1))
-    U1=np.diag(np.exp(1.0j*np.array(ising_H(np.zeros_like(h),np.zeros_like(h),h).diagonal())))
-    return U1
-
+    h=np.array(h)
+    k=-h.conj()
+    elem=np.diag(np.exp(1.0j*np.array([h+k,h-k,-h+k,-h-k])))
+    return kron([elem for _ in range(T)])
 def ising_W(T,g,init=np.eye(2)/2,final=np.eye(2)):
-    ret=np.ones((2**(2*T)),dtype=complex)
-    for i in range(T):
-        ret=ret.reshape((2**i,2,2,2**(2*T-2-i)))
-        ret[:,1,1,:]*=np.cos(g)
-        ret[:,0,0,:]*=np.cos(g)
-        ret[:,1,0,:]*=np.sin(g)*1.0j
-        ret[:,0,1,:]*=np.sin(g)*1.0j
-
+    gate=np.cos(g)*ID+1.0j*np.sin(g)*SX
+    ret=np.einsum("ab,bc,dc->ad",gate,init,gate.conj())
+    gate=np.einsum("ab,cd->acbd",gate,gate.conj()).reshape((4,4))
     for i in range(T-1):
-        ret=ret.reshape((2**(T+i),2,2,2**(T-2-i)))
-        ret[:,1,1,:]*=np.conj(np.cos(g))
-        ret[:,0,0,:]*=np.conj(np.cos(g))
-        ret[:,1,0,:]*=np.conj(np.sin(g)*1.0j)
-        ret[:,0,1,:]*=np.conj(np.sin(g)*1.0j)
-
-    ret=ret.reshape((2,2**(2*T-2),2))
-    ret[1,:,1]*=np.conj(np.cos(g))*init[1]
-    ret[0,:,0]*=np.conj(np.cos(g))*init[0]
-    ret[1,:,0]*=np.conj(np.sin(g)*1.0j)*init[1]
-    ret[0,:,1]*=np.conj(np.sin(g)*1.0j)*init[0]
+        ret=ret.reshape((4**i,4))
+        ret=np.einsum("ab,bc->abc",ret,gate)
+    ret=np.einsum("ab,b->ab",ret.reshape(4**(T-1),4),final.ravel())
     return np.diag(np.ravel(ret))
 
 def ising_T(T,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
@@ -84,5 +72,5 @@ def ising_T(T,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
 
 def ising_SFF(T,J,g,h):
     pass
-def ising_hr_SFF(T,J,g,h):
+def ising_hr_SFF(T,J,g):
     pass
