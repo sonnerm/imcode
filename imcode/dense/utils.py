@@ -9,9 +9,9 @@ def kron(Ms):
 
 def outer(vs):
     '''
-        Calculates the dense kronecker product over a list of matrices
+        Calculates the outer product over a list of vectors
     '''
-    return reduce(np.outer,vs)
+    return reduce(np.outer,vs).ravel()
 #Defining primitive pauli matrices
 SY=np.array([[0,-1.0j],[1.0j,0]])
 SM=np.array([[0,0],[1.0,0]])
