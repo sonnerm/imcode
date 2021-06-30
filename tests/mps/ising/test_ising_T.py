@@ -18,12 +18,12 @@ def test_mps_ising_h(seed_rng):
 #     miW=mps.ising.ising_W(t,g,init,final)
 #     assert diW==pytest.approx(miW.to_dense())
 #
-# def test_mps_ising_J(seed_rng):
-#     t=3
-#     J=np.random.normal()+np.random.normal()*1.0j
-#     diJ=dense.ising.ising_J(t,J)
-#     miJ=mps.ising.ising_J(t,J)
-#     assert diJ==pytest.approx(miJ.to_dense())
+def test_mps_ising_J(seed_rng):
+    t=3
+    J=np.random.normal()+np.random.normal()*1.0j
+    diJ=dense.ising.ising_J(t,J)
+    miJ=mps.ising.ising_J(t,J)
+    assert diJ==pytest.approx(miJ.to_dense())
 #
 # def test_mps_ising_T(seed_rng):
 #     t=3

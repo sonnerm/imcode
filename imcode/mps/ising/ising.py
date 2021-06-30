@@ -67,16 +67,13 @@ def ising_h(t,h):
     return MPO.from_matrices([Ha]*(t))
 
 def ising_J(t,J):
-    Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
-    pj=np.exp(2.0j*J)
-    mj=np.exp(-2.0j*np.conj(J))
-    ip=np.exp(1.0j*(J-np.conj(J)))
-    Jprim=np.array([[ip,mj,pj,ip],
-                    [mj,ip,ip,pj],
-                    [pj,ip,ip,mj],
-                    [ip,pj,mj,ip]
+    K=-np.conj(J)
+    Jprim=np.array([[+J+K,+J-K,-J+K,-J-K],
+                    [+J-K,+J+K,-J-K,-J+K],
+                    [-J+K,-J-K,+J+K,+J-K],
+                    [-J-K,-J+K,+J-K,+J+K]
     ])
-    Ja=np.einsum("ab,cd->abcd",np.eye(1),Jprim)
+    Ja=np.array([[np.exp(1.0j*Jprim)]])
     return MPO.from_matrices([Ja]*t)
 def ising_T(t,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
     return (ising_J(t,J)@ising_W(t,g,init,final)@ising_h(t,h)).contract()
