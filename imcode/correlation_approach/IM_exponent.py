@@ -1,14 +1,24 @@
+from ising_gamma import ising_gamma
 import numpy as np
 from numpy import version
+from matrix_diag import matrix_diag
 from evolvers import evolvers
 from correlation_coefficients import correlation_coefficients
 from correlator import correlator
+from ising_gamma import ising_gamma
 
 
-def IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, nsites, ntimes, Jx, Jy, T_xy, rho_t):
+def IM_exponent( N_t, nsites, ntimes, Jx, Jy,g, rho_t):
+
+    #find generators and matrices which diagonalize them:
+    M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, f= matrix_diag(nsites, Jx, Jy, g)
+    
+    #define parameters:
+    T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
     beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
-    alpha = np.sqrt(2 * (np.cos(Jx)*np.cos(Jy)*T_xy) **
-                    2 / (np.cos(2*Jx) + np.cos(2*Jy)))
+    alpha = np.sqrt(2 * (np.cos(Jx)*np.cos(Jy)*T_xy) ** 2 / (np.cos(2*Jx) + np.cos(2*Jy)))
+
+
     # procompute evolvers T from which the correlation coefficients A can be inferred
     T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,
                        eigenvalues_G_eff_bw, nsites, ntimes, beta_tilde)  # array containing the evolvers
@@ -125,5 +135,5 @@ def IM_exponent(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_f
     # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
     B = np.dot(2., B)
  
-
-    return B
+    ising_gamma_times, ising_gamma_values = ising_gamma(M_fw,eigenvalues_G_eff_fw)
+    return B, ising_gamma_times, ising_gamma_values
