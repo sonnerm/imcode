@@ -104,22 +104,22 @@ def test_dense_ising_J_zero(seed_rng):
     assert diJ==pytest.approx(np.ones((64,64)))
 
 def test_dense_ising_T_real(seed_rng):
-    T=1
-    J=np.random.normal()+1.0j*np.random.normal()
-    g=np.random.normal()+1.0j*np.random.normal()
-    h=np.random.normal()+1.0j*np.random.normal()
+    T=3
+    J=np.random.normal()
+    g=np.random.normal()
+    h=np.random.normal()
     init=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
     init=init.T.conj()+init
     init=init@init
     init/=np.trace(init)#init is a proper density matrix
-    print(init)
     diT=dense.ising.ising_T(T,J,g,h,init)
-    print(diT)
     assert diT.dtype==np.complex_
     assert diT.shape==(4**T,4**T)
-    print(la.eigvals(diT))
-    assert np.sort(la.eigvals(diT).real)==pytest.approx(np.sort([0.0]*(4**T-1)+[1.0])) #IM gets checked elsewhere
-    assert la.eigvals(diT).imag==pytest.approx(np.zeros((4**T))) #IM gets checked elsewhere
+    ditev=la.eigvals(diT)
+    ditevc=np.zeros((4**T))
+    ditevc[-1]=1.0
+    assert np.sort_complex(ditev)==pytest.approx(ditevc,rel=5e-4,abs=5e-4)
+
 
 def test_dense_ising_T_pi4():
     T=3
@@ -133,4 +133,8 @@ def test_dense_ising_T_pi4():
     diT=dense.ising.ising_T(T,J,g,h,init)
     assert diT.dtype==np.complex_
     assert diT.shape==(64,64)
-    assert np.sort(la.eigvals(diT))==pytest.approx(np.sort([0.0]*63+[1.0])) #IM gets checked elsewhere
+    ditev,ditevv=la.eig(diT)
+    ditevc=np.zeros((4**T))
+    ditevc[-1]=1.0
+    assert np.sort_complex(ditev)==pytest.approx(ditevc,rel=5e-4,abs=5e-4)
+    assert ditevv[:,np.argmax(np.abs(ditev))]==pytest.approx(dense.ising.perfect_dephaser_im(T))
