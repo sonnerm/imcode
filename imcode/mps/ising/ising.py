@@ -62,12 +62,11 @@ def ising_W(t,g,init=np.eye(2)/2,final=np.eye(2)):
 #TODO refactor
 
 def ising_h(t,h):
-    Ida=np.einsum("ab,cd->abcd",np.eye(1),np.eye(4))
-    Ha=np.einsum("ab,cd->abcd",np.eye(1),np.diag([np.exp(1.0j*(h-np.conj(h))),np.exp(-1.0j*(h-np.conj(h))),np.exp(1.0j*(h+np.conj(h))),np.exp(-1.0j*(h+np.conj(h)))]))
-    return MPO.from_matrices([Ida]+[Ha]*(t-1)+[Ida])
+    k=-np.conj(h)
+    Ha=np.array([[np.diag(np.exp(1.0j*np.array([h+k,h-k,-h+k,-h-k])))]])
+    return MPO.from_matrices([Ha]*(t))
 
 def ising_J(t,J):
-    Iprim=np.array([[1.0,1.0,0.0,0.0],[1.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0]])#/np.sqrt(2)
     Ida=np.einsum("ab,cd->abcd",np.eye(1),Iprim)
     pj=np.exp(2.0j*J)
     mj=np.exp(-2.0j*np.conj(J))
@@ -78,6 +77,6 @@ def ising_J(t,J):
                     [ip,pj,mj,ip]
     ])
     Ja=np.einsum("ab,cd->abcd",np.eye(1),Jprim)
-    return MPO.from_matrices([Ida]+[Ja]*(t-1)+[Ida])
+    return MPO.from_matrices([Ja]*t)
 def ising_T(t,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
     return (ising_J(t,J)@ising_W(t,g,init,final)@ising_h(t,h)).contract()
