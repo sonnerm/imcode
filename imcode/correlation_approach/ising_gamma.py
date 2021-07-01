@@ -1,5 +1,7 @@
 import numpy as np
-def ising_gamma(M_fw, eigenvalues_G_eff_fw):#computes response function gamma that appears in the Ising chain
+def ising_gamma(M, eigenvalues_G_eff):#computes response function gamma that appears in the Ising chain
+    M_fw = M[0]
+    eigenvalues_G_eff_fw = eigenvalues_G_eff[0]
     nsites = len(M_fw) / 2
     gamma_test_range = 100
     gamma_test_vals = np.zeros(gamma_test_range)
