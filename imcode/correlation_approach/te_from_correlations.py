@@ -12,7 +12,7 @@ np.set_printoptions(linewidth=np.nan,precision=6, suppress=True )
 #step sizes for total times t
 max_time1 = 5
 max_time2 = 20
-stepsize1 = 3
+stepsize1 = 4
 stepsize2 = 16
 
 #lattice sites:
@@ -25,7 +25,7 @@ g = np.pi/4
 beta = 0 # temperature
 
 #define initial density matrix and determine matrix which diagonalizes it:
-rho_t = np.identity( nsites, dtype=np.complex_) 
+rho_t = np.zeros((nsites,nsites), dtype=np.complex_)#this is the EXPONENT of the gaussian density matrix 
 N_t = np.identity( 2 * nsites, dtype=np.complex_) # must be initialized as matrix that diagonalizes dressed density matrix
 
 #initialize arrays in which entropy values and corresponding time-cuts are stored
