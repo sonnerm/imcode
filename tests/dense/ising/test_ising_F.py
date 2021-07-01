@@ -8,9 +8,9 @@ def test_dense_ising_F_complex(seed_rng):
     g = np.random.normal(size=L) + 1.0j * np.random.normal(size=L)
     h = np.random.normal(size=L) + 1.0j * np.random.normal(size=L)
     # simple implementation of ising_F, to be compared to future implementations
-    diF=dense.ising.ising_F(J,g,h)
+    diF=dense.ising.ising_F(L,J,g,h)
     def simple_ising_F(J, g, h):
-        return scla.expm(1.0j * dense.ising.ising_H(J, [0.0] * L, h)) @ scla.expm(1.0j * dense.ising.ising_H([0.0] * L, g, [0.0] * L))
+        return scla.expm(1.0j * dense.ising.ising_H(L,J, [0.0] * L, h)) @ scla.expm(1.0j * dense.ising.ising_H(L,[0.0] * L, g, [0.0] * L))
     assert diF.dtype==np.complex_
     assert diF.conj().T@diF!=pytest.approx(np.eye(diF.shape[0])) #not unitary
     assert diF@diF.T.conj()!=pytest.approx(np.eye(diF.shape[0])) #not unitary
@@ -24,9 +24,9 @@ def test_dense_ising_F_real(seed_rng):
     g = np.random.normal(size=L)
     h = np.random.normal(size=L)
     # simple implementation of ising_F, to be compared to future implementations
-    diF=dense.ising.ising_F(J,g,h)
+    diF=dense.ising.ising_F(L,J,g,h)
     def simple_ising_F(J, g, h):
-        return scla.expm(1.0j * dense.ising.ising_H(J, [0.0] * L, h)) @ scla.expm(1.0j * dense.ising.ising_H([0.0] * L, g, [0.0] * L))
+        return scla.expm(1.0j * dense.ising.ising_H(L,J, [0.0] * L, h)) @ scla.expm(1.0j * dense.ising.ising_H(L,[0.0] * L, g, [0.0] * L))
     assert diF.dtype==np.complex_
     assert diF.conj().T@diF==pytest.approx(np.eye(diF.shape[0])) #unitary
     assert diF@diF.T.conj()==pytest.approx(np.eye(diF.shape[0]))

@@ -66,19 +66,19 @@ def test_dense_ising_W_zero():
     diWc[-1,-1]=0.5
     assert diW==pytest.approx(diWc)
 
-@pytest.mark.skip
-def test_dense_ising_W_pi4():
-    #dual unitary case, not 100% sure what to expect
-    T=2
-    g=np.pi/4
-    diW=dense.ising.ising_W(T,g,init=np.ones((2,2)),final=np.ones((2,2)))*4
-    print(np.diag(diW))
-    print(np.diag(diW.conj())*np.diag(diW))
-    assert diW.dtype==np.complex_
-    assert diW.shape==(4**T,4**T)
-    assert np.diag(np.diag(diW))==pytest.approx(diW) #diagonal
-    assert diW.conj()*diW==pytest.approx(np.eye(diW.shape[0])) #unitary
-    assert diW.conj()!=pytest.approx(diW)
+# @pytest.mark.skip
+# def test_dense_ising_W_pi4():
+#     #dual unitary case, not 100% sure what to expect
+#     T=2
+#     g=np.pi/4
+#     diW=dense.ising.ising_W(T,g,init=np.ones((2,2)),final=np.ones((2,2)))*4
+#     print(np.diag(diW))
+#     print(np.diag(diW.conj())*np.diag(diW))
+#     assert diW.dtype==np.complex_
+#     assert diW.shape==(4**T,4**T)
+#     assert np.diag(np.diag(diW))==pytest.approx(diW) #diagonal
+#     assert diW.conj()*diW==pytest.approx(np.eye(diW.shape[0])) #unitary
+#     assert diW.conj()!=pytest.approx(diW)
 
 def test_dense_ising_J_complex(seed_rng):
     T=3

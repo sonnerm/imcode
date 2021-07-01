@@ -2,8 +2,7 @@ from .. import MPO
 import numpy as np
 from ...dense import ID,SZ,SX
 ZE=np.zeros_like(ID)
-def ising_H(J,g,h):
-    L=len(h) # maybe change to explicit length?
+def ising_H(L,J,g,h):
     J=np.array(J)
     g=np.array(g)
     h=np.array(h)
@@ -20,7 +19,7 @@ def ising_H(J,g,h):
     Wsb=np.array([[h[-1]*SZ+g[-1]*SX],[SZ],[ID]])
     Ws.append(Wsb)
     return MPO.from_matrices(Ws)
-def ising_F(J,g,h):
+def ising_F(L,J,g,h):
     L=len(h) # maybe change to explicit length?
     J=np.array(J)
     g=np.array(g)

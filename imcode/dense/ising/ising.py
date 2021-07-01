@@ -3,7 +3,7 @@ from functools import lru_cache
 import numpy as np
 import scipy.linalg as scla
 
-def ising_H(J,g,h):
+def ising_H(L,J,g,h):
     r'''
         Construct a dense Hamiltonian of a spin 1/2 Ising ring with parameters given by the arrays J,g,h.
         H=\sum_i J_i s^z_{i+1}s^z_{i} + \sum_i h_i s^z_i + \sum_i g_i s^x_i
@@ -11,7 +11,6 @@ def ising_H(J,g,h):
         length is taken from the size of h, J can be either the same length
         (open boundary condition) or one element shorter (periodic boundary conditions).
     '''
-    L=len(h) # maybe change to explicit length?
     J=np.array(J)
     g=np.array(g)
     h=np.array(h)
@@ -25,7 +24,7 @@ def ising_H(J,g,h):
     for i,gv in enumerate(g):
         ret+=gv*kron([ID]*i+[SX]+[ID]*(L-i-1))
     return ret
-def ising_F(J,g,h):
+def ising_F(L,J,g,h):
     r'''
         Constructs a dense one period time evolution operator for the kicked ising chain model
         F = \exp(i\sum_i J_i s_i^zs_{i+1}^z + h_i s_i^z)\exp(i \sum_i g_i s^x_i)
@@ -33,8 +32,7 @@ def ising_F(J,g,h):
         length is taken from the size of h, J can be either the same length
         (open boundary condition) or one element shorter (periodic boundary conditions).
     '''
-    L=len(h) #maybe change to explicit length
-    return scla.expm(1.0j*ising_H(J,[0.0]*L,h))@scla.expm(1.0j*ising_H([0.0]*L,g,[0.0]*L))
+    return scla.expm(1.0j*ising_H(L,J,[0.0]*L,h))@scla.expm(1.0j*ising_H(L,[0.0]*L,g,[0.0]*L))
 
 
 def ising_J(T,J):
