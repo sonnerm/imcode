@@ -1,19 +1,14 @@
 from ising_gamma import ising_gamma
 import numpy as np
 from numpy import version
-from matrix_diag import matrix_diag
 from evolvers import evolvers
 from correlation_coefficients import correlation_coefficients
 from correlator import correlator
 from ising_gamma import ising_gamma
 
 
-def IM_exponent( N_t, nsites, ntimes, Jx, Jy,g, rho_t):
+def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,g, rho_t):
 
-    #find generators and matrices which diagonalize them:
-    #M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, f= matrix_diag(nsites, Jx, Jy, g)
-    M, M_inverse, eigenvalues_G_eff, f= matrix_diag(nsites, Jx, Jy, g)
-    
     #define parameters:
     T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
     beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))

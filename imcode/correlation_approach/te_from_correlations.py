@@ -4,24 +4,25 @@ from entropy import entropy
 from IM_exponent import IM_exponent
 from add_cmplx_random_antisym import add_cmplx_random_antisym
 from plot_entropy import plot_entropy
+from matrix_diag import matrix_diag
 
 
 np.set_printoptions(linewidth=np.nan,precision=6, suppress=True )
 
 #define fixed parameters:
 #step sizes for total times t
-max_time1 = 5
+max_time1 = 80
 max_time2 = 20
-stepsize1 = 4
+stepsize1 = 10
 stepsize2 = 16
 
 #lattice sites:
-nsites = 4
+nsites = 100
 
 #model parameters:
 Jx = 0
 Jy = 1.06
-g = np.pi/4
+g = np.pi/4+0.3
 beta = 0 # temperature
 
 #define initial density matrix and determine matrix which diagonalizes it:
@@ -32,9 +33,12 @@ N_t = np.identity( 2 * nsites, dtype=np.complex_) # must be initialized as matri
 entropy_values = np.zeros((int(max_time1/stepsize1) + int(max_time2/stepsize2) + 3, max_time2 + stepsize2))#entropies
 times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))#time cuts
 
+#find generators and matrices which diagonalize them:
+M, M_inverse, eigenvalues_G_eff, f= matrix_diag(nsites, Jx, Jy, g)
+
 iterator = 1
 for time in range(stepsize1, max_time1, stepsize1):
-    B, ising_gamma_times, gamma_test_vals = IM_exponent(N_t, nsites, time, Jx, Jy,g, rho_t)
+    B, ising_gamma_times, gamma_test_vals = IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, time, Jx, Jy,g, rho_t)
     B = add_cmplx_random_antisym(B, 1e-8)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
     correlation_block = create_correlation_block(B)
     time_cuts = np.arange(1, time)
