@@ -1,8 +1,9 @@
 import numpy as np
 from scipy import linalg
 def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix that brings B into Schur form 
-
     dim_B = len(B)
+
+    
     #Ising case:
     eigenvalues, eigenvectors = linalg.eig(np.dot(1j, B))
 
@@ -29,34 +30,34 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     """
     #for general case:
     T, Z = linalg.schur(1j*B, output='complex')
-
+    print np.diag(T)
     argsort2 = np.argsort(- np.sign(np.real(np.diag(T))) * np.abs(np.diag(T)))
 
-    ves_sorted2 = np.zeros((dim_B, dim_B), dtype=np.complex_)
-    ews_sorted2 = np.zeros(dim_B, dtype=np.complex_)
-
+    eigenvectors_sorted2 = np.zeros((dim_B, dim_B), dtype=np.complex_)
+    eigenvalues_sorted2 = np.zeros(dim_B, dtype=np.complex_)
+    
     for i in range(dim_B / 2):
-        ves_sorted2[:, (2 * i) + 1] = (Z[:, argsort2[(dim_B) - 1 - i]])
-        ves_sorted2[:, 2 * i] = (Z[:, argsort2[i]])
-        ews_sorted2[(2 * i) + 1] = np.diag(T)[argsort2[(dim_B) - 1 - i]]
-        ews_sorted2[2 * i] = np.diag(T)[argsort2[i]]
-
+        eigenvectors_sorted2[:, (2 * i) + 1] = (Z[:, argsort2[(dim_B) - 1 - i]])
+        eigenvectors_sorted2[:, 2 * i] = (Z[:, argsort2[i]])
+        eigenvalues_sorted2[(2 * i) + 1] = np.diag(T)[argsort2[(dim_B) - 1 - i]]
+        eigenvalues_sorted2[2 * i] = np.diag(T)[argsort2[i]]
+    
     for i in range(dim_B / 2):
-        ves_sorted2[:, 2*i] *= np.exp(-1j * np.angle(ves_sorted2[0, 2*i]))
-        ves_sorted2[:, 2*i + 1] *= np.exp(1j * np.angle(ves_sorted2[0, 2*i]/ves_sorted2[0, 2*i + 1]))
-    ves_sorted2 *= np.exp(-1j * np.pi/4)
-
-    B_schur = np.dot(ves_sorted2.T, B)
-    B_schur = np.dot(G_schur, ves_sorted2)
+        eigenvectors_sorted2[:, 2*i] *= np.exp(-1j * np.angle(eigenvectors_sorted2[0, 2*i]))
+        eigenvectors_sorted2[:, 2*i + 1] *= np.exp(1j * np.angle(eigenvectors_sorted2[0, 2*i]/eigenvectors_sorted2[0, 2*i + 1]))
+    eigenvectors_sorted2 *= np.exp(-1j * np.pi/4)
+    
+    B_schur = np.dot(eigenvectors_sorted2.T, B)
+    B_schur = np.dot(B_schur, eigenvectors_sorted2)
     schur_check = 0
 
     for i in range(dim_B):
         for j in range(i, dim_B):
             schur_check += abs(B_schur[i, j])
     for i in range(dim_B / 2):
-        schur_check -= ews_sorted[i]
-
+        schur_check -= eigenvalues_sorted2[i]
+    print eigenvalues_sorted2
     print('Check that R yields Schur form \n', schur_check, '\n B_schur\n')
     print(B_schur)
     """
-    return R, eigenvalues_sorted
+    return eigenvectors_sorted, eigenvalues_sorted
