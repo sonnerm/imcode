@@ -136,7 +136,7 @@ def IM_exponent( N_t, nsites, ntimes, Jx, Jy,g, rho_t):
     # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
     B = np.dot(2., B)
 
-    print 'B', B
+    print 'B\n', B
  
     ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff)
     return B, ising_gamma_times, ising_gamma_values
