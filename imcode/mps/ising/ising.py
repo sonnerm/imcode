@@ -45,8 +45,13 @@ def ising_F(L,J,g,h):
     mpJ=MPO.from_matrices(WJ)
     return (mpJ@mph@mpg).contract()
 def ising_W(t,g,init=np.eye(2)/2,final=np.eye(2)):
-    pass
-#TODO refactor
+    gate=np.cos(g)*ID+1.0j*np.sin(g)*SX
+    init=np.einsum("ab,bc,dc->ad",gate,init,gate.conj())
+    gate=np.einsum("ab,cd->acbd",gate,gate.conj()).reshape((4,4))
+    W0=np.einsum("bc,cd,d->bcd",np.eye(4),np.eye(4),init.ravel())[None,:,:,:]
+    Wm=np.einsum("ab,bc,cd->abcd",gate,np.eye(4),np.eye(4))
+    Wf=np.einsum("ab,bc,c->abc",gate,np.eye(4),final.T.ravel())[:,None,:,:]
+    return MPO.from_matrices([W0]+[Wm]*(t-2)+[Wf])
 
 def ising_h(t,h):
     k=-np.conj(h)
