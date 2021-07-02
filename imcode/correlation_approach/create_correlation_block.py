@@ -71,11 +71,9 @@ def create_correlation_block(B, ntimes):
     corr_block_back_rotated = einsum('ij,jk,kl->il',double_R, corr_block_diag2,double_R.T)
     print ('corr_block_back_rotated\n', corr_block_back_rotated)
 
-    eigenvalues_correlations, ev_correlations = eigsh(
-        corr_block_diag2, 8 * ntimes)
+    eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_diag2)
     print(dim_B/4, eigenvalues_correlations)
-    eigenvalues_correlations, ev_correlations = eigsh(
-        corr_block_back_rotated, 8 * ntimes)
+    eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_back_rotated)
     print(eigenvalues_correlations)
 
     return corr_block_back_rotated
