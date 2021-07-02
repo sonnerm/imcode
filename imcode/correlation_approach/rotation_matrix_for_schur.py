@@ -1,9 +1,10 @@
 import numpy as np
+from numpy.core.einsumfunc import einsum
 from scipy import linalg
 def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix that brings B into Schur form 
     dim_B = len(B)
 
-    
+    """
     #Ising case:
     eigenvalues, eigenvectors = linalg.eig(np.dot(1j, B))
 
@@ -27,7 +28,6 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     print 'Matrix B brought into Schur form:' ,schur
 
 
-    """
     #for general case:
     T, Z = linalg.schur(1j*B, output='complex')
     print np.diag(T)
@@ -60,4 +60,21 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     print('Check that R yields Schur form \n', schur_check, '\n B_schur\n')
     print(B_schur)
     """
-    return eigenvectors_sorted, eigenvalues_sorted
+
+    hermitian_matrix = np.matmul(B.T, B.conj())
+    eigenvalues_hermitian_matrix, R = linalg.eigh(hermitian_matrix)
+    eigenvalues_B, eigenvectors_B = linalg.eig(1j*B)
+    B_schur = einsum('ij,jk,kl->il',R.T.conj(),B,R.conj())
+
+    print eigenvalues_B
+    print('Schur form of B \n')
+    print(B_schur)
+
+    for i in range (dim_B):
+        for j in range (dim_B):
+            if abs(i-j) != 1 or i+j+1%4 == 0:
+                B_schur[i,j] = 0
+
+    print 'schur-test', linalg.norm(einsum('ij,jk,kl->il',R,B_schur,R.T) - B)
+  
+    return R, eigenvalues_B
