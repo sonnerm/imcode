@@ -10,14 +10,14 @@ data = np.loadtxt(filename + '.txt')
 
 num_rows, num_cols = data.shape
 data_array = np.zeros((num_rows, 3))
-print num_rows
+print (num_rows)
 
 for i in range (num_rows):
     data_array[i][0] = data[i,0]
     data_array[i][1] = data[i,int(data[i,0]/2)]
     data_array[i][2] = max(data[i,1:])
 
-print data_array
+print (data_array)
 fig, ax = plt.subplots()
 
 ax.plot( data_array[:num_rows-1,0], data_array[:num_rows-1,1],

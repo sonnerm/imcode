@@ -157,16 +157,16 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
         #eigenvector_check_bw += linalg.norm(np.dot(G_eff_bw, eigenvectors_G_eff_bw[:, i]) - np.dot(eigenvalues_G_eff_bw[i], eigenvectors_G_eff_bw[:, i]))
     for i in range(nsites):
         eigenvector_check_E += linalg.norm(np.dot(G_eff_E, eigenvectors_G_eff_E[:, i]) - np.dot(eigenvalues_G_eff_E[i], eigenvectors_G_eff_E[:, i]))
-    print 'eigenvector_check (f/b/E)', eigenvector_check,'/',eigenvector_check_E
+    print ('eigenvector_check (f/b/E)', eigenvector_check,'/',eigenvector_check_E)
 
-    print 'forward eigenvalues'
-    print eigenvalues_G_eff[0]
+    print ('forward eigenvalues')
+    print (eigenvalues_G_eff[0])
 
-    print 'backward eigenvalues'
-    print eigenvalues_G_eff[1]
+    print ('backward eigenvalues')
+    print (eigenvalues_G_eff[1])
 
-    print 'environment eigenvalues'
-    print eigenvalues_G_eff_E
+    print ('environment eigenvalues')
+    print (eigenvalues_G_eff_E)
 
     #sort eigenvectors such that first half are the ones with positive real part of eigenvalues and second half the corresponding negative ones
     argsort_fw = np.argsort(- np.real(eigenvalues_G_eff[0]))
@@ -183,11 +183,11 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
         M[1,:, 2 * nsites - 1 - i] = eigenvectors_G_eff[1,:, argsort_bw[i + nsites]]
         M_E[:, i] = eigenvectors_G_eff_E[:, argsort_E[i]]
         M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
-    print 'M_forward'
+    print ('M_forward')
     print(M[0]) #matrix that diagonalizes G_eff_fw
-    print 'M_backward'
+    print ('M_backward')
     print(M[1]) #matrix that diagonalizes G_eff_bw 
-    print 'M_environment'
+    print ('M_environment')
     print(M_E) #matrix that diagonalizes G_eff_E
     
     M_inverse = np.zeros((2,2 * nsites, 2 * nsites), dtype=np.complex_)
@@ -224,7 +224,7 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     for i in range(0, 2 * nsites):
         for j in range(i + 1, 2 * nsites):
             diag_check_E += abs(D_E[i, j])
-    print 'diag_checks (fw+bw/E)', diag_check,'/', diag_check_E
+    print ('diag_checks (fw+bw/E)', diag_check,'/', diag_check_E)
 
 
     f = 0

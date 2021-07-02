@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.core.einsumfunc import einsum
 from numpy.linalg import matrix_power
-np.set_printoptions(suppress=False, linewidth=np.nan)
 
 
 def evolvers(M, M_inverse,  N_t, eigenvalues_G_eff, nsites, ntimes, beta_tilde):

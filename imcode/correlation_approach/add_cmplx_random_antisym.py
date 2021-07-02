@@ -3,7 +3,7 @@ import numpy as np
 def add_cmplx_random_antisym(matrix, magnitude):
 
     if len(matrix)!= len(matrix[0]):
-        print 'ERROR: Matrix is not a square matrix - no random part has been added.'
+        print ('ERROR: Matrix is not a square matrix - no random part has been added.')
 
     else:    
         dim = len(matrix) # matrix is square matrix with dimension dim

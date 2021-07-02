@@ -1,8 +1,4 @@
 import numpy as np
-from numpy import version
-import matplotlib.pyplot as plt
-np.set_printoptions(suppress=False, linewidth=np.nan)
-
 
 # i and j are site indices, s and sp specify whether the fermionic operators have a dagger (=1) or not (=0), t2 and t1 denote times, M is the matrix of eigenvetors (as columns) and eigenvalues_G_eff contains eigenvalues of G_eff )
 # returns greater correlation function

@@ -17,7 +17,7 @@ def create_correlation_block(B):
     R = np.zeros((dim_B, dim_B), dtype=np.complex_)
     B_schur = np.zeros((dim_B, dim_B), dtype=np.complex_)
     R, B_schur = rotation_matrix_for_schur(B)
-    print 'h1'
+
     """
     corr_block_diag = np.zeros((2 * dim_B, 2*dim_B))#REAL - WORKS ONLY IN ISING CASE
     #ews_sorted = ews_sorted)##enable these to be complex!!!!!
@@ -38,6 +38,8 @@ def create_correlation_block(B):
         corr_block_diag[2 * i + dim_B, 2 * i + dim_B] = np.sin(Theta)**2
         corr_block_diag[2 * i + dim_B + 1, 2 * i + dim_B + 1] = np.sin(Theta)**2
     """
+
+    #general case
     corr_block_diag2 = np.zeros((2 * dim_B, 2 * dim_B), dtype=np.complex_)
     for i in range(0, dim_B / 2):
         ew = B_schur[i,i + 1]
@@ -58,28 +60,17 @@ def create_correlation_block(B):
         corr_block_diag2[2 * i + dim_B + 1, 2 * i +
                          dim_B + 1] = abs(ew)**2/norm
 
-    print 'h2'
-    """
-    compare_blocks = 0
-    for i in range(0, 2 * dim_B):
-        for j in range(0, 2 * dim_B):
-            compare_blocks += abs(corr_block_diag[i,
-                                  j] - corr_block_diag2[i, j])
-    print 'compare_block', compare_blocks
-    """
-    #corr_block_diag = corr_block_diag2
 
-    # print 'corr_block_diag\n', corr_block_diag
     double_R = np.bmat([[R, np.zeros((dim_B, dim_B),dtype=np.complex_)],
                        [np.zeros((dim_B, dim_B),dtype=np.complex_), R]])
-    print 'h3'
-    print 'double R\n', double_R
+
+    print ('double R\n', double_R)
     identity_check2 = np.dot(double_R.conj().T, double_R)#check that double_R is unitary just like R is (should be trivial)
-    print 'unity_check2\n', np.trace(identity_check2)/(2 * dim_B)
+    print ('unity_check2\n', np.trace(identity_check2)/(2 * dim_B))
 
     corr_block_back_rotated = einsum('ij,jk,kl->il',double_R, corr_block_diag2,double_R.T)
-    print 'corr_block_back_rotated\n', corr_block_back_rotated
-    print 'h4'
+    print ('corr_block_back_rotated\n', corr_block_back_rotated)
+
     eigenvalues_correlations, ev_correlations = eigsh(
         corr_block_diag2, 2 * dim_B)
     print(dim_B/4, eigenvalues_correlations)

@@ -18,7 +18,7 @@ def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,
     # procompute evolvers T from which the correlation coefficients A can be inferred
     #T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,eigenvalues_G_eff_bw, nsites, ntimes, beta_tilde)  # array containing the evolvers
     T_tilde = evolvers(M, M_inverse,  N_t, eigenvalues_G_eff, nsites, ntimes, beta_tilde)
-    print T_tilde
+    print (T_tilde)
     # precompute correlation coefficients A from which we construct the correlation functions
     # array containing all correlation coefficients (computed from evolvers T_tilde)
     A = correlation_coefficients(T_tilde, nsites, ntimes)
@@ -131,7 +131,7 @@ def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,
     # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
     B = np.dot(2., B)
 
-    print 'B\n', B
+    print ('B\n', B)
  
     ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff)
     return B, ising_gamma_times, ising_gamma_values
