@@ -40,7 +40,7 @@ iterator = 1
 for time in range(stepsize1, max_time1, stepsize1):
     B, ising_gamma_times, gamma_test_vals = IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, time, Jx, Jy,g, rho_t)
     #B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
-    correlation_block = create_correlation_block(B)
+    correlation_block = create_correlation_block(B, ntimes)
     time_cuts = np.arange(1, time)
 
     entropy_values[iterator, 0] = time
