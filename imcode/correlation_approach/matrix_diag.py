@@ -125,8 +125,6 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     for i in range(2*nsites):
         for j in range(i, 2*nsites):
             random_part[i, j] = random_part[j, i]
-    G_eff[0] += random_part
-    G_eff[1] += random_part
     G_eff_E += random_part
 
     # compute eigensystem of G_eff. Set of eigenvectors "eigenvectors_G_eff_fw/bw" diagnonalizes G_eff_fw/bw
