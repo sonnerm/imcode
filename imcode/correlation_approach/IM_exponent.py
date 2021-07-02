@@ -133,5 +133,5 @@ def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,
 
     print ('B\n', B)
  
-    ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff)
+    ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites)
     return B, ising_gamma_times, ising_gamma_values
