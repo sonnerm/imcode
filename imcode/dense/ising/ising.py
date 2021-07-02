@@ -54,7 +54,7 @@ def ising_W(T,g,init=np.eye(2)/2,final=np.eye(2)):
     for i in range(T-1):
         ret=ret.reshape((4**i,4))
         ret=np.einsum("ab,bc->abc",ret,gate)
-    ret=np.einsum("ab,b->ab",ret.reshape(4**(T-1),4),final.ravel())
+    ret=np.einsum("ab,b->ab",ret.reshape(4**(T-1),4),final.T.ravel())
     return np.diag(np.ravel(ret))
 
 def ising_T(T,J,g,h,init=np.eye(2)/2,final=np.eye(2)):

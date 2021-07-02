@@ -12,7 +12,7 @@ def test_contract_1x3_mixed(seed_rng):
     F=dense.ising.ising_F(L,[0.0],[g],[h])
     acc=init
     for _ in range(t):
-        acc=F@init@F.T.conj()
+        acc=F@acc@F.T.conj()
     direct=np.trace(final@acc)
     bc=dense.ising.open_boundary_im(t)
     Wh=dense.ising.ising_W(t,g,init,final)@dense.ising.ising_h(t,h)
@@ -25,7 +25,7 @@ def test_contract_1x3_mixed(seed_rng):
 @pytest.mark.skip()
 def test_contract_3x3_mixed(seed_rng):
     L=3
-    t=3
+    t=1
     init=[np.random.normal(size=(2,2))+1.0j*np.random.normal((2,2)) for _ in range(L)]
     final=[np.random.normal(size=(2,2))+1.0j*np.random.normal((2,2)) for _ in range(L)]
     Js=np.random.normal(size=(L,))
