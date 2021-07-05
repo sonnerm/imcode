@@ -1,14 +1,14 @@
 import numpy as np
 
 
-def correlation_coefficients(T_tilde, nsites, ntimes):
+def correlation_coefficients(T_tilde, nsites, nbr_Floquet_layers):
 
     # initialize correlation coefficients
     # first dimension 2 is for forward/backward branch (0 is forward, 1 is backward), second dimension 2 is for "Majorana" type (0 is THETA (relative MINUS sign), 1 is ZETA (relative PLUS sign)), third axis is for evolution times, fourth axis is for site arguments: (A_ij)-> site argument i=0 always, j in range (0,2L)
-    A = np.zeros((2, 2, ntimes, 2*nsites), dtype=np.complex_)
+    A = np.zeros((2, 2, nbr_Floquet_layers, 2*nsites), dtype=np.complex_)
 
     # fill with values (individually for each branch)
-    for tau in range(0, ntimes):
+    for tau in range(0, nbr_Floquet_layers):
         # buffer evolver values that are combined to give correlation coefficients A
         # .. on forward branch
         # arguments:forward branch, evolution time, site j=0 in env.

@@ -7,7 +7,7 @@ from correlator import correlator
 from ising_gamma import ising_gamma
 
 
-def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,g, rho_t):
+def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_t):#nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
 
     #define parameters:
     T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
@@ -16,20 +16,20 @@ def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,
 
 
     # procompute evolvers T from which the correlation coefficients A can be inferred
-    #T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,eigenvalues_G_eff_bw, nsites, ntimes, beta_tilde)  # array containing the evolvers
-    T_tilde = evolvers(M, M_inverse,  N_t, eigenvalues_G_eff, nsites, ntimes, beta_tilde)
+    #T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,eigenvalues_G_eff_bw, nsites, nbr_Floquet_layers, beta_tilde)  # array containing the evolvers
+    T_tilde = evolvers(M, M_inverse,  N_t, eigenvalues_G_eff, nsites, nbr_Floquet_layers, beta_tilde)
     print (T_tilde)
     # precompute correlation coefficients A from which we construct the correlation functions
     # array containing all correlation coefficients (computed from evolvers T_tilde)
-    A = correlation_coefficients(T_tilde, nsites, ntimes)
+    A = correlation_coefficients(T_tilde, nsites, nbr_Floquet_layers)
     # exponent of IM
-    B = np.zeros((4 * ntimes, 4 * ntimes), dtype=np.complex_)
+    B = np.zeros((4 * nbr_Floquet_layers, 4 * nbr_Floquet_layers), dtype=np.complex_)
 
-    for tau_1 in range(ntimes):
-        for tau_2 in range(ntimes):
-            # ntimes is the number of discrete times (0,1,2,..,t) i.e. ntimes = t + 1. The variable time_1 takes analytical values t+1, t, ..., 1. This translates to ntimes, ntimes-1, ..., 1. They are saved in an array of length ntimes with indices ntimes-1, ntimes-2, ..., 0
-            time_1 = ntimes - 1 - tau_1
-            time_2 = ntimes - 1 - tau_2
+    for tau_1 in range(nbr_Floquet_layers):
+        for tau_2 in range(nbr_Floquet_layers):
+            # nbr_Floquet_layers is the number of discrete times (0,1,2,..,t) i.e. nbr_Floquet_layers = t + 1. The variable time_1 takes analytical values t+1, t, ..., 1. This translates to (nbr_Floquet_layers, nbr_Floquet_layers-1, ..., 1). They are saved in an array of length nbr_Floquet_layers with indices nbr_Floquet_layers-1, nbr_Floquet_layers-2, ..., 0
+            time_1 = nbr_Floquet_layers - tau_1
+            time_2 = nbr_Floquet_layers - tau_2
             G_lesser_zetazeta = 1j * \
                 correlator(A, rho_t, 0, 1, time_1, 1, 1, time_2, nsites)
             G_greater_zetazeta = -1j * \
@@ -89,6 +89,7 @@ def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,
                 alpha**2 * np.tan(Jy)**2 / T_xy**2
             B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * \
                 alpha**2 * np.tan(Jy)**2 / T_xy**2
+            print -1j * G_lesser_thetatheta, alpha, np.tan(Jy)**2,  T_xy**2 #edit
             B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * \
                 alpha**2 * np.tan(Jy)**2 / T_xy**2
             B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * \
@@ -121,7 +122,7 @@ def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,
             B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * \
                 G_AntiFeynman_zetazeta * alpha**2 * np.tan(Jx)**2 / T_xy**2
 
-    for tau in range(ntimes):  # trivial factor
+    for tau in range(nbr_Floquet_layers):  # trivial factor
 
         B[4 * tau, 4 * tau + 2] += 0.5
         B[4 * tau + 1, 4 * tau + 3] -= 0.5
@@ -131,7 +132,8 @@ def IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, ntimes, Jx, Jy,
     # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
     B = np.dot(2., B)
 
-    print ('B\n', B)
+    print ('B\n')
+    print(B)
  
     ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites)
     return B, ising_gamma_times, ising_gamma_values
