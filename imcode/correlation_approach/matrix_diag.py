@@ -246,4 +246,4 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
 
     print('Diagonalization of generators completed..')
     #return M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, f
-    return M, M_inverse,eigenvalues_G_eff,  f
+    return M, M_inverse,eigenvalues_G_eff, G_eff, f
