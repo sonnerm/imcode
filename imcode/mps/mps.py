@@ -7,19 +7,21 @@ import tenpy
 from functools import reduce
 from abc import ABC,abstractmethod
 class MPS(ABC):
-    # @abstractmethod
-    # def __init__(self):
-    #     pass
     def __matmul__(self,other):
         if isinstance(other,MPS):
             return self.overlap(other)
         if isinstance(other,MPO):
             if isinstance(self,ProductMPS):
-                return ProductMPS(other@self.mpo,self.mps)
-            return ProductMPS(other,self)
-    # def outer(self,other):
-    #     if isinstance(self,ProductMPS):
+                return ProductMPS(other.transpose()@self.mpo,self.mps)
+            return ProductMPS(other.transpose(),self)
 
+    def overlap(self,other):
+        if isinstance(other,ProductMPS) and isinstance(other.mpo,SimpleMPO) and isinstance(self,SimpleMPS):
+            return _tp_overlap_sandwich(self.tpmps,other.mpo.tpmpo,other.mps.tpmps)
+        if isinstance(self,ProductMPS) and isinstance(self.mpo,SimpleMPO) and isinstance(other,SimpleMPS):
+            return _tp_overlap_sandwich(self.mps.tpmps,self.mpo.tpmpo,other.tpmps)
+        else:
+            return _tp_overlap_plain(self.to_tenpy(),other.to_tenpy())
     @classmethod
     def from_matrices(cls,Bs,Svs=None,norm=1.0):
         sites=[]
@@ -53,6 +55,23 @@ class ProductMPS(MPS):
             mps=mpo.apply(mps,**kwargs)
         return mps
 
+def _tp_overlap_sandwich(left,mpo,right):
+    mpo.IdL[0]=0
+    mpo.IdR[-1]=0
+    left=left.copy()
+    left.canonical_form(False)
+    right.canonical_form(False)
+    for i in range(left.L):
+        left.get_B(i).conj(True,True).conj(False,True)
+    return tenpy.networks.mpo.MPOEnvironment(left,mpo,right).full_contraction(0)*left.norm*right.norm
+
+def _tp_overlap_plain(left,right):
+    left=left.copy()
+    left.canonical_form(False)
+    right.canonical_form(False)
+    for i in range(left.L):
+        left.get_B(i).conj(True,True).conj(False,True)
+    return left.overlap(right)
 def _process_options(kwargs):
     if "chi_max" in kwargs.keys():
         kwargs.get("trunc_params",{})["chi_max"]=kwargs["chi_max"]
@@ -86,23 +105,6 @@ class SimpleMPS(MPS):
         self.tpmps.get_SR(i)
     def canonicalize(self):
         self.canonicalize(False)
-    def overlap(self,other):
-        if isinstance(other,ProductMPS):
-            otpmpo=other.mpo.to_tenpy()
-            otpmpo.IdL[0]=0
-            otpmpo.IdR[-1]=0
-            otpmps=other.mps.to_tenpy()
-            stpmps=self.tpmps.copy()
-            for i in range(stpmps.L):
-                stpmps.get_B(i).conj(True,True).conj(False,True)
-            return tenpy.networks.mpo.MPOEnvironment(stpmps,otpmpo,otpmps).full_contraction(0)*stpmps.norm*otpmps.norm
-        else:
-            otpmps=other.to_tenpy()
-            stpmps=self.tpmps.copy()
-            stpmps.canonical_form(False)
-            for i in range(stpmps.L):
-                stpmps.get_B(i).conj(True,True).conj(False,True)
-            return stpmps.overlap(otpmps)
     def contract(self,**kwargs):
         return self
     def compress(self,**kwargs):
@@ -110,9 +112,11 @@ class SimpleMPS(MPS):
         self.tpmps.compress(options=kwargs)
     def to_dense(self):
         psi = self.tpmps.get_theta(0, self.tpmps.L)
-        psi = npc.trace(self.psi,'vL', 'vR')
+        psi = npc.trace(psi,'vL', 'vR')
         psi = psi.to_ndarray()
         return psi.ravel()*self.tpmps.norm
+    def copy(self):
+        return MPS.from_tenpy(self.tpmps.copy())
     def to_tenpy(self):
         return self.tpmps
 
@@ -179,19 +183,6 @@ class SimpleMPO(MPO):
         return self #already contracted
     def get_W(self,i):
         return self.tpmpo.get_W(i,True).to_ndarray()
-    def to_mps(self,split=None):
-        nsites=[OperatorSite(s) for s in mpo.sites]
-        Ws=[mpo.get_W(i,False) for i in range(mpo.L)]
-        Ws=[W.combine_legs(["p","p*"],pipes=nsites[i].leg) for i,W in enumerate(Ws)]
-        for W in Ws:
-            W.ireplace_labels(["(p.p*)","wL","wR"],["p","vL","vR"])
-        Svs=[np.ones(W.shape[0]) / np.sqrt(W.shape[1]) for W in Ws]
-        Svs.append([1.0])
-        Svs[0]=[1.0]
-        ret=MPS(nsites,Ws,Svs,form=None)
-        if mpo.L>2:
-            ret.canonical_form(False)
-        return ret
     def input_dims(self):
         return [M.shape[3] for M in self.Ms]
     def output_dims(self):
@@ -221,15 +212,6 @@ class SimpleMPO(MPO):
         tpmps.canonical_form(False)
         self.tpmpo.apply(tpmps,kwargs)
         return MPS.from_tenpy(tpmps)
-    def to_mps(self):
-        Ws=[self.tpmpo.get_W(i,False) for i in range(mpo.L)]
-        Ws=[W.combine_legs(["p","p*"],pipes=nsites[i].leg) for i,W in enumerate(Ws)]
-        for W in Ws:
-            W.to_ndarray()
-        ret=MPS(Ws)
-        if mpo.L>2:
-            ret.canonical_form(False)
-        return ret
     def get_Ws(self):
         return [self.get_W(i) for i in range(self.tpmpo.L)]
 
@@ -245,5 +227,3 @@ class ProductMPO(MPO):
             return pre
         Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
         return SimpleMPO(tenpy.networks.mpo.MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps]))
-    def outer(self,other):
-        pass

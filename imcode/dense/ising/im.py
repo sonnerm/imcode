@@ -15,3 +15,5 @@ def im_diag(T):
     '''
     ev,evv=la.eig(T)
     return (evv[:,np.argmax(ev)]/evv[0,np.argmax(ev)],(ev,evv))
+def im_triangle(T):
+    pass
