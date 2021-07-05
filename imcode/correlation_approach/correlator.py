@@ -9,6 +9,6 @@ def correlator(A, rho_t_diag, branch1, majorana_type1, tau_1, branch2, majorana_
     result = 0
     for k in range(nsites):
         n_F = 1. / (1.+np.exp(rho_t_diag[k, k]))  # fermi-dirac distribution
-        result += A[branch2, majorana_type2, tau_2, k+nsites]*A[branch1, majorana_type1, tau_1, k]*n_F + A[branch2, majorana_type2, tau_2, k]*A[branch1, majorana_type1, tau_1, k+nsites]*(1-n_F)
-        #result += (A[branch2, majorana_type2, tau_2, k+nsites]*A[branch1, majorana_type1, tau_1, k] + A[branch2, majorana_type2, tau_2, k]*A[branch1, majorana_type1, tau_1, k+nsites]) * 0.5#edit
+        result += A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k]*n_F + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]*(1-n_F)
+        #result += (A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k] + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]) * 0.5#edit
     return result
