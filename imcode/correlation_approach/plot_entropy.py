@@ -44,9 +44,12 @@ def plot_entropy(entropy_values,ising_gamma_times, gamma_test_vals, iterator, Jx
     ax[1].tick_params(axis="y", direction="in")
     ax[1].tick_params(axis="x", direction="in")
 
-    np.savetxt('../../../../data/correlation_approach/ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_beta=' +
+
+    mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach'
+    fiteo1_path = '/home/thoennis/data/correlation_apporach/'
+    np.savetxt(mac_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_beta=' +
             str(beta) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
 
 
-    plt.savefig('../../../../data/correlation_approach/ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' +
+    plt.savefig(mac_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' +
                 str(g) + '_beta=' + str(beta) + '_L=' + str(nsites) + '.png')
