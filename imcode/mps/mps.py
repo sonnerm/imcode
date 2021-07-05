@@ -1,3 +1,4 @@
+import numpy as np
 import tenpy.linalg.np_conserved as npc
 from tenpy.linalg.charges import LegCharge
 from tenpy.networks.site import Site
@@ -11,29 +12,29 @@ class MPS(ABC):
     #     pass
     def __matmul__(self,other):
         if isinstance(other,MPS):
-            self.overlap(self,other)
+            return self.overlap(other)
         if isinstance(other,MPO):
             if isinstance(self,ProductMPS):
                 return ProductMPS(other@self.mpo,self.mps)
             return ProductMPS(other,self)
+    # def outer(self,other):
+    #     if isinstance(self,ProductMPS):
+
     @classmethod
-    def from_matrices(cls,Bs,Svs=None):
+    def from_matrices(cls,Bs,Svs=None,norm=1.0):
         sites=[]
         bss=[]
         for b in Bs:
+            b=np.array(b)
+            bss.append(b.transpose([2,0,1])) #for some stupid reason
             sites.append(Site(LegCharge.from_trivial(b.shape[2])))
-            leg_i=LegCharge.from_trivial(b.shape[0])
-            leg_o=LegCharge.from_trivial(b.shape[1])
-            leg_p=LegCharge.from_trivial(b.shape[2])
-            Bn=npc.Array.from_ndarray(b,[leg_i,leg_o.conj(),leg_p],labels=["vL","vR","p"])
-            bss.append(Bn)
-        return tenpy.networks.mps.MPS(sites,bss,Svs,norm,canonicalize)
+        return SimpleMPS(tenpy.networks.mps.MPS.from_Bflat(sites,bss,Svs,form=None))
     @classmethod
     def from_tenpy(cls,tpmps):
         return SimpleMPS(tpmps)
     @classmethod
     def from_product_state(cls,vs):
-        pass
+        return cls.from_matrices([np.array([[v]]) for v in vs])
 class ProductMPS(MPS):
     def __init__(self,mpo,mps):
         self.mpo=mpo
@@ -42,20 +43,47 @@ class ProductMPS(MPS):
         return self.contract().to_dense()
     def to_tenpy(self):
         return self.contract().to_tenpy()
-    def contract(self):
+    def contract(self,**kwargs):
         if isinstance(self.mpo, ProductMPO):
             mpos=self.mpo.mpos
         else:
             mpos=[self.mpo]
         mps=self.mps
         for mpo in mpos:
-            mps=mpo.apply(mps)
+            mps=mpo.apply(mps,**kwargs)
         return mps
 
+def _process_options(kwargs):
+    if "chi_max" in kwargs.keys():
+        kwargs.get("trunc_params",{})["chi_max"]=kwargs["chi_max"]
+        del kwargs["chi_max"]
+    kwargs["verbose"]=False
+    kwargs["compression_method"]="SVD"
+class _B_helper():
+    def __init__(self,tpmps):
+        self.tpmps=tpmps
+    def __getitem__(self,i):
+        self.tpmps.get_B(i,copy=False)
+    def __setitem__(self,i):
+        self.tpmps.set_B(i)
 
+class _S_helper():
+    def __init__(self,tpmps):
+        self.tpmps=tpmps
+    def __getitem__(self,i):
+        self.tpmps.get_SR(i)
+    def __setitem__(self,i):
+        self.tpmps.set_SR(i)
 class SimpleMPS(MPS):
     def __init__(self,tpmps):
         self.tpmps=tpmps
+        self.B=_B_helper(tpmps)
+        self.S=_S_helper(tpmps)
+        self.tpmps.canonical_form(False)
+    def get_B(self,i):
+        self.tpmps.get_B(i,copy=True).to_ndarray()
+    def get_S(self,i):
+        self.tpmps.get_SR(i)
     def canonicalize(self):
         self.canonicalize(False)
     def overlap(self,other):
@@ -71,13 +99,15 @@ class SimpleMPS(MPS):
         else:
             otpmps=other.to_tenpy()
             stpmps=self.tpmps.copy()
-            for i in range(im.L):
+            stpmps.canonical_form(False)
+            for i in range(stpmps.L):
                 stpmps.get_B(i).conj(True,True).conj(False,True)
             return stpmps.overlap(otpmps)
-    def contract(self):
+    def contract(self,**kwargs):
         return self
-    def compress(self,dim):
-        pass
+    def compress(self,**kwargs):
+        _process_options(kwargs)
+        self.tpmps.compress(options=kwargs)
     def to_dense(self):
         psi = self.tpmps.get_theta(0, self.tpmps.L)
         psi = npc.trace(self.psi,'vL', 'vR')
@@ -133,11 +163,22 @@ class MPO(ABC):
     @classmethod
     def from_product_operator(cls,ops):
         return cls.from_matrices([np.array([[o]]) for o in ops])
+class _W_helper():
+    def __init__(self,tpmpo):
+        self.tpmpo=tpmpo
+    def __getitem__(self,i):
+        self.tpmpo.get_W(i,False)
+    def __setitem__(self,i):
+        self.tpmpo.set_W(i)
+
 class SimpleMPO(MPO):
     def __init__(self,tpmpo):
         self.tpmpo=tpmpo
+        self.W=_W_helper(tpmpo)
     def contract(self):
         return self #already contracted
+    def get_W(self,i):
+        return self.tpmpo.get_W(i,True).to_ndarray()
     def to_mps(self,split=None):
         nsites=[OperatorSite(s) for s in mpo.sites]
         Ws=[mpo.get_W(i,False) for i in range(mpo.L)]
@@ -168,22 +209,17 @@ class SimpleMPO(MPO):
         return nda
     def to_tenpy(self):
         return self.tpmpo
-    def apply(self,mps,chi,options):
+    def apply(self,mps,**kwargs):
         '''
             consumes mps, returns mpo applied to mps
         '''
+        _process_options(kwargs)
         self.tpmpo.IdL[0]=0
         self.tpmpo.IdR[-1]=0 #How is this my job?
         tpmps=mps.tpmps
         mps.tpmps=None
-        if options is None:
-            if chi is None:
-                self.tpmpo.apply_naively(tpmps)
-                tpmps.canonical_form(renormalize=False)
-                return MPS.from_tenpy(tpmps)
-            else:
-                options={"trunc_params":{"chi_max":chi},"verbose":False,"compression_method":"SVD"}
-        self.tpmpo.apply(tpmps,options)
+        tpmps.canonical_form(False)
+        self.tpmpo.apply(tpmps,kwargs)
         return MPS.from_tenpy(tpmps)
     def to_mps(self):
         Ws=[self.tpmpo.get_W(i,False) for i in range(mpo.L)]
@@ -194,14 +230,13 @@ class SimpleMPO(MPO):
         if mpo.L>2:
             ret.canonical_form(False)
         return ret
-    def concat(self,other):
-        pass
-    def outer(self,other):
-        pass
+    def get_Ws(self):
+        return [self.get_W(i) for i in range(self.tpmpo.L)]
+
 class ProductMPO(MPO):
     def __init__(self,mpos):
         self.mpos=mpos
-    def contract(self):
+    def contract(self,**kwargs):
         mpolist=[x.tpmpo for x in self.mpos]
         def _multiply_W(w1,w2):
             pre=npc.tensordot(w1,w2,axes=[("p*",),("p",)])
@@ -210,7 +245,5 @@ class ProductMPO(MPO):
             return pre
         Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
         return SimpleMPO(tenpy.networks.mpo.MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps]))
-    def concat(self,other):
-        pass
     def outer(self,other):
         pass

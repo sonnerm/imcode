@@ -1,5 +1,5 @@
 from .. import MPS
-def im_iterative(mpo,chi=None,options=None,boundary=None):
+def im_iterative(mpo,boundary=None,**kwargs):
     return im_finite([mpo]*(2*(mpo.L-1)),chi=chi,options=options,boundary=boundary)
 
 def im_zipup(mpo,chi):
@@ -29,17 +29,15 @@ def im_triangle(Ts,chi=None,options=None):
     return mps
 
 
-def im_dmrg(mpo,chi,initial=None,options=None):
-    pass
 def open_boundary_im(t):
-    state = [[1,1,1,1]]+[[1,1,1,1]] * (len(sites)-2)+[[1,1,1,1]]
+    state = [[1,1,1,1]]+[[1,1,1,1]] * (t-2)+[[1,1,1,1]]
     psi = MPS.from_product_state(state)
     return psi
 def perfect_dephaser_im(t):
-    state = [[1,0,0,1]] * len(sites)
+    state = [[1,0,0,1]] * t
     psi = MPS.from_product_state(state)
     return psi
 def dephaser_im(t,gamma=1):
-    state = [[1,1-gamma,1-gamma,1]]+[[1,1-gamma,1-gamma,1]] * (len(sites)-2)+[[1,0,0,1]]
+    state = [[1,1-gamma,1-gamma,1]]+[[1,1-gamma,1-gamma,1]] * (t-2) +[[1,0,0,1]]
     psi = MPS.from_product_state(state)
     return psi
