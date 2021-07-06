@@ -2,8 +2,8 @@ import imcode.mps as mps
 import numpy as np
 import pytest
 def test_contract_6x6_mixed(seed_rng):
-    L=3
-    t=3
+    L=6
+    t=6
     chi=64
     init=[np.random.normal(size=(2,2))+1.0j*np.random.normal((2,2)) for _ in range(L)]
     final=[np.random.normal(size=(2,2))+1.0j*np.random.normal((2,2)) for _ in range(L)]
