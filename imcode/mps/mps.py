@@ -41,6 +41,7 @@ class ProductMPS(MPS):
     def __init__(self,mpo,mps):
         self.mpo=mpo
         self.mps=mps
+        self.L=self.mps.L
     def to_dense(self):
         return self.contract().to_dense()
     def to_tenpy(self):
@@ -82,7 +83,7 @@ class _B_helper():
     def __init__(self,tpmps):
         self.tpmps=tpmps
     def __getitem__(self,i):
-        self.tpmps.get_B(i,copy=False)
+        return self.tpmps.get_B(i,copy=False)
     def __setitem__(self,i):
         self.tpmps.set_B(i)
 
@@ -90,7 +91,7 @@ class _S_helper():
     def __init__(self,tpmps):
         self.tpmps=tpmps
     def __getitem__(self,i):
-        self.tpmps.get_SR(i)
+        return self.tpmps.get_SR(i)
     def __setitem__(self,i):
         self.tpmps.set_SR(i)
 class SimpleMPS(MPS):
@@ -99,10 +100,11 @@ class SimpleMPS(MPS):
         self.B=_B_helper(tpmps)
         self.S=_S_helper(tpmps)
         self.tpmps.canonical_form(False)
+        self.L=tpmps.L
     def get_B(self,i):
-        self.tpmps.get_B(i,copy=True).to_ndarray()
+        return self.tpmps.get_B(i,copy=True).to_ndarray().transpose([0,2,1])
     def get_S(self,i):
-        self.tpmps.get_SR(i)
+        return self.tpmps.get_SR(i)
     def canonicalize(self):
         self.canonicalize(False)
     def contract(self,**kwargs):
