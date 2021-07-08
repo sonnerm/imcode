@@ -47,7 +47,7 @@ def plot_entropy(entropy_values,ising_gamma_times, gamma_test_vals, iterator, Jx
 
     mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach'
     work_path = '/Users/julianthoenniss/Documents/PhD/data'
-    fiteo1_path = '/home/thoennis/data/correlation_apporach/'
+    fiteo1_path = '/home/thoennis/data/correlation_apporach/data/'
     np.savetxt(work_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_beta=' +
             str(beta) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
 
