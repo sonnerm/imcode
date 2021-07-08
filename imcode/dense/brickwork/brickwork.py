@@ -1,5 +1,7 @@
 import numpy as np
 from .utils import kron,outer
+def brickwork_H(gates):
+    pass
 def brickwork_F(gates,reversed=False):
     if len(gates)==1:
         return gates[0]
