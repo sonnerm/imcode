@@ -51,3 +51,6 @@ def test_boundary_single_dmevo_ising(seed_rng):
 
 def test_embedded_double_dmevo(seed_rng):
     pass
+
+def test_embedded_single_dmevo(seed_rng):
+    pass

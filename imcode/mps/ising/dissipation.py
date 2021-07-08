@@ -6,12 +6,11 @@ def dephaser_operator(t,gamma):
     '''
     Ceprim=np.array([[1.0,0.0,0.0,0.0],[0.0,1.0-gamma,0.0,0.0],[0.0,0.0,1.0-gamma,0.0],[0.0,0.0,0.0,1.0]])
     Cea=np.einsum("ab,cd->abcd",np.eye(1),Ceprim)
-    return MPO.from_matrices([Cea]*(t+1))
+    return MPO.from_matrices([Cea]*t)
 def depolarizer_operator(t,p):
     '''
         Returns a depolarization operator, p = 0 no depolarization, p =1 full depolarization
     '''
-    sites=[FoldSite() for t in range(t+1)]
     Ceprim=np.array([[1.0-p/2,0.0,0.0,p/2],[0,1.0-p,0.0,0.0],[0.0,0.0,1.0-p,0.0],[p/2,0.0,0.0,1.0-p/2]])
     Cea=np.einsum("ab,cd->abcd",np.eye(1),Ceprim)
-    return MPO.from_matrices([Cea]*(t+1))
+    return MPO.from_matrices([Cea]*t)
