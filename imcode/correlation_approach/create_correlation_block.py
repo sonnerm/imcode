@@ -42,7 +42,7 @@ def create_correlation_block(B, ntimes):
     #general case
     corr_block_diag2 = np.zeros((8 * ntimes, 8 * ntimes), dtype=np.complex_)
     for i in range(0, 2 * ntimes):
-        ew = B_schur[i,i + 1]
+        ew = B_schur[2 * i,2 * i + 1]
         #ew = ews_sorted[i]
         norm = 1 + abs(ew)**2
         corr_block_diag2[2 * i, 2 * i] = 1/norm
