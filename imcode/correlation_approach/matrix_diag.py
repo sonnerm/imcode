@@ -5,6 +5,7 @@ from scipy.linalg import expm, schur, eigvals
 from scipy import linalg
 from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
+#from numpy.core.einsumfunc import einsum
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
 def matrix_diag(nsites, Jx=0, Jy=0, g=0):
@@ -89,21 +90,21 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
         U_E[0] = expm(1j * G_XY)
         U_E[1] = expm(-1j * G_XY)
     else:#for xy model, even and odd gates do not commute 
-        U_E[0] = np.matmul(expm(1.j * G_XY_even), expm(1.j * G_XY_odd))
-        U_E[1] = np.matmul(expm(-1.j * G_XY_odd), expm(-1.j * G_XY_even))
+        U_E[0] = np.einsum('ij,jk->ik',expm(1.j * G_XY_even), expm(1.j * G_XY_odd))
+        U_E[1] = np.einsum('ij,jk->ik',expm(-1.j * G_XY_odd), expm(-1.j * G_XY_even))
 
 
     #onsite kicks (used in KIC):
-    U_E[0] = np.matmul(expm(1j*G_g), U_E[0])#this has an effect only when local onsite kicks (as in KIC) are nonzero
-    U_E[1] = np.matmul(U_E[1], expm(-1j*G_g))
+    U_E[0] = np.einsum('ij,jk->ik',expm(1j*G_g), U_E[0])#this has an effect only when local onsite kicks (as in KIC) are nonzero
+    U_E[1] = np.einsum('ij,jk->ik',U_E[1], expm(-1j*G_g))
 
 
     #generator of environment (always unitary)
     G_eff_E = -1j * linalg.logm(U_E[0])
 
     #non-unitary gate stemming from vacuum projections (note that there is no imaginary j in from of G_1)
-    U_eff[0] = np.matmul(U_E[0], expm(G_1))#non-unitary local gate in xy-model that causes eigenvalues to be complex. Contributes only for non-Ising couplings.
-    U_eff[1] = np.matmul(expm(G_1),U_E[1])
+    U_eff[0] = np.einsum('ij,jk->ik',U_E[0], expm(G_1))#non-unitary local gate in xy-model that causes eigenvalues to be complex. Contributes only for non-Ising couplings.
+    U_eff[1] = np.einsum('ij,jk->ik',expm(G_1),U_E[1])
 
     print('U_fw= ', U_eff[0])
     print('U_bw= ', U_eff[1])

@@ -8,7 +8,7 @@ from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 np.set_printoptions(suppress=False, linewidth=np.nan)
 from rotation_matrix_for_schur import rotation_matrix_for_schur
-from numpy.core.einsumfunc import einsum
+#from numpy.core.einsumfunc import einsum
 
 def create_correlation_block(B, ntimes):
     dim_B = 4 * ntimes
@@ -68,7 +68,7 @@ def create_correlation_block(B, ntimes):
     identity_check2 = np.dot(double_R.conj().T, double_R)#check that double_R is unitary just like R is (should be trivial)
     print ('unity_check2\n', np.trace(identity_check2)/(8 * ntimes))
 
-    corr_block_back_rotated = einsum('ij,jk,kl->il',double_R, corr_block_diag2,double_R.T)
+    corr_block_back_rotated = np.einsum('ij,jk,kl->il',double_R, corr_block_diag2,double_R.T)
     print ('corr_block_back_rotated\n', corr_block_back_rotated)
 
     eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_diag2)

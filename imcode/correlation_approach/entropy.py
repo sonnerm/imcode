@@ -13,8 +13,8 @@ def entropy(correlation_block, ntimes, time_cut):
     correlation_block_reduced = np.bmat([[correlation_block[0: 4 * time_cut, 0:  4 * time_cut], correlation_block[0: 4 * time_cut, 4 * ntimes: 4 * (time_cut + ntimes)]], [
         correlation_block[4 * ntimes: 4 * (time_cut + ntimes), 0:  4 * time_cut], correlation_block[4 * ntimes: 4 * (time_cut + ntimes), 4 * ntimes: 4 * (time_cut + ntimes)]]])
     # print (correlation_block_reduced)
-    eigenvalues_correlations, ev_correlations = eigsh(
-        correlation_block_reduced, 8 * time_cut)
+    eigenvalues_correlations, ev_correlations = linalg.eig(
+        correlation_block_reduced)
     eigenvalues_correlations[::-1].sort()
     # print ('cut:' , cut , ', reduced eigenvalue correlations:',eigenvalues_correlations)
 

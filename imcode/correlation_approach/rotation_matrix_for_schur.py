@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.core.einsumfunc import einsum
+#from numpy.core.einsumfunc import einsum
 from scipy import linalg
 from scipy.sparse.linalg import eigsh
 def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix that brings B into Schur form 
@@ -61,7 +61,7 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     print(B_schur)
     """
 
-    hermitian_matrix = np.matmul(B.T, B.conj())
+    hermitian_matrix = np.einsum('ij,jk->ik',B.T, B.conj())
 
     random_part = np.random.rand(dim_B,dim_B) * 1e-10
 
@@ -71,7 +71,7 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     print(eigenvalues_B)
     B_schur = np.zeros((dim_B, dim_B), dtype=np.complex_)
 
-    B_schur = einsum('ij,jk,kl->il',R.T.conj(),B,R.conj())
+    B_schur = np.einsum('ij,jk,kl->il',R.T.conj(),B,R.conj())
 
     print('Schur form of B \n')
     print(B_schur)
@@ -82,6 +82,6 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
             if abs(i-j) != 1 or i+j+1%4 == 0:
                 B_schur_check[i,j] = 0
 
-    print ('schur-test', linalg.norm(einsum('ij,jk,kl->il',R,B_schur_check,R.T) - B))
+    print ('schur-test', linalg.norm(np.einsum('ij,jk,kl->il',R,B_schur_check,R.T) - B))
   
     return R, B_schur

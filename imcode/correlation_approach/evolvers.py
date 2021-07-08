@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.core.einsumfunc import einsum
+#from numpy.core.einsumfunc import einsum
 from numpy.linalg import matrix_power
 
 
