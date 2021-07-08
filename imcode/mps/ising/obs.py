@@ -32,6 +32,6 @@ def boundary_z(im,lop,zs):
 def embedded_z(left,lop,right,zs):
     pass
 def boundary_norm(im,lop):
-    return boundary_z(im,lop,[(2,2)]*im.L)
+    return boundary_z(im,lop,[(1/2,1/2)]*im.L)
 def embedded_norm(left,lop,right):
-    return boundary_z(left,lop,right,[(2,2)]*left.L)
+    return boundary_z(left,lop,right,[(1/2,1/2)]*left.L)
