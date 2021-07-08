@@ -13,10 +13,8 @@ def evolvers(M, M_inverse,  N_t, eigenvalues_G_eff, nsites, nbr_Floquet_layers, 
   
     # fill with values (individually for each branch)
     for branch in range (2):
-        for i in range(0, nsites):
+        for i in range(0, 2 * nsites):
             D_phi[branch,i, i] = np.exp(-1j*eigenvalues_G_eff[branch,i])
-            D_phi[branch,i+nsites, i + nsites] = np.exp(-1j*eigenvalues_G_eff[branch,i+nsites])
-
     
     D_beta[0,0, 0] = np.exp(beta_tilde)
     D_beta[0,1, nsites] = np.exp(-beta_tilde)
