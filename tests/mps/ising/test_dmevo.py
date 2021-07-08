@@ -28,11 +28,8 @@ def test_boundary_single_dmevo_ising(seed_rng):
     Js=np.random.normal(size=(L,))
     gs=np.random.normal(size=(L+1,))
     hs=np.random.normal(size=(L+1,))
-    Js=np.zeros(shape=(L,))
-    gs=np.array([0.1]*(L+1))
-    hs=np.array([0.4]*(L+1))
     Ts=[mps.ising.ising_T(t,J,g,h,np.eye(2),np.eye(2)) for J,g,h in zip(Js,gs[:-1],hs[:-1])]
-    lop=la.expm(1.0j*gs[-1]*dense.SX)@la.expm(-1.0j*hs[-1]*dense.SZ)
+    lop=la.expm(1.0j*hs[-1]*dense.SZ)@la.expm(1.0j*gs[-1]*dense.SX)
     init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
     init=init+init.T.conj()
     init=init@init
@@ -49,12 +46,8 @@ def test_boundary_single_dmevo_ising(seed_rng):
     for i in range(t):
         state=Fc@state
         ddms.append(np.einsum("a,ab->b",summi,state.reshape((4**L),4)).reshape((2,2)))
-    [print(d) for d in ddms]
-    print()
-    [print(d/np.trace(d)) for d in dms]
-    # [print(d/np.trace(d)) for d in ddms]
     for d,dd in zip(dms[::2],ddms):
-        assert d/np.trace(d)==pytest.approx(dd)
+        assert d==pytest.approx(dd)
 
 def test_embedded_double_dmevo(seed_rng):
     pass
