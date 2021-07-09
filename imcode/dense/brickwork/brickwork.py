@@ -1,7 +1,16 @@
 import numpy as np
-from .utils import kron,outer
-def brickwork_H(gates):
-    pass
+from .. import kron,outer
+def brickwork_H(L,gates):
+    assert L>1
+    ret=np.zeros((2**L,2**L),dtype=np.common_type(*gates))
+    for i in range(L-1):
+        ret+=kron([np.eye(2**i),gates[i],np.eye(2**(L-i-2))])
+    if len(gates)==L:
+        ret+=kron([np.eye(2**(L-2)),gates[-1]]).reshape(2**(L-1),2,2**(L-1),2).transpose([1,0,3,2]).reshape((2**L,2**L))
+    return ret
+
+
+
 def brickwork_F(gates,reversed=False):
     if len(gates)==1:
         return gates[0]
