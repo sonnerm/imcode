@@ -65,10 +65,10 @@ def create_correlation_block(B, ntimes):
                        [np.zeros((dim_B, dim_B),dtype=np.complex_), R]])
 
     print ('double R\n', double_R)
-    identity_check2 = np.dot(double_R.conj().T, double_R)#check that double_R is unitary just like R is (should be trivial)
+    identity_check2 = double_R.conj().T @ double_R#check that double_R is unitary just like R is (should be trivial)
     print ('unity_check2\n', np.trace(identity_check2)/(8 * ntimes))
 
-    corr_block_back_rotated = np.einsum('ij,jk,kl->il',double_R, corr_block_diag2,double_R.T)
+    corr_block_back_rotated = double_R @ corr_block_diag2 @ double_R.T
     print ('corr_block_back_rotated\n', corr_block_back_rotated)
 
     eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_diag2)
