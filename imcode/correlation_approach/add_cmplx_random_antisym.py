@@ -7,7 +7,7 @@ def add_cmplx_random_antisym(matrix, magnitude):
 
     else:    
         dim = len(matrix) # matrix is square matrix with dimension dim
-        random_part = np.random.rand(dim,dim) * magnitude * matrix[0,0]
+        random_part = np.random.rand(dim,dim) * magnitude 
         
         #antisymmetrize random part
         for i in range(dim):
