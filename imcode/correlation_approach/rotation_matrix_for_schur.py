@@ -1,3 +1,4 @@
+from add_cmplx_random_antisym import add_cmplx_random_antisym
 import numpy as np
 #from numpy.core.einsumfunc import einsum
 from scipy import linalg
@@ -60,11 +61,8 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     print('Check that R yields Schur form \n', schur_check, '\n B_schur\n')
     print(B_schur)
     """
-
-    hermitian_matrix = np.einsum('ij,jk->ik',B.T, B.conj())
-
-    random_part = np.random.rand(dim_B,dim_B) * 1e-10
-
+    hermitian_matrix = add_cmplx_random_antisym(B,1.e-8)
+    hermitian_matrix = B.T @ B.conj()
     eigenvalues_hermitian_matrix, R = linalg.eigh(hermitian_matrix)#eigsh is not as reliable
 
     eigenvalues_B, eigenvectors_B = linalg.eig(1j*B)
