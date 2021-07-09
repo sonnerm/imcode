@@ -7,17 +7,17 @@ from plot_entropy import plot_entropy
 from matrix_diag import matrix_diag
 from dress_density_matrix import dress_density_matrix
 
-np.set_printoptions(linewidth=np.nan,precision=10, suppress=True )
+np.set_printoptions(linewidth=np.nan,precision=2, suppress=True )
 
 #define fixed parameters:
 #step sizes for total times t
-max_time1 = 3
-max_time2 =4
-stepsize1 = 1
-stepsize2 = 16
+max_time1 = 30
+max_time2 =70
+stepsize1 = 6
+stepsize2 = 18
 
 #lattice sites:
-nsites = 10
+nsites = 200
 
 #model parameters:
 Jx = 0
@@ -34,14 +34,14 @@ entropy_values = np.zeros((int(max_time1/stepsize1) + int(max_time2/stepsize2) +
 times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))#time cuts
 
 #find generators and matrices which diagonalize them:
-M, M_inverse, eigenvalues_G_eff, G_eff, f= matrix_diag(nsites, Jx, Jy, g)
+M, evolution_matrix, eigenvalues_G_eff, G_eff, f= matrix_diag(nsites, Jx, Jy, g)
 
 iterator = 1
-for total_time in range(stepsize1, max_time1, stepsize1):# total_time = 0 means one floquet-layer
+for total_time in range(2, max_time1, stepsize1):# total_time = 0 means one floquet-layer
     nbr_Floquet_layers = total_time + 1
     #dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     rho_dressed = dress_density_matrix(rho_0,G_eff, nbr_Floquet_layers)
-    B, ising_gamma_times, gamma_test_vals = IM_exponent(M, M_inverse, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_dressed)
+    B, ising_gamma_times, gamma_test_vals = IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_dressed)
     #B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
     time_cuts = np.arange(1, nbr_Floquet_layers)
@@ -51,17 +51,21 @@ for total_time in range(stepsize1, max_time1, stepsize1):# total_time = 0 means 
         entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
     iterator += 1
 
-"""
-for time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
-    correlation_block = create_correlation_block(
-        M, eigenvalues_G_eff, nsites, time, Jx, Jy, g, beta, T_xy, f)
-    time_cuts = np.arange(1, time)
-    #times[iterator] = time
-    entropy_values[iterator, 0] = time
+
+for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
+    nbr_Floquet_layers = total_time + 1
+    #dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
+    rho_dressed = dress_density_matrix(rho_0,G_eff, nbr_Floquet_layers)
+    B, ising_gamma_times, gamma_test_vals = IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_dressed)
+    #B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
+    correlation_block = create_correlation_block(B, nbr_Floquet_layers)
+    time_cuts = np.arange(1, nbr_Floquet_layers)
+
+    entropy_values[iterator, 0] = nbr_Floquet_layers
     for cut in time_cuts:
-        entropy_values[iterator, cut] = entropy(correlation_block, time, cut)
+        entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
     iterator += 1
-"""
+
 
 print(entropy_values)
 
