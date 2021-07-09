@@ -3,19 +3,11 @@ import numpy as np
 from numpy.linalg import matrix_power
 
 
-def evolvers(M, M_inverse,  N_t, eigenvalues_G_eff, nsites, nbr_Floquet_layers, beta_tilde):
+def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
 
-    # initialize diagonal matrices that encode..
-    # .. time evolution ..
-    D_phi = np.zeros((2,2*nsites, 2*nsites), dtype=np.complex_)
-    # .. and dressing
+    # initialize diagonal matricx that encodes dressing
     D_beta = np.zeros((2 ,2, 2*nsites), dtype=np.complex_)#first dimension: branch, second dimension: sites 0 and 0+L
-  
-    # fill with values (individually for each branch)
-    for branch in range (2):
-        for i in range(0, 2 * nsites):
-            D_phi[branch,i, i] = np.exp(-1j*eigenvalues_G_eff[branch,i])
-    
+
     D_beta[0,0, 0] = np.exp(beta_tilde)
     D_beta[0,1, nsites] = np.exp(-beta_tilde)
     D_beta[1,0, 0] = np.exp(-beta_tilde)
@@ -29,6 +21,17 @@ def evolvers(M, M_inverse,  N_t, eigenvalues_G_eff, nsites, nbr_Floquet_layers, 
 
     for branch in range (2):
         for tau_index in range(0, nbr_Floquet_layers):
-            T_tilde[branch, tau_index] = np.einsum('ij,jk,kl->il', D_beta[branch], M[branch],matrix_power(D_phi[branch], tau_index + 1))#, M_inverse[branch], N_t)  # forward branch
-     
+            T_tilde[branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1) #@ N_t
+    print (T_tilde[0,0])
+    result = 0
+    for k in range(nsites):
+        #n_F = 1. / (1.+np.exp(rho_t_diag[k, k]))  # fermi-dirac distribution
+        #result += A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k]*n_F + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]*(1-n_F)
+        
+        # infinite temperature limit
+        print (k, T_tilde[0,0, 0,k],T_tilde[0,1,0,k + nsites])
+        result += (T_tilde[0,0, 0,k]*T_tilde[0,0,0,k + nsites] + T_tilde[0,0, 0,k+ nsites]*T_tilde[0,0,0,k ] )  #edit
+    print (result)
+    #test if evolvers reproduce correct relations for Ising limit
+    print('compare_test', np.einsum('ij,jk->ik', T_tilde[0,0],T_tilde[0,0].T.conj())[0,0])
     return T_tilde
