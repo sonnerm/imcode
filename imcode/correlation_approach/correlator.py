@@ -1,4 +1,6 @@
 import numpy as np
+# seed random number generator
+
 
 # i and j are site indices, s and sp specify whether the fermionic operators have a dagger (=1) or not (=0), t2 and t1 denote times, M is the matrix of eigenvetors (as columns) and eigenvalues_G_eff contains eigenvalues of G_eff )
 # returns greater correlation function
@@ -8,7 +10,13 @@ def correlator(A, rho_t_diag, branch1, majorana_type1, tau_1, branch2, majorana_
     tau_2_index = tau_2 - 1
     result = 0
     for k in range(nsites):
-        n_F = 1. / (1.+np.exp(rho_t_diag[k, k]))  # fermi-dirac distribution
-        result += A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k]*n_F + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]*(1-n_F)
-        #result += (A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k] + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]) * 0.5#edit
+        #n_F = 1. / (1.+np.exp(rho_t_diag[k, k]))  # fermi-dirac distribution
+        #result += A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k]*n_F + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]*(1-n_F)
+        
+        # infinite temperature limit
+        result += (A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k] + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]) * 0.5 #edit
+
+    #the following simplification is only possible in the Ising limit:
+    #result = - 0.5 * np.dot(A[branch1, majorana_type1, tau_1_index] ,A[branch2, majorana_type2, tau_2_index].T.conj())
+    
     return result
