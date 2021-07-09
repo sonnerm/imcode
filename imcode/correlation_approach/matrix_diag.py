@@ -123,7 +123,7 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     print ('multidot evaluation beginning')
     evolution_matrix = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     evolution_matrix[0] = expm(-1j*G_g) @ expm(-1.j * G_XY_even) @ expm(-1.j * G_XY_odd) @ expm(-G_1)#forward branch  
-    evolution_matrix[1] = expm(G_1) @ expm(-1.j * G_XY_odd) @ expm(-1.j * G_XY_even) @ expm(-1j*G_g)#backward branch
+    evolution_matrix[1] =  expm(-1j*G_g) @ expm(-1.j * G_XY_even) @ expm(-1.j * G_XY_odd) @ expm(G_1) # is equivalent to np.inverse(expm(-G_1) @ expm(1.j * G_XY_odd) @ expm(1.j * G_XY_even) @ expm(1j*G_g))#backward branch
     print (evolution_matrix)
     print (U_eff[0])
     print (U_eff[1])
