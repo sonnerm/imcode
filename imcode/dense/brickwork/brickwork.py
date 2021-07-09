@@ -11,20 +11,19 @@ def brickwork_H(L,gates):
 
 
 
-def brickwork_F(gates,reversed=False):
-    if len(gates)==1:
+def brickwork_F(L,gates,reversed=False):
+    if L==2:
         return gates[0]
-    evs=kron([g for g in gates[::2]]+([np.eye(2)] if len(gates)%2==0 else []))
-    ods=kron([np.eye(2)]+[g for g in gates[1::2]]+([np.eye(2)] if len(gates)%2==1 else []))
+    if len(gates)==L-1:
+        gates.append(np.eye(4))
+    evs=kron([g for g in gates[::2]]+([np.eye(2)] if L%2==1 else []))
+    ods=kron([g for g in gates[1::2]]+([np.eye(2)] if L%2==1 else []))
+    ods.reshape((2**(L-1),2,2**(L-1),2)).transpose([1,0,3,2]).reshape((2**L,2**L))
     if not reversed:
         return ods@evs
     else:
         return evs@ods
-# def brickwork_T(t,gate,lop,init=(0.5,0.0,0.0,0.5),final=(1.0,0.0,0.0,1.0)):
-#     bs=brickwork_S(t,gate)
-#     bl=brickwork_L(t,lop,init,final)
-#     return bs@bl.T@bs@bl
-def brickwork_T(t,even,odd,init=np.eye(4),final=np.eye(4)):
+def brickwork_T(t,even,odd,init=np.eye(4)/4,final=np.eye(4)):
     sa=brickwork_Sa(t,odd)
     sb=brickwork_Sb(t,even,init,final)
     return sa@sb
@@ -37,7 +36,7 @@ def brickwork_Sa(t, gate):
     dual=np.einsum("abcd,efgh->aecgbfdh",gate.reshape((2,2,2,2)),gate.conj().reshape((2,2,2,2))).reshape(16,16)
     return kron([dual]*t)
 
-def brickwork_Sb(t, gate,init=np.eye(4),final=np.eye(4)):
+def brickwork_Sb(t, gate,init=np.eye(4)/4,final=np.eye(4)):
     gate=gate.reshape((2,2,2,2))
     dual=np.einsum("abcd,efgh->aecgbfdh",gate,gate.conj()).reshape((16,16))
     init=np.einsum("cdab,abef,cdgh->egfh",init.reshape((2,2,2,2)),gate,gate.conj()) #No idea why init.T but works
@@ -50,7 +49,7 @@ def brickwork_La(t):
     ret=outer([np.eye(4).ravel()]*t).ravel()
     return ret
 
-def brickwork_Lb(t,lop,init=np.eye(2),final=np.eye(2)):
+def brickwork_Lb(t,lop,init=np.eye(2)/2,final=np.eye(2)):
     init=np.einsum("ab,cd,ca->bd",lop,lop.conj(),init)
     lop=np.kron(lop,lop.conj())
     ret=outer([init.ravel()]+[lop.ravel()]*(t-1)+[final.ravel()]).ravel()
