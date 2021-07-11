@@ -7,132 +7,13 @@ from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 from numpy.linalg import multi_dot
 from reorder_eigenvecs import reorder_eigenvecs
+from compute_generators import compute_generators
 #from numpy.core.einsumfunc import einsum
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
 
-def matrix_diag(nsites, Jx=0, Jy=0, g=0):
-    # define generators for unitary transformation
-
-    # G_XY - two-site gates (XX + YY)
-    G_XY_odd = np.zeros((2 * nsites, 2 * nsites))
-    G_XY_even = np.zeros((2 * nsites, 2 * nsites))
-
-    Jp = (Jx + Jy)
-    Jm = (Jy - Jx)
-
-    if abs(Jm) < 1e-10:
-        Jm = 1e-10
-    if abs(g) < 1e-10:
-        g = 1e-10
-
-    eps = 1e-8  # lift degeneracy
-    G_XY_odd[0, nsites - 1] += eps
-    G_XY_odd[nsites - 1, 0] += eps
-    G_XY_odd[nsites, 2 * nsites - 1] += -eps
-    G_XY_odd[2 * nsites - 1, nsites] += -eps
-
-    G_XY_odd[nsites - 1, nsites] -= eps
-    G_XY_odd[0, 2 * nsites - 1] += eps
-    G_XY_odd[2 * nsites - 1, 0] += eps
-    G_XY_odd[nsites, nsites - 1] -= eps
-
-    for i in range(0, nsites - 1, 2):
-        G_XY_even[i, i + 1] = Jp
-        G_XY_even[i + 1, i] = Jp
-        G_XY_even[i, i + nsites + 1] = -Jm
-        G_XY_even[i + 1, i + nsites] = Jm
-        G_XY_even[i + nsites, i + 1] = Jm
-        G_XY_even[i + nsites + 1, i] = -Jm
-        G_XY_even[i + nsites, i + nsites + 1] = -Jp
-        G_XY_even[i + nsites + 1, i + nsites] = -Jp
-
-    for i in range(1, nsites - 1, 2):
-        G_XY_odd[i, i + 1] = Jp
-        G_XY_odd[i + 1, i] = Jp
-        G_XY_odd[i, i + nsites + 1] = -Jm
-        G_XY_odd[i + 1, i + nsites] = Jm
-        G_XY_odd[i + nsites, i + 1] = Jm
-        G_XY_odd[i + nsites + 1, i] = -Jm
-        G_XY_odd[i + nsites, i + nsites + 1] = - Jp
-        G_XY_odd[i + nsites + 1, i + nsites] = - Jp
-
-    # G_g - single body kicks
-    G_g = np.zeros((2 * nsites, 2 * nsites))
-    for i in range(nsites):
-        G_g[i, i] = - 2 * g
-        G_g[i + nsites, i + nsites] = 2 * g
-
-    # G_1 - residual gate coming from projecting interaction gate of xy-model on the vacuum at site 0
-    G_1 = np.zeros((2 * nsites, 2 * nsites))
-
-    beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
-
-    G_1[0, 0] = 2 * beta_tilde
-    G_1[nsites, nsites] = -2 * beta_tilde
-
-    # give out explicit form of generators
-    print('G_XY_even = ')
-    print(G_XY_even)
-
-    print('G_XY_odd = ')
-    print(G_XY_odd)
-
-    print('G_g = ')
-    print(G_g)
-
-    print('G_1 = ')
-    print(G_1)
-
-    # unitary gate is exp-product of exponentiated generators
-    # gate that describes evolution non disconnected environment. first dimension: 0 = forward branch, 1 = backward branch
-    U_E = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
-    # gate that governs time evolution on both branches. first dimension: 0 = forward branch, 1 = backward branch
-    U_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
-
-    # for Ising-type couplings, the even and odd gates commute and can be added in the exponent (trivial Backer-Campbell Haussdorff)
-    if abs(Jy) < 1e-10 or abs(Jx) < 1e-10:
-        G_XY = G_XY_even + G_XY_odd
-        U_E[0] = expm(1j * G_XY)
-        U_E[1] = expm(-1j * G_XY)
-    else:  # for xy model, even and odd gates do not commute
-        U_E[0] =  expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd)
-        U_E[1] =  expm(-1.j * G_XY_odd) @ expm(-1.j * G_XY_even)
-
-    # onsite kicks (used in KIC):
-    # this has an effect only when local onsite kicks (as in KIC) are nonzero
-    U_E[0] = expm(1j*G_g) @ U_E[0]
-    U_E[1] = U_E[1] @ expm(-1j*G_g)
-
-    # generator of environment (always unitary)
-    G_eff_E = -1j * linalg.logm(U_E[0])
-
-    # non-unitary gate stemming from vacuum projections (note that there is no imaginary j in from of G_1)
-    # non-unitary local gate in xy-model that causes eigenvalues to be complex. Contributes only for non-Ising couplings.
-    U_eff[0] = U_E[0] @ expm(G_1)
-    U_eff[1] =  expm(G_1) @ U_E[1]
-
-    print('U_fw= ', U_eff[0])
-    print('U_bw= ', U_eff[1])
-
-    # G_eff is equivalent to generator for composed map (in principle obtainable through Baker-Campbell-Hausdorff)
-    G_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
-    G_eff[0] = -1j * linalg.logm(U_eff[0])
-    G_eff[1] = +1j * linalg.logm(U_eff[1])
-
-    print ('multidot evaluation beginning')
-    evolution_matrix = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
-    evolution_matrix[0] = expm(-1j*G_g) @ expm(-1.j * G_XY_even) @ expm(-1.j * G_XY_odd) @ expm(-G_1)#forward branch  
-    evolution_matrix[1] =  expm(-1j*G_g) @ expm(-1.j * G_XY_even) @ expm(-1.j * G_XY_odd) @ expm(G_1) # is equivalent to np.inverse(expm(-G_1) @ expm(1.j * G_XY_odd) @ expm(1.j * G_XY_even) @ expm(1j*G_g))#backward branch
-    print (evolution_matrix)
-    print (U_eff[0])
-    print (U_eff[1])
-    print('G_eff_fw = ')
-    print(G_eff[0])
-
-    print('G_eff_bw = ')
-    print(G_eff[1])
-
+def matrix_diag(nsites, G_eff_E, G_eff, Jx=0, Jy=0, g=0):
+    
     # add small random part to G_eff to lift degenaracies, such that numerical diagnoalization is more stable
     random_part = np.random.rand(2 * nsites, 2 * nsites) * 1e-14
     # symmetrize random part
@@ -268,7 +149,7 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     for k in range(nsites):
         f += abs(M_E[0, k])**2 - abs(M_E[nsites, k])**2 + \
             2j * imag(M_E[0, k]*M_E[nsites, k].conj())
-
+    print ('f', f)
     #eigenvalues_G_eff = ews_sorted
     print('eigenvalues of G_eff_fw: ')
     print(eigenvalues_G_eff[0])
@@ -283,5 +164,7 @@ def matrix_diag(nsites, Jx=0, Jy=0, g=0):
     print(eigenvalues_G_eff_E)
 
     print('Diagonalization of generators completed..')
+    
     # return M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, f
-    return M, evolution_matrix, eigenvalues_G_eff, G_eff, f
+    
+    return M, eigenvalues_G_eff, f

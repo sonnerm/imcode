@@ -4,15 +4,14 @@ from numpy import version
 from evolvers import evolvers
 from correlation_coefficients import correlation_coefficients
 from correlator import correlator
-from ising_gamma import ising_gamma
 
 
 def IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_t):#nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
-
+    f = 1 #need to prove that this is always tru
     #define parameters:
-    T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
+    #T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
     beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
-    alpha = np.sqrt(2 * (np.cos(Jx)*np.cos(Jy)*T_xy) ** 2 / (np.cos(2*Jx) + np.cos(2*Jy)))
+    alpha = np.sqrt(2 * (np.cos(Jx)*np.cos(Jy)) ** 2 / (np.cos(2*Jx) + np.cos(2*Jy)))
 
 
     # procompute evolvers T from which the correlation coefficients A can be inferred
@@ -89,8 +88,8 @@ def IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floq
                 G_Feynman_thetatheta = G_greater_thetatheta
                 G_AntiFeynman_thetatheta = G_lesser_thetatheta
 
-            prefac_x = alpha * np.tan(Jx) / T_xy
-            prefac_y = alpha * np.tan(Jy) / T_xy
+            prefac_x = alpha * np.tan(Jx) 
+            prefac_y = alpha * np.tan(Jy) 
 
             B[4 * tau_1, 4 * tau_2] = -1j * G_Feynman_thetatheta * prefac_y**2
             B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2
@@ -125,5 +124,4 @@ def IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floq
     print ('B\n')
     print(B)
  
-    ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites)
-    return B, ising_gamma_times, ising_gamma_values
+    return B
