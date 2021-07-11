@@ -12,7 +12,43 @@ from compute_generators import compute_generators
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
 
-def matrix_diag(nsites, G_eff_E, G_eff, Jx=0, Jy=0, g=0):
+def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
+
+     # unitary gate is exp-product of exponentiated generators
+    # gate that describes evolution non disconnected environment. first dimension: 0 = forward branch, 1 = backward branch
+    U_E = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
+
+    U_1 =  np.zeros(( 2 * nsites, 2 * nsites), dtype=np.complex_)
+    if (abs(abs(np.tan(Jx) * np.tan(Jy)) - 1) > 1e-6 ):
+        print (abs(np.tan(Jx) * np.tan(Jy)))
+        U_1 = expm(G_1)
+    # gate that governs time evolution on both branches. first dimension: 0 = forward branch, 1 = backward branch
+    U_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
+
+    U_E[0] =  expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd)
+    U_E[1] =  expm(-1.j * G_XY_odd) @ expm(-1.j * G_XY_even)
+
+    # onsite kicks (used in KIC):
+    # this has an effect only when local onsite kicks (as in KIC) are nonzero
+    U_E[0] = expm(1j*G_g) @ U_E[0]
+    U_E[1] = U_E[1] @ expm(-1j*G_g)
+
+    print( 'U_E[0] = expm(1j*G_g) @ U_E[0]')
+    print( U_E[0] )
+    print( 'U_E[1] = expm(1j*G_g) @ U_E[1]')
+    print( U_E[1] )
+   
+    # generator of environment (always unitary)
+    G_eff_E = -1j * linalg.logm(U_E[0])
+
+    
+    U_eff[0] = U_E[0] @ U_1
+    U_eff[1] =  U_1 @ U_E[1]
+
+    # G_eff is equivalent to generator for composed map (in principle obtainable through Baker-Campbell-Hausdorff)
+    G_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
+    G_eff[0] = -1j * linalg.logm(U_eff[0])
+    G_eff[1] = +1j * linalg.logm(U_eff[1])
     
     # add small random part to G_eff to lift degenaracies, such that numerical diagnoalization is more stable
     random_part = np.random.rand(2 * nsites, 2 * nsites) * 1e-14
