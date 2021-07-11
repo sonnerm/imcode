@@ -25,7 +25,7 @@ def evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     evolution_matrix[1] = expm(-1j*G_g) @ expm(-1.j *
                                                G_XY_even) @ expm(-1.j * G_XY_odd) @ matrix_power(U_1, 2)
     F_E_prime = expm(0.5j*G_g) @ expm(0.5j *
-                                      G_XY_even) @ expm(0.5j * G_XY_odd) @ U_1_inv
-    F_E_prime_dagger = expm(0.5 * G_1) @ expm(-0.5j *
+                                      G_XY_even) @ expm(0.5j * G_XY_odd) @ U_1
+    F_E_prime_dagger = U_1 @ expm(-0.5j *
                                               G_XY_odd) @ expm(-0.5j * G_XY_even) @ expm(-0.5j*G_g)
     return evolution_matrix, F_E_prime, F_E_prime_dagger
