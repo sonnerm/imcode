@@ -6,7 +6,7 @@ from correlation_coefficients import correlation_coefficients
 from correlator import correlator
 
 
-def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_t):#nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
+def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_t_diag):#nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
     f = 1 #need to prove that this is always tru
     #define parameters:
     #T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
@@ -31,26 +31,26 @@ def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_
             time_2 = nbr_Floquet_layers - tau_2
 
             G_lesser_zetazeta = 1j * \
-                correlator(A, rho_t, 0, 1, time_1, 1, 1, time_2, nsites)
+                correlator(A, rho_t_diag, 0, 1, time_1, 1, 1, time_2, nsites)
             G_greater_zetazeta = -1j * \
-                correlator(A, rho_t, 0, 1, time_2, 1, 1, time_1, nsites)
+                correlator(A, rho_t_diag, 0, 1, time_2, 1, 1, time_1, nsites)
 
 
             G_lesser_zetatheta = correlator(
-                A, rho_t, 0, 1, time_1, 1, 0, time_2, nsites)
+                A, rho_t_diag, 0, 1, time_1, 1, 0, time_2, nsites)
             G_greater_zetatheta = - \
-                correlator(A, rho_t, 0, 0, time_2, 1, 1, time_1, nsites)
+                correlator(A, rho_t_diag, 0, 0, time_2, 1, 1, time_1, nsites)
 
             G_lesser_thetazeta = correlator(
-                A, rho_t, 0, 0, time_1, 1, 1, time_2, nsites)
+                A, rho_t_diag, 0, 0, time_1, 1, 1, time_2, nsites)
             G_greater_thetazeta = - \
-                correlator(A, rho_t, 0, 1, time_2, 1, 0, time_1, nsites)
+                correlator(A, rho_t_diag, 0, 1, time_2, 1, 0, time_1, nsites)
   
 
             G_lesser_thetatheta = -1j * \
-                correlator(A, rho_t, 0, 0, time_1, 1, 0, time_2, nsites)
+                correlator(A, rho_t_diag, 0, 0, time_1, 1, 0, time_2, nsites)
             G_greater_thetatheta = 1j * \
-                correlator(A, rho_t, 0, 0, time_2, 1, 0, time_1, nsites)
+                correlator(A, rho_t_diag, 0, 0, time_2, 1, 0, time_1, nsites)
         
 
             G_Feynman_zetazeta = 0
