@@ -16,7 +16,7 @@ np.set_printoptions(linewidth=np.nan,precision=2, suppress=True )
 #define fixed parameters:
 #step sizes for total times t
 max_time1 = 40
-max_time2 =41
+max_time2 =100
 stepsize1 = 10
 stepsize2 = 18
 
@@ -24,10 +24,11 @@ stepsize2 = 18
 nsites = 100
 
 #model parameters:
-Jx = 0.3
-Jy = 0.5
-g = 0#np.pi/4
+Jx = 0#0.3
+Jy = np.pi/4
+g = 1.06#np.pi/4
 beta = 0 # temperature
+gamma_test_range = 100
 
 #define initial density matrix and determine matrix which diagonalizes it:
 rho_0 = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)#this is the EXPONENT of the BARE gaussian density matrix 
@@ -36,12 +37,13 @@ N_t = np.identity( 2 * nsites, dtype=np.complex_) # must be initialized as matri
 #initialize arrays in which entropy values and corresponding time-cuts are stored
 entropy_values = np.zeros((int(max_time1/stepsize1) + int(max_time2/stepsize2) + 3, max_time2 + stepsize2))#entropies
 times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))#time cuts
-
+ising_gamma_times = np.zeros(gamma_test_range)
+ising_gamma_values = np.zeros(gamma_test_range)
 #find generators and matrices which diagonalize them:
 G_XY_even, G_XY_odd, G_g, G_1, G_eff_E, G_eff = compute_generators(nsites, Jx, Jy, g)
 evolution_matrix = evolution_matrix(nsites,G_XY_even, G_XY_odd, G_g, G_1 , Jx, Jy, g)
 M, eigenvalues_G_eff, f= matrix_diag(nsites, G_eff_E, G_eff, Jx, Jy, g)
-ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites)
+ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites, gamma_test_range)
 
 iterator = 1
 for total_time in range(2, max_time1, stepsize1):# total_time = 0 means one floquet-layer
