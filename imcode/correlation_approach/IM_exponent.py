@@ -6,7 +6,7 @@ from correlation_coefficients import correlation_coefficients
 from correlator import correlator
 
 
-def IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_t):#nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
+def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_t):#nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
     f = 1 #need to prove that this is always tru
     #define parameters:
     #T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))

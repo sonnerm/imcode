@@ -24,9 +24,9 @@ stepsize2 = 18
 nsites = 100
 
 #model parameters:
-Jx = 0#0.3
+Jx = np.pi/4
 Jy = np.pi/4
-g = 1.06#np.pi/4
+g = 0#1.06#np.pi/4
 beta = 0 # temperature
 gamma_test_range = 100
 
@@ -50,7 +50,7 @@ for total_time in range(2, max_time1, stepsize1):# total_time = 0 means one floq
     nbr_Floquet_layers = total_time + 1
     #dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     rho_dressed = dress_density_matrix(rho_0,G_eff, nbr_Floquet_layers)
-    B = IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_dressed)
+    B = IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_dressed)
     #B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
     time_cuts = np.arange(1, nbr_Floquet_layers)
@@ -65,7 +65,7 @@ for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsi
     nbr_Floquet_layers = total_time + 1
     #dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     rho_dressed = dress_density_matrix(rho_0,G_eff, nbr_Floquet_layers)
-    B = IM_exponent(M, evolution_matrix, eigenvalues_G_eff, f, N_t, nsites, nbr_Floquet_layers, Jx, Jy,g, rho_dressed)
+    B = IM_exponent( evolution_matrix,  N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_dressed)
     #B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
     time_cuts = np.arange(1, nbr_Floquet_layers)
