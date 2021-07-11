@@ -31,5 +31,5 @@ def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
         result += (T_tilde[0,0, 0,k]*T_tilde[0,0,0,k + nsites] + T_tilde[0,0, 0,k+ nsites]*T_tilde[0,0,0,k ] )  #edit
     print (result)
     #test if evolvers reproduce correct relations for Ising limit
-    print('compare_test', np.einsum('ij,jk->ik', T_tilde[0,0],T_tilde[0,0].T.conj())[0,0])
+    #print('compare_test', T_tilde[0,0] @ T_tilde[0,0].T.conj())[0,0]
     return T_tilde
