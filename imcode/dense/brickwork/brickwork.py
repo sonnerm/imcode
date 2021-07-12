@@ -12,13 +12,11 @@ def brickwork_H(L,gates):
 
 
 def brickwork_F(L,gates,reversed=False):
-    if L==2:
-        return gates[0]
     if len(gates)==L-1:
         gates.append(np.eye(4))
     evs=kron([g for g in gates[::2]]+([np.eye(2)] if L%2==1 else []))
     ods=kron([g for g in gates[1::2]]+([np.eye(2)] if L%2==1 else []))
-    ods.reshape((2**(L-1),2,2**(L-1),2)).transpose([1,0,3,2]).reshape((2**L,2**L))
+    ods=ods.reshape((2**(L-1),2,2**(L-1),2)).transpose([1,0,3,2]).reshape((2**L,2**L))
     if not reversed:
         return ods@evs
     else:

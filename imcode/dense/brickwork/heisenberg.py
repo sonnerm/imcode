@@ -1,10 +1,9 @@
 import numpy as np
 import scipy.linalg as la
-from .utils import kron,SX,SY,SZ,ID
+from .. import kron,SX,SY,SZ,ID
 from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb,brickwork_F
 
-def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
-    L=len(hx) # maybe change to explicit length?
+def heisenberg_H(L,Jx,Jy,Jz,hx,hy,hz):
     assert len(hy)==L
     assert len(hz)==L
     assert len(Jx)==len(Jy)
@@ -25,10 +24,13 @@ def heisenberg_H(Jx,Jy,Jz,hx,hy,hz):
         ret+=hzi*kron([ID]*i+[SZ]+[ID]*(L-i-1))
     return ret
 
-def heisenberg_F(Jx,Jy,Jz,hx,hy,hz):
-    gates=[heisenberg_gate(jx,jy,jz) for (jx,jy,jz) in zip(Jx,Jy,Jz)]
-    lop=[heisenberg_lop(chx,chy,chz) for (chx,chy,chz) in zip(hx,hy,hz)]
-    return brickwork_F(gates,lop)
+def heisenberg_F(L,Jx,Jy,Jz,hx,hy,hz,reversed=False):
+    ogates=[heisenberg_gate(jx,jy,jz) for (jx,jy,jz) in zip(Jx[1::2],Jy[1::2],Jz[1::2])]
+    egates=[heisenberg_gate(jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) for (jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) in zip(Jx[::2],Jy[::2],Jz[::2],hx[::2],hy[::2],hz[::2],hx[1::2],hy[1::2],hz[1::2])]
+    gates=[None]*(len(ogates)+len(egates))
+    gates[::2]=egates
+    gates[1::2]=ogates
+    return brickwork_F(L,gates,reversed)
 def heisenberg_lop(hx,hy,hz):
     return la.expm(1j*(SX*hx+SY*hy+SZ*hz))
 def heisenberg_gate(Jx,Jy,Jz,hx=0,hy=0,hz=0,hxe=None,hye=None,hze=None):
