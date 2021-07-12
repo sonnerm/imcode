@@ -1,5 +1,6 @@
 from .ising import ising_h,ising_J,ising_W,ising_T,ising_H,ising_F
 from .im import open_boundary_im,perfect_dephaser_im,dephaser_im
+from .im_algo import im_triangle,im_rectangle,im_diamond
 from .channel import im_channel_dense
 from .obs import boundary_z,embedded_z,boundary_norm,embedded_norm,boundary_dm_evolution,embedded_dm_evolution
 # from .ising_hr import hr_operator,ising_hr_T,ising_hr_Tp

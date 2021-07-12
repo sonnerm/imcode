@@ -186,6 +186,7 @@ class SimpleMPO(MPO):
     def __init__(self,tpmpo):
         self.tpmpo=tpmpo
         self.W=_W_helper(tpmpo)
+        self.L=tpmpo.L
     def contract(self):
         return self #already contracted
     def get_W(self,i):
@@ -234,3 +235,8 @@ class ProductMPO(MPO):
             return pre
         Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
         return SimpleMPO(tenpy.networks.mpo.MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps]))
+def outer(mpss):
+    pass
+
+def kron(mpos):
+    pass
