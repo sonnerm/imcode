@@ -121,6 +121,11 @@ class SimpleMPS(MPS):
         return MPS.from_tenpy(self.tpmps.copy())
     def to_tenpy(self):
         return self.tpmps
+    def conj(self):
+        ret=self.copy()
+        for i in range(self.L):
+            ret.tpmps.get_B(i).conj(True,True).conj(False,True)
+        return ret
 
     def to_mpo(self,split):
         normp=state.norm**(1/state.L)
