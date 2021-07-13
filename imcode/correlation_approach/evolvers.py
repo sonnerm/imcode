@@ -21,15 +21,8 @@ def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
 
     for branch in range (2):
         for tau_index in range(0, nbr_Floquet_layers):
-            T_tilde[branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1) #@ N_t
-    result = 0
-    for k in range(nsites):
-        #n_F = 1. / (1.+np.exp(rho_t_diag[k, k]))  # fermi-dirac distribution
-        #result += A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k]*n_F + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]*(1-n_F)
-        
-        # infinite temperature limit
-        result += (T_tilde[0,0, 0,k]*T_tilde[0,0,0,k + nsites] + T_tilde[0,0, 0,k+ nsites]*T_tilde[0,0,0,k ] )  #edit
-    print (result)
+            T_tilde[branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t
+
     #test if evolvers reproduce correct relations for Ising limit
-    #print('compare_test', T_tilde[0,0] @ T_tilde[0,0].T.conj())[0,0]
+    #print('compare_test', T_tilde[0,0] @ T_tilde[0,0].T.conj())
     return T_tilde
