@@ -13,7 +13,7 @@ def test_im_rectangle(seed_rng):
     assert ims[-1]!=pytest.approx(ims[1]) #but not immediately
     assert ims[-1]==pytest.approx(dense.ising.im_diag(T)) #correct ev
 
-def test_im_diamond(seed_rng):
+def test_im_diamond_hom(seed_rng):
     J,g,h=np.random.normal(size=3)
     t=5
     Ts=[dense.ising.ising_T(t,J,g,h) for t in range(1,6,2)]
@@ -21,6 +21,14 @@ def test_im_diamond(seed_rng):
     for im,T in zip(ims,Ts):
         assert im ==pytest.approx(dense.ising.im_diag(T))
 
+def test_im_diamond_het(seed_rng):
+    t=5
+    Js,gs,hs=np.random.normal(size=(3,t))
+    Ts=[dense.ising.ising_T(t,J,g,h) for t,J,g,h in zip(range(1,t+1),Js,gs,hs)]
+    ims=[im for im in dense.ising.im_triangle(Ts)]
+    for im,t in zip(ims,range(1,t+1)):
+        Tsr=[dense.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:t],gs[:t],hs[:t])]
+        assert im ==pytest.approx(list(dense.ising.im_rectangle(Tsr))[-1])
 def test_im_triangle_hom(seed_rng):
     J,g,h=np.random.normal(size=3)
     t=5
