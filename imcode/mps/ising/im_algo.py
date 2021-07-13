@@ -20,9 +20,9 @@ def im_diamond(Ts,chi=None,options=None):
         else:
             mps=outer([mpsit,mps,mpsit])
         mps=(T@mps).contract(chi=chi,options=options)
-        yield mps
+        yield mps.copy()
 def im_triangle(Ts,chi=None,options=None):
-    mps=MPS.from_product_state([[1,0,0,1]])
+    mpsit=MPS.from_product_state([[1,0,0,1]])
     mps=None
     for T in Ts:
         if mps is None:
@@ -30,4 +30,4 @@ def im_triangle(Ts,chi=None,options=None):
         else:
             mps=outer([mps,mpsit])
         mps=(T@mps).contract(chi=chi,options=options)
-        yield mps
+        yield mps.copy()

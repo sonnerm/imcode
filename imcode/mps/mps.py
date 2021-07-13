@@ -60,16 +60,31 @@ def _tp_overlap_sandwich(left,mpo,right):
     mpo.IdL[0]=0
     mpo.IdR[-1]=0
     left=left.copy()
-    left.canonical_form(False)
-    right.canonical_form(False)
+    _tp_canonical_form(left)
+    _tp_canonical_form(right)
     for i in range(left.L):
         left.get_B(i).conj(True,True).conj(False,True)
     return tenpy.networks.mpo.MPOEnvironment(left,mpo,right).full_contraction(0)*left.norm*right.norm
-
+def _tp_canonical_form(tpmps):
+    #apparently tenpy can only do canonical form for L>2 :(
+    if tpmps.L>2:
+        tpmps.canonical_form(False)
+    elif tpmps.L==2:
+        B1=tpmps.get_B(0)
+        B2=tpmps.get_B(1)
+        M=np.einsum("abc,bed->ce",B1,B2)
+        U,S,V=la.svd(M)
+        tpmps.set_B(0,U,form="A")
+        tpmps.set_B(1,V,form="A")
+        tpmps.set_SR(0,S)
+    else:
+        #well if L=1 it is already canonical but we still need to teach this to tenpy
+        tpmps.set_B(0,tpmps.get_B(0,None),"A")
+        pass
 def _tp_overlap_plain(left,right):
     left=left.copy()
-    left.canonical_form(False)
-    right.canonical_form(False)
+    _tp_canonical_form(left)
+    _tp_canonical_form(right)
     for i in range(left.L):
         left.get_B(i).conj(True,True).conj(False,True)
     return left.overlap(right)
@@ -99,7 +114,7 @@ class SimpleMPS(MPS):
         self.tpmps=tpmps
         self.B=_B_helper(tpmps)
         self.S=_S_helper(tpmps)
-        self.tpmps.canonical_form(False)
+        _tp_canonical_form(tpmps)
         self.L=tpmps.L
     def get_B(self,i):
         return self.tpmps.get_B(i,copy=True).to_ndarray().transpose([0,2,1])
@@ -217,7 +232,7 @@ class SimpleMPO(MPO):
         self.tpmpo.IdR[-1]=0 #How is this my job?
         tpmps=mps.tpmps
         mps.tpmps=None
-        tpmps.canonical_form(False)
+        _tp_canonical_form(tpmps)
         self.tpmpo.apply(tpmps,kwargs)
         return MPS.from_tenpy(tpmps)
     def get_Ws(self):
@@ -236,7 +251,18 @@ class ProductMPO(MPO):
         Wps=[[m.get_W(i) for m in mpolist] for i in range(mpolist[0].L)]
         return SimpleMPO(tenpy.networks.mpo.MPO(mpolist[0].sites,[reduce(_multiply_W,Wp) for Wp in Wps]))
 def outer(mpss):
-    pass
+    for mps in mpss:
+        assert isinstance(mps,SimpleMPS)
+    Bs=[]
+    for mps in mpss:
+        Bs.extend([mps.get_B(i) for i in range(mps.L)])
+    return MPS.from_matrices(Bs)
+
 
 def kron(mpos):
-    pass
+    for mpo in mpos:
+        assert isinstance(mpo,SimpleMPO)
+    Ws=[]
+    for mpo in mpos:
+        Ws.extend([mps.get_W(i) for i in range(mpo.L)])
+    return MPO.from_matrices(Ws)
