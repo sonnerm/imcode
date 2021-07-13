@@ -13,9 +13,10 @@ def evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     U_1_inv = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
 
     #alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
-    if (linalg.norm(G_1) < 1e18):
-        U_1 = expm(0.5 * G_1)
-        U_1_inv = expm(- 0.5 * G_1)
+    #if (linalg.norm(G_1) < 1e18):
+    print (linalg.norm(G_1))
+    U_1 = expm(0.5 * G_1)
+    U_1_inv = expm(- 0.5 * G_1)
     # else, the entire influence matrix is zero due to the prefactor
 
     # compute evolution matrix:
