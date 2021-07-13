@@ -16,18 +16,18 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 40
-max_time2 = 60
+max_time1 = 60
+max_time2 = 80
 stepsize1 = 10
-stepsize2 = 18
+stepsize2 = 10
 
 # lattice sites:
-nsites = 150
+nsites = 60
 
 # model parameters:
-Jx = np.pi/4  # 0.31
-Jy = np.pi/4
-g = 0  # 0.31#1.06#np.pi/4
+Jx = 0.5 # 0.31
+Jy = 0.3
+g = 0#np.pi/4
 beta = 0  # temperature
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
 gamma_test_range = 100
@@ -60,7 +60,7 @@ for total_time in range(2, max_time1, stepsize1):
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
     if (abs(alpha_0_square) > 1e-8):
         print('alpha_0_square', alpha_0_square)
-        rho_eigvals, N_t,  = dress_density_matrix(
+        rho_eigvals, N_t = dress_density_matrix(
             rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
         B = IM_exponent(evolution_matrix, N_t, nsites,
                         nbr_Floquet_layers, Jx, Jy, rho_eigvals)
@@ -74,14 +74,14 @@ for total_time in range(2, max_time1, stepsize1):
         entropy_values[iterator, cut] = entropy(
             correlation_block, nbr_Floquet_layers, cut)
     iterator += 1
-
+"""
 
 for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
     nbr_Floquet_layers = total_time + 1
     # dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
     if (abs(alpha_0_square) > 1e-8):
-        rho_eigvals, N_t,  = dress_density_matrix(
+        rho_eigvals, N_t  = dress_density_matrix(
             rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
         B = IM_exponent(evolution_matrix, N_t, nsites,
                         nbr_Floquet_layers, Jx, Jy, rho_eigvals)
@@ -95,7 +95,7 @@ for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsi
         entropy_values[iterator, cut] = entropy(
             correlation_block, nbr_Floquet_layers, cut)
     iterator += 1
-
+"""
 
 print(entropy_values)
 
