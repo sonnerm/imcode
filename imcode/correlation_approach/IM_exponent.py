@@ -6,23 +6,27 @@ from correlation_coefficients import correlation_coefficients
 from correlator import correlator
 
 
-def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_t_diag):#nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
-    f = 1 #need to prove that this is always tru
-    #define parameters:
+# nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
+def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_t_diag):
+    f = 1  # need to prove that this is always tru
+    # define parameters:
     #T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
     beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
-    alpha = np.sqrt(2 * (np.cos(Jx)*np.cos(Jy)) ** 2 / (np.cos(2*Jx) + np.cos(2*Jy)))
-
+    alpha = np.sqrt(2 * (np.cos(Jx)*np.cos(Jy)) **
+                    2 / (np.cos(2*Jx) + np.cos(2*Jy)))
 
     # procompute evolvers T from which the correlation coefficients A can be inferred
-    #T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,eigenvalues_G_eff_bw, nsites, nbr_Floquet_layers, beta_tilde)  # array containing the evolvers
-    T_tilde = evolvers(evolution_matrix, N_t,nsites, nbr_Floquet_layers, beta_tilde)
-    print (T_tilde)
+    # T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,eigenvalues_G_eff_bw, nsites, nbr_Floquet_layers, beta_tilde)  # array containing the evolvers
+    T_tilde, T_tilde_mod = evolvers(
+        evolution_matrix, N_t, nsites, nbr_Floquet_layers, beta_tilde)
+    print(T_tilde)
     # precompute correlation coefficients A from which we construct the correlation functions
     # array containing all correlation coefficients (computed from evolvers T_tilde)
-    A = correlation_coefficients(T_tilde, nsites, nbr_Floquet_layers)
+    A, A_mod = correlation_coefficients(
+        T_tilde, T_tilde_mod, nsites, nbr_Floquet_layers)
     # exponent of IM
-    B = np.zeros((4 * nbr_Floquet_layers, 4 * nbr_Floquet_layers), dtype=np.complex_)
+    B = np.zeros((4 * nbr_Floquet_layers, 4 *
+                 nbr_Floquet_layers), dtype=np.complex_)
 
     for tau_1 in range(nbr_Floquet_layers):
         for tau_2 in range(nbr_Floquet_layers):
@@ -31,27 +35,30 @@ def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_
             time_2 = nbr_Floquet_layers - tau_2
 
             G_lesser_zetazeta = 1j * \
-                correlator(A, rho_t_diag, 0, 1, time_1, 1, 1, time_2, nsites)
+                correlator(A, A_mod, rho_t_diag, 0, 1,
+                           time_1, 1, 1, time_2, nsites)
             G_greater_zetazeta = -1j * \
-                correlator(A, rho_t_diag, 0, 1, time_2, 1, 1, time_1, nsites)
-
+                correlator(A, A_mod, rho_t_diag, 0, 1,
+                           time_2, 1, 1, time_1, nsites)
 
             G_lesser_zetatheta = correlator(
-                A, rho_t_diag, 0, 1, time_1, 1, 0, time_2, nsites)
+                A, A_mod, rho_t_diag, 0, 1, time_1, 1, 0, time_2, nsites)
             G_greater_zetatheta = - \
-                correlator(A, rho_t_diag, 0, 0, time_2, 1, 1, time_1, nsites)
+                correlator(A, A_mod, rho_t_diag, 0, 0,
+                           time_2, 1, 1, time_1, nsites)
 
             G_lesser_thetazeta = correlator(
-                A, rho_t_diag, 0, 0, time_1, 1, 1, time_2, nsites)
+                A, A_mod, rho_t_diag, 0, 0, time_1, 1, 1, time_2, nsites)
             G_greater_thetazeta = - \
-                correlator(A, rho_t_diag, 0, 1, time_2, 1, 0, time_1, nsites)
-  
+                correlator(A, A_mod, rho_t_diag, 0, 1,
+                           time_2, 1, 0, time_1, nsites)
 
             G_lesser_thetatheta = -1j * \
-                correlator(A, rho_t_diag, 0, 0, time_1, 1, 0, time_2, nsites)
+                correlator(A, A_mod, rho_t_diag, 0, 0,
+                           time_1, 1, 0, time_2, nsites)
             G_greater_thetatheta = 1j * \
-                correlator(A, rho_t_diag, 0, 0, time_2, 1, 0, time_1, nsites)
-        
+                correlator(A, A_mod, rho_t_diag, 0, 0,
+                           time_2, 1, 0, time_1, nsites)
 
             G_Feynman_zetazeta = 0
             G_AntiFeynman_zetazeta = 0
@@ -88,29 +95,42 @@ def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_
                 G_Feynman_thetatheta = G_greater_thetatheta
                 G_AntiFeynman_thetatheta = G_lesser_thetatheta
 
-            prefac_x = alpha * np.tan(Jx) 
-            prefac_y = alpha * np.tan(Jy) 
+            prefac_x = alpha * np.tan(Jx)
+            prefac_y = alpha * np.tan(Jy)
 
             B[4 * tau_1, 4 * tau_2] = -1j * G_Feynman_thetatheta * prefac_y**2
-            B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2
-            #print -1j * G_lesser_thetatheta, alpha, np.tan(Jy)**2,  T_xy**2 #edit
-            B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * prefac_y**2
-            B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * G_AntiFeynman_thetatheta * prefac_y**2
+            B[4 * tau_1, 4 * tau_2 + 1] = -1j * \
+                G_lesser_thetatheta * prefac_y**2
+            # print -1j * G_lesser_thetatheta, alpha, np.tan(Jy)**2,  T_xy**2 #edit
+            B[4 * tau_1 + 1, 4 * tau_2] = -1j * \
+                G_greater_thetatheta * prefac_y**2
+            B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * \
+                G_AntiFeynman_thetatheta * prefac_y**2
 
-            B[4 * tau_1, 4 * tau_2 + 2] = -1 * G_Feynman_thetazeta * prefac_x * prefac_y
+            B[4 * tau_1, 4 * tau_2 + 2] = -1 * \
+                G_Feynman_thetazeta * prefac_x * prefac_y
             B[4 * tau_1, 4 * tau_2 + 3] = G_lesser_thetazeta * prefac_x * prefac_y
-            B[4 * tau_1 + 1, 4 * tau_2 + 2] = -1 * G_greater_thetazeta * prefac_x * prefac_y
-            B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * prefac_x * prefac_y
+            B[4 * tau_1 + 1, 4 * tau_2 + 2] = -1 * \
+                G_greater_thetazeta * prefac_x * prefac_y
+            B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * \
+                prefac_x * prefac_y
 
-            B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y
-            B[4 * tau_1 + 2, 4 * tau_2 + 1] = -1 * G_lesser_zetatheta * prefac_x * prefac_y
+            B[4 * tau_1 + 2, 4 * tau_2] = -1 * \
+                G_Feynman_zetatheta * prefac_x * prefac_y
+            B[4 * tau_1 + 2, 4 * tau_2 + 1] = -1 * \
+                G_lesser_zetatheta * prefac_x * prefac_y
             B[4 * tau_1 + 3, 4 * tau_2] = G_greater_zetatheta * prefac_x * prefac_y
-            B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * prefac_x * prefac_y
+            B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * \
+                prefac_x * prefac_y
 
-            B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * G_Feynman_zetazeta * prefac_x**2
-            B[4 * tau_1 + 2, 4 * tau_2 + 3] = -1j * G_lesser_zetazeta * prefac_x**2
-            B[4 * tau_1 + 3, 4 * tau_2 + 2] = -1j * G_greater_zetazeta * prefac_x**2
-            B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * G_AntiFeynman_zetazeta * prefac_x**2
+            B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * \
+                G_Feynman_zetazeta * prefac_x**2
+            B[4 * tau_1 + 2, 4 * tau_2 + 3] = - \
+                1j * G_lesser_zetazeta * prefac_x**2
+            B[4 * tau_1 + 3, 4 * tau_2 + 2] = - \
+                1j * G_greater_zetazeta * prefac_x**2
+            B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * \
+                G_AntiFeynman_zetazeta * prefac_x**2
     for tau in range(nbr_Floquet_layers):  # trivial factor
 
         B[4 * tau, 4 * tau + 2] += 0.5
@@ -121,7 +141,7 @@ def IM_exponent( evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, rho_
     # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
     B = np.dot(2., B)
 
-    print ('B\n')
+    print('B\n')
     print(B)
- 
+
     return B

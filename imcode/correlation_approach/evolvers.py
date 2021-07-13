@@ -16,13 +16,18 @@ def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
     # initialize evolvers
     # first dimension 2 is for forward/backward branch (0 is forward, 1 is backward), second dimension 2 is because we do not compute correlations at every site in the environment but only at site 1 -> two relevant lines (site 0 and 0+L in env.) are extracted (in principle one would have dimension 2*nsites here,too)
     T_tilde = np.zeros((2, nbr_Floquet_layers, 2, 2*nsites), dtype=np.complex_)
+    T_tilde_mod = np.zeros((2, nbr_Floquet_layers, 2, 2*nsites), dtype=np.complex_)
 
     # fill with values (individually for each branch)
+    N_t_mod = np.identity((2 * nsites),dtype=np.complex_)
+    N_t_mod[0:nsites,:] = N_t[nsites:2*nsites,:].conj()
+    N_t_mod[nsites:2*nsites,:] = N_t[0:nsites,:].conj()
 
     for branch in range (2):
         for tau_index in range(0, nbr_Floquet_layers):
             T_tilde[branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t
+            T_tilde_mod[branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t_mod
 
     #test if evolvers reproduce correct relations for Ising limit
     #print('compare_test', T_tilde[0,0] @ T_tilde[0,0].T.conj())
-    return T_tilde
+    return T_tilde, T_tilde_mod
