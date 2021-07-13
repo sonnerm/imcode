@@ -23,9 +23,9 @@ def test_im_rectangle(seed_rng):
 #     Ts=[mps.ising.ising_T(tt,J,g,h) for tt in range(1,t+1)]
 #     ims=[im for im in mps.ising.im_triangle(Ts,chi=64)]
 #     imc=[list(mps.ising.im_rectangle(T,chi=64))[-1] for T in Ts]
-# def test_im_diamond(seed_rng):
-#     J,g,h=np.random.normal(size=3)
-#     t=10
-#     Ts=[mps.ising.ising_T(tt,J,g,h) for tt in range(1,t+1,2)]
-#     ims=[im for im in mps.ising.im_diamond(Ts,chi=64)]
-#     imc=[list(mps.ising.im_diamond(T,chi=64))[-1] for T in Ts]
+def test_im_diamond(seed_rng):
+    J,g,h=np.random.normal(size=3)
+    t=10
+    Ts=[mps.ising.ising_T(tt,J,g,h) for tt in range(1,t+1,2)]
+    ims=[im for im in mps.ising.im_diamond(Ts,chi=64)]
+    imc=[list(mps.ising.im_diamond(T,chi=64))[-1] for T in Ts]
