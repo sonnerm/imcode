@@ -1,3 +1,4 @@
+from numpy.lib.twodim_base import diag
 from rotation_matrix_for_schur import rotation_matrix_for_schur
 import numpy as np
 from numpy import version
@@ -38,22 +39,47 @@ def create_correlation_block(B, ntimes):
         corr_block_diag[2 * i + dim_B, 2 * i + dim_B] = np.sin(Theta)**2
         corr_block_diag[2 * i + dim_B + 1, 2 * i + dim_B + 1] = np.sin(Theta)**2
     """
-
+    
     #general case
-    corr_block_diag2 = np.zeros((8 * ntimes, 8 * ntimes), dtype=np.complex_)
+    corr_block_diag = np.zeros((8 * ntimes, 8 * ntimes), dtype=np.complex_)
     for i in range(0, 2 * ntimes):
         ew = B_schur[2 * i,2 * i + 1]
+        #ew = ews_sorted[i]
+        norm = 1 + abs(ew)**2
+        corr_block_diag[2 * i, 2 * i] = 1/norm
+        corr_block_diag[2 * i + 1, 2 * i + 1] = 1/norm
+
+        corr_block_diag[2 * i, 2 * i + dim_B + 1] = - ew/norm
+        corr_block_diag[2 * i + 1, 2 * i + dim_B] = ew/norm
+
+        corr_block_diag[2 * i + dim_B, 2 *
+                         i + 1] = ew.conj()/norm
+        corr_block_diag[2 * i + dim_B + 1, 2 * i] = - ew.conj()/norm
+
+        corr_block_diag[2 * i + dim_B, 2 *
+                         i + dim_B] = abs(ew)**2/norm
+        corr_block_diag[2 * i + dim_B + 1, 2 * i +
+                         dim_B + 1] = abs(ew)**2/norm
+
+    
+
+    eigenvalues = np.zeros(2 * ntimes, dtype=np.complex_)
+    for i in range(0,2*ntimes):
+        eigenvalues[i] = B_schur[2 * i,2 * i + 1]
+    corr_block_diag2 = np.zeros((8 * ntimes, 8 * ntimes), dtype=np.complex_)
+    for i in range(0, 2 * ntimes):
+        ew = eigenvalues[i]
         #ew = ews_sorted[i]
         norm = 1 + abs(ew)**2
         corr_block_diag2[2 * i, 2 * i] = 1/norm
         corr_block_diag2[2 * i + 1, 2 * i + 1] = 1/norm
 
-        corr_block_diag2[2 * i, 2 * i + dim_B + 1] = - ew/norm
-        corr_block_diag2[2 * i + 1, 2 * i + dim_B] = ew/norm
+        corr_block_diag2[2 * i, 2 * i + dim_B + 1] = - abs(ew)/norm
+        corr_block_diag2[2 * i + 1, 2 * i + dim_B] = abs(ew)/norm
 
         corr_block_diag2[2 * i + dim_B, 2 *
-                         i + 1] = ew.conj()/norm
-        corr_block_diag2[2 * i + dim_B + 1, 2 * i] = - ew.conj()/norm
+                         i + 1] = abs(ew)/norm
+        corr_block_diag2[2 * i + dim_B + 1, 2 * i] = - abs(ew)/norm
 
         corr_block_diag2[2 * i + dim_B, 2 *
                          i + dim_B] = abs(ew)**2/norm
@@ -61,14 +87,38 @@ def create_correlation_block(B, ntimes):
                          dim_B + 1] = abs(ew)**2/norm
 
 
-    double_R = np.bmat([[R, np.zeros((dim_B, dim_B),dtype=np.complex_)],
-                       [np.zeros((dim_B, dim_B),dtype=np.complex_), R]])
+    D_phases = np.zeros((4 * ntimes, 4 * ntimes), dtype=np.complex_)
+    for i in range(2 * ntimes):
+        D_phases[2 * i,2 * i] = np.exp(0.5j * np.angle(eigenvalues[i]))
+        D_phases[2 * i + 1,2 * i + 1] = np.exp(0.5j * np.angle(eigenvalues[i]))
 
-    print ('double R\n', double_R)
+    double_phases = np.bmat([[D_phases, np.zeros((dim_B, dim_B),dtype=np.complex_)],
+                       [np.zeros((dim_B, dim_B),dtype=np.complex_), D_phases.conj()]])
+
+
+    
+    #Check that correlation matrix with phases is repdocued correctly
+    C_test = double_phases @ corr_block_diag2 @ double_phases.T.conj()
+    diff = 0
+    for i in range (len(C_test)):
+        for j in range(len(C_test)):
+            diff += abs(C_test[i,j] - corr_block_diag[i,j])
+    print ('corr_block_diag (complex)\n', corr_block_diag)
+    print ('corr_block_diag2 (real)\n', corr_block_diag2)
+    print ('corr_block_test (should be equivalent to corr_block_diag)\n', C_test)
+    print ('correlation difference', diff)
+
+
+    R = R @ D_phases
+
+    double_R = np.bmat([[R, np.zeros((dim_B, dim_B),dtype=np.complex_)],
+                       [np.zeros((dim_B, dim_B),dtype=np.complex_), R.conj()]])
+
+    
     identity_check2 = double_R.conj().T @ double_R#check that double_R is unitary just like R is (should be trivial)
     print ('unity_check2\n', np.trace(identity_check2)/(8 * ntimes))
 
-    corr_block_back_rotated = double_R @ corr_block_diag2 @ double_R.T
+    corr_block_back_rotated = double_R @ corr_block_diag2 @ double_R.T.conj()
     print ('corr_block_back_rotated\n', corr_block_back_rotated)
 
     eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_diag2)
