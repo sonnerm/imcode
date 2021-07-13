@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.linalg import expm
+from scipy import linalg
 from numpy.linalg import matrix_power
 import math
 
@@ -11,8 +12,8 @@ def evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     U_1 = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
     U_1_inv = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
 
-    alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
-    if (abs(alpha_0_square) > 1e-8):
+    #alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
+    if (linalg.norm(G_1) < 1e18):
         U_1 = expm(0.5 * G_1)
         U_1_inv = expm(- 0.5 * G_1)
     # else, the entire influence matrix is zero due to the prefactor

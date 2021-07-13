@@ -16,21 +16,21 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 60
-max_time2 = 80
+max_time1 = 32
+max_time2 = 40
 stepsize1 = 10
-stepsize2 = 10
+stepsize2 = 20
 
 # lattice sites:
 nsites = 60
 
 # model parameters:
-Jx = 0.5 # 0.31
-Jy = 0.3
-g = 0#np.pi/4
+Jx = np.pi/4-1e-6 # 0.31
+Jy = np.pi/4+1e-6
+g = 0
 beta = 0  # temperature
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
-gamma_test_range = 100
+gamma_test_range = 6
 
 # define initial density matrix and determine matrix which diagonalizes it:
 # this is the EXPONENT of the BARE gaussian density matrix
@@ -58,14 +58,14 @@ for total_time in range(2, max_time1, stepsize1):
     nbr_Floquet_layers = total_time + 1
     # dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
-    if (abs(alpha_0_square) > 1e-8):
-        print('alpha_0_square', alpha_0_square)
-        rho_eigvals, N_t = dress_density_matrix(
-            rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
-        B = IM_exponent(evolution_matrix, N_t, nsites,
-                        nbr_Floquet_layers, Jx, Jy, rho_eigvals)
-        # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
-        correlation_block = create_correlation_block(B, nbr_Floquet_layers)
+
+    print('alpha_0_square', alpha_0_square)
+    rho_eigvals, N_t = dress_density_matrix(
+        rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+    B = IM_exponent(evolution_matrix, N_t, nsites,
+                    nbr_Floquet_layers, Jx, Jy, rho_eigvals)
+    # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
+    correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
     time_cuts = np.arange(1, nbr_Floquet_layers)
 
@@ -80,13 +80,13 @@ for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsi
     nbr_Floquet_layers = total_time + 1
     # dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
-    if (abs(alpha_0_square) > 1e-8):
-        rho_eigvals, N_t  = dress_density_matrix(
-            rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
-        B = IM_exponent(evolution_matrix, N_t, nsites,
-                        nbr_Floquet_layers, Jx, Jy, rho_eigvals)
-        # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
-        correlation_block = create_correlation_block(B, nbr_Floquet_layers)
+
+    rho_eigvals, N_t  = dress_density_matrix(
+        rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+    B = IM_exponent(evolution_matrix, N_t, nsites,
+                    nbr_Floquet_layers, Jx, Jy, rho_eigvals)
+    # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
+    correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
     time_cuts = np.arange(1, nbr_Floquet_layers)
 

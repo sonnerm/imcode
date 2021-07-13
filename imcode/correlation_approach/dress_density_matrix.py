@@ -17,7 +17,9 @@ def dress_density_matrix(rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
         F_E_prime, nbr_Floquet_layers)  @ expm(- rho_0)  @ matrix_power(F_E_prime_dagger, nbr_Floquet_layers)
 
     # else, eigenvalues are zero and N_t is identity
-    if linalg.norm(rho_dressed - identity(len(rho_0[0]))) > 1e-10:
+    #if linalg.norm(rho_dressed - identity(len(rho_0[0]))) > 1e-10:
+    if (linalg.norm(F_E_prime)**nbr_Floquet_layers < 1e18):
+        print ('F_Enorm',linalg.norm(F_E_prime) )
         # diagonalize dressed density matrix:
         rho_dressed_herm = 0.5*(rho_dressed + rho_dressed.T.conj())
         eigenvals, N_t = linalg.eigh(rho_dressed_herm)
