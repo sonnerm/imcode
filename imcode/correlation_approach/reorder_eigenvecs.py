@@ -25,10 +25,14 @@ def reorder_eigenvecs(M, half_matrix_dimension, mode=1):
         # check if rearranement was correct
         for column in range(0, half_matrix_dimension):
             for line in range(0, half_matrix_dimension):
-                if abs(M[line, column] - M[line + half_matrix_dimension, column + half_matrix_dimension].conj()) < 1e-8 or M[line, column] < 1e-6:
+                if abs(M[line, column]) < 1e-6 or abs(M[line, column] - M[line + half_matrix_dimension, column + half_matrix_dimension].conj())/abs(M[line, column]) < 1e-6:
                     counter += 1
-                if abs(M[line + half_matrix_dimension, column] - M[line, column + half_matrix_dimension].conj()) < 1e-8 or M[line + half_matrix_dimension, column] < 1e-6:
+                else: 
+                    print ('incorrect reordering', line, column, line + half_matrix_dimension, column + half_matrix_dimension, abs(M[line, column] - M[line + half_matrix_dimension, column + half_matrix_dimension].conj())/abs(M[line, column]))
+                if abs(M[line + half_matrix_dimension, column]) < 1e-6 or abs(M[line + half_matrix_dimension, column] - M[line, column + half_matrix_dimension].conj())/abs(M[line + half_matrix_dimension, column]) < 1e-6 :
                     counter += 1
+                else:
+                    print ('incorrect reordering', line + half_matrix_dimension, column, line, column + half_matrix_dimension, abs(M[line + half_matrix_dimension, column] - M[line, column + half_matrix_dimension].conj())/abs(M[line + half_matrix_dimension, column]) )
 
     elif mode == 0:
         for column in range(0, 2 * half_matrix_dimension, 2):
@@ -72,7 +76,7 @@ def reorder_eigenvecs(M, half_matrix_dimension, mode=1):
         # print M
     else:
 
-        print('Erroneous rearrangement!', counter)
+        print('Erroneous rearrangement!', 2 * half_matrix_dimension * half_matrix_dimension- counter)
         # print M
     return M
 
