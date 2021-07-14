@@ -35,7 +35,7 @@ def test_im_triangle_dense(seed_rng):
     imsm=[im for im in mps.ising.im_triangle(Tsm)]
     imsd=[im for im in dense.ising.im_triangle(Tsd)]
     for imm,imd in zip(imsm,imsd):
-        assert imm==pytest.approx(imd)
+        assert imm.to_dense()==pytest.approx(imd)
 
 def test_im_rectangle(seed_rng):
     J,g,h=np.random.normal(size=3)

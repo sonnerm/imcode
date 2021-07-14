@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as la
 import tenpy.linalg.np_conserved as npc
 from tenpy.linalg.charges import LegCharge
 from tenpy.networks.site import Site
@@ -26,6 +27,7 @@ class MPS(ABC):
     def from_matrices(cls,Bs,Svs=None,norm=1.0):
         sites=[]
         bss=[]
+        Bs[0]=Bs[0]*norm
         for b in Bs:
             b=np.array(b)
             bss.append(b.transpose([2,0,1])) #for some stupid reason
@@ -70,16 +72,25 @@ def _tp_canonical_form(tpmps):
     if tpmps.L>2:
         tpmps.canonical_form(False)
     elif tpmps.L==2:
-        B1=tpmps.get_B(0)
-        B2=tpmps.get_B(1)
-        M=np.einsum("abc,bed->ce",B1,B2)
+        B1=tpmps.get_B(0,form=None).to_ndarray()
+        B2=tpmps.get_B(1,form=None).to_ndarray()
+        M=np.einsum("acb,bed->ce",B1,B2)
         U,S,V=la.svd(M)
-        tpmps.set_B(0,U,form="A")
-        tpmps.set_B(1,V,form="A")
+        leg_t=LegCharge.from_trivial(1)
+        leg_o=LegCharge.from_trivial(U.shape[1])
+        leg_p=LegCharge.from_trivial(U.shape[0])
+        V=np.diag(S)@V
+        U=npc.Array.from_ndarray(U.T[None,:,:],[leg_t,leg_o.conj(),leg_p],labels=["vL","vR","p"])
+        V=npc.Array.from_ndarray(V[:,None,:],[leg_o,leg_t.conj(),leg_p],labels=["vL","vR","p"])
+        tpmps.set_B(0,U,form="B")
+        tpmps.set_B(1,V,form="B")
         tpmps.set_SR(0,S)
     else:
         #well if L=1 it is already canonical but we still need to teach this to tenpy
-        tpmps.set_B(0,tpmps.get_B(0,None),"A")
+        B=tpmps.get_B(0,None)
+        tpmps.set_B(0,B,"B")
+        tpmps.set_SL(0,np.array([1.0]))
+        tpmps.set_SR(0,np.array([1.0]))
         pass
 def _tp_overlap_plain(left,right):
     left=left.copy()
@@ -121,7 +132,7 @@ class SimpleMPS(MPS):
     def get_S(self,i):
         return self.tpmps.get_SR(i)
     def canonicalize(self):
-        self.canonicalize(False)
+        _tp_canonical_form(self.tpmps)
     def contract(self,**kwargs):
         return self
     def compress(self,**kwargs):
@@ -254,9 +265,11 @@ def outer(mpss):
     for mps in mpss:
         assert isinstance(mps,SimpleMPS)
     Bs=[]
+    norm=1.0
     for mps in mpss:
         Bs.extend([mps.get_B(i) for i in range(mps.L)])
-    return MPS.from_matrices(Bs)
+        norm*=mps.tpmps.norm
+    return MPS.from_matrices(Bs,norm=norm)
 
 
 def kron(mpos):

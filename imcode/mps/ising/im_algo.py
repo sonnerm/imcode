@@ -16,7 +16,7 @@ def im_diamond(Ts,chi=None,options=None):
     mps=None
     for T in Ts:
         if mps is None:
-            mps=mpsit
+            mps=mpsit.copy()
         else:
             mps=outer([mpsit,mps,mpsit])
         mps=(T@mps).contract(chi=chi,options=options)
@@ -26,7 +26,7 @@ def im_triangle(Ts,chi=None,options=None):
     mps=None
     for T in Ts:
         if mps is None:
-            mps=mpsit
+            mps=mpsit.copy()
         else:
             mps=outer([mps,mpsit])
         mps=(T@mps).contract(chi=chi,options=options)
