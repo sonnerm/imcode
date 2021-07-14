@@ -11,11 +11,16 @@ def correlator(A,A_mod, rho_eigvals, branch1, majorana_type1, tau_1, branch2, ma
     tau_1_index = tau_1 - 1
     tau_2_index = tau_2 - 1
     result = 0
+    result_compare = 0 #without phase-independent evolution operators
     for k in range(nsites):
 
         result += A_mod[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k]*n_F(
             rho_eigvals, k) + A_mod[branch2, majorana_type2, tau_2_index, k + nsites]*A[branch1, majorana_type1, tau_1_index, k+nsites]*(1 - n_F(rho_eigvals, k + nsites))
 
+        #result_compare += A[branch2, majorana_type2, tau_2_index, k + nsites]*A[branch1, majorana_type1, tau_1_index, k]*n_F(
+         #   rho_eigvals, k) + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]*(1 - n_F(rho_eigvals, k + nsites))
+
+        #print ('correlator_comparison', (result - result_compare) / result , result)
         # infinite temperature limit in Ising case (in xy case, even the infinite temperature density matrix is nontrivial when dressed)
         # result += (A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k] + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]) * 0.5 #edit
 
