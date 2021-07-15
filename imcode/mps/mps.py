@@ -101,7 +101,7 @@ def _tp_overlap_plain(left,right):
     return left.overlap(right)
 def _process_options(kwargs):
     if "chi_max" in kwargs.keys():
-        kwargs.get("trunc_params",{})["chi_max"]=kwargs["chi_max"]
+        kwargs.setdefault("trunc_params",{})["chi_max"]=kwargs["chi_max"]
         del kwargs["chi_max"]
     kwargs["verbose"]=False
     kwargs["compression_method"]="SVD"
