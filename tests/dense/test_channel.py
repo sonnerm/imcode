@@ -14,3 +14,12 @@ def test_unitary_channel(seed_rng):
     Fc=dense.unitary_channel(F)
     newm=finalv.conj()@Fc@initv
     assert trad==pytest.approx(newm)
+#
+def test_unitary_channel_generic(seed_rng):
+    L=2
+    F=np.random.normal(size=(2**L,2**L))+1.0j*np.random.normal(size=(2**L,2**L))
+    init=np.random.normal(size=(2**L,2**L))+1.0j*np.random.normal(size=(2**L,2**L))
+    trad=F@init@F.T.conj()
+    Fc=dense.unitary_channel(F)
+    newm=dense.state_to_operator(Fc@dense.operator_to_state(init))
+    assert trad==pytest.approx(newm)
