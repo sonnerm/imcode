@@ -9,10 +9,14 @@ def boundary_dm_evolution(im,lop,init):
         lop=[lop for _ in range(im.L)]
     for i in range(im.L):
         bimc=im_channel_dense(im,i)
-        imc=dense.kron([bimc,np.eye((dim//2)**2)])
-        lopc=dense.kron([np.eye(bimc.shape[1]//4),dense.unitary_channel(lop[i])])
-        dms.append(lopc@dms[-1])
-        dms.append(imc@dms[-1])
+        lopc=dense.unitary_channel(lop[i])
+        dmsd=dms[-1].reshape((bimc.shape[1]//4,dim**2))
+        dmsd=np.einsum("ab,cb->ca",lopc,dmsd)
+        dms.append(dmsd.ravel())
+        dmsd=dmsd.reshape((bimc.shape[1],dim**2//4))
+        dmsd=np.einsum("ab,bc->ac",bimc,dmsd)
+        dms.append(dmsd.ravel())
+
     return [dense.state_to_operator(np.sum(d.reshape((d.shape[0]//(dim**2),dim**2)),axis=0)) for d in dms]
 
 def embedded_dm_evolution(left,lop,right,init):
@@ -25,14 +29,15 @@ def embedded_dm_evolution(left,lop,right,init):
         limc=limc.reshape((limc.shape[0]//4,4,limc.shape[1]//4,4))
         rimc=im_channel_dense(right,i)
         rimc=rimc.reshape((rimc.shape[0]//4,4,rimc.shape[1]//4,4))
-        if dim==2:
-            imc=np.einsum("abcd,ebgd->aebcgd",limc,rimc)
-        else:
-            imc=np.einsum("abcd,efgh,ij->aebifcgdjh",limc,rimc,np.eye(dim**2//16))
-        imc=imc.reshape((limc.shape[0]*rimc.shape[0]*dim**2,limc.shape[2]*rimc.shape[2]*dim**2))
-        lopc=sparse.kron(np.eye(imc.shape[1]//dim**2),dense.unitary_channel(lop[i]))
-        dms.append(lopc@dms[-1])
-        dms.append(imc@dms[-1])
+        dmsd=dms[-1].reshape((limc.shape[2]*rimc.shape[2],dim**2))
+        lopc=dense.unitary_channel(lop[i])
+        dmsd=np.einsum("ab,cb->ca",lopc,dmsd)
+        dms.append(dmsd.ravel())
+        dmsd=dmsd.reshape((limc.shape[2],rimc.shape[2],4,dim**2//4))
+        dmsd=np.einsum("abcd,cfdh->afbh",limc,dmsd)
+        dmsd=dmsd.reshape((limc.shape[0],rimc.shape[2],dim**2//4,4))
+        dmsd=np.einsum("abcd,ecgd->eagb",rimc,dmsd)
+        dms.append(dmsd.ravel())
     return [dense.state_to_operator(np.sum(d.reshape((d.shape[0]//dim**2,dim**2)),axis=0)) for d in dms]
 def boundary_z(im,lop,zs):
     pass
