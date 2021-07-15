@@ -3,7 +3,7 @@ import numpy as np
 from ... import dense
 import scipy.sparse as sparse
 def boundary_dm_evolution(im,lop,init):
-    dms=[init.ravel()]
+    dms=[dense.operator_to_state(init)]
     dim=init.shape[0]
     if isinstance(lop,np.ndarray):
         lop=[lop for _ in range(im.L)]
@@ -13,7 +13,7 @@ def boundary_dm_evolution(im,lop,init):
         lopc=dense.kron([np.eye(bimc.shape[1]//4),dense.unitary_channel(lop[i])])
         dms.append(lopc@dms[-1])
         dms.append(imc@dms[-1])
-    return [np.sum(d.reshape((d.shape[0]//(dim**2),dim,dim)),axis=0) for d in dms]
+    return [dense.state_to_operator(np.sum(d.reshape((d.shape[0]//(dim**2),dim**2)),axis=0)) for d in dms]
 
 # def embedded_dm_evolution(left,lop,right,init):
 #     dms=[init.ravel()]
@@ -39,7 +39,7 @@ def boundary_dm_evolution(im,lop,init):
 #     return [np.sum(d.reshape((dd[0],dd[1],dd[2])),axis=(0,2)).reshape((dim,dim)) for d,dd in zip(dms,dmsd)]
 
 def embedded_dm_evolution(left,lop,right,init):
-    dms=[init.ravel()]
+    dms=[dense.operator_to_state(init)]
     dim=init.shape[0]
     if isinstance(lop,np.ndarray):
         lop=[lop for _ in range(left.L)]
@@ -56,7 +56,7 @@ def embedded_dm_evolution(left,lop,right,init):
         lopc=sparse.kron(np.eye(imc.shape[1]//dim**2),dense.unitary_channel(lop[i]))
         dms.append(lopc@dms[-1])
         dms.append(imc@dms[-1])
-    return [np.sum(d.reshape((d.shape[0]//dim**2,dim**2)),axis=0).reshape((dim,dim)) for d in dms]
+    return [dense.state_to_operator(np.sum(d.reshape((d.shape[0]//dim**2,dim**2)),axis=0)) for d in dms]
 def boundary_z(im,lop,zs):
     pass
 def embedded_z(left,lop,right,zs):

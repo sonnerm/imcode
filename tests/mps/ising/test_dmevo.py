@@ -60,7 +60,6 @@ def test_embedded_double_dmevo_ising(seed_rng):
     assert (np.array(rim.tpmps.chi)<=chi).all()
     dms=mps.ising.embedded_dm_evolution(lim,lop,rim,init)
     F=dense.ising.ising_F(Ll+Lr+2,Js,gs,hs)
-    # Fc=dense.unitary_channel(F)
     state=dense.kron([np.eye(2)/2]*(Ll)+[init]+[np.eye(2)/2]*(Lr))
     summil=dense.kron([np.eye(2)]*(Ll))
     summir=dense.kron([np.eye(2)]*(Lr))
@@ -79,9 +78,6 @@ def test_embedded_single_dmevo_ising(seed_rng):
     Js=np.random.normal(size=(Ll+Lr,))
     gs=np.random.normal(size=(Ll+Lr+1,))
     hs=np.random.normal(size=(Ll+Lr+1,))
-    Js=[Js[0]]*(Ll+Lr)
-    gs=[gs[0]]*(Ll+Lr+1)
-    hs=[hs[0]]*(Ll+Lr+1)
     Tsl=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:Ll],gs[:Ll],hs[:Ll])]
     Tsr=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[-1:-Lr-1:-1],gs[-1:-Lr-1:-1],hs[-1:-Lr-1:-1])]
     lop=la.expm(1.0j*hs[Ll]*dense.SZ)@la.expm(1.0j*gs[Ll]*dense.SX)
@@ -105,9 +101,6 @@ def test_embedded_single_dmevo_ising(seed_rng):
     for i in range(t):
         state=F@state@F.T.conj()
         ddms.append(np.einsum("ad,abcdef,cf->be",summil,state.reshape((2**Ll),2,(2**Lr),(2**Ll),2,(2**Lr)),summir))
-    [print(d) for d in dms]
-    print()
-    [print(d) for d in ddms]
 
     for d,dd in zip(dms[::2],ddms):
         assert d==pytest.approx(dd)
