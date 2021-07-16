@@ -1,4 +1,5 @@
 #from numpy.core.einsumfunc import einsum
+from types import DynamicClassAttribute
 import numpy as np
 from numpy.core.numeric import identity
 from numpy.linalg import matrix_power
@@ -8,7 +9,7 @@ from reorder_eigenvecs import reorder_eigenvecs
 
 
 def dress_density_matrix(rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers):
-
+    nsites = int (len(rho_0[0]) / 2)
     eigenvals = np.zeros(len(rho_0[0]))
     N_t = np.identity(len(rho_0[0]), dtype=np.complex_)
 
@@ -23,28 +24,31 @@ def dress_density_matrix(rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     print ('F_Enorm',linalg.norm(F_E_prime) )
     # diagonalize dressed density matrix:
     rho_dressed_herm = 0.5*(rho_dressed + rho_dressed.T.conj())#this stabilizes search for eigenvectors
+    rho_0_herm = 0.5*(rho_0 + rho_0.T.conj())#this stabilizes search for eigenvectors
+    eigenvals, eigenvecs = linalg.eigh(-linalg.logm(rho_dressed_herm))
+    eigenvals_0, eigenvecs_0 = linalg.eigh(rho_0_herm)
+
+    N_t = eigenvecs
     
-    eigenvals, eigenvecs = linalg.eigh(rho_dressed_herm)
 
-    argsort = np.argsort(- np.real(-np.log(eigenvals)))
-    for i in range(int(len(rho_0[0])/2)):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
-        N_t[:, i] = eigenvecs[:, argsort[i]]
-        N_t[:, len(rho_0[0]) - 1 - i] = eigenvecs[:, argsort[i + int(len(rho_0[0])/2)]]
 
-    N_t = reorder_eigenvecs(N_t, int(len(rho_0[0])/2))
+    Z_dressed = 1
+    Z_0 = 1
+    n_expect = np.zeros((2 * nsites),dtype=np.complex_)
+    for k in range (nsites):
+        Z_dressed *= (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
+        Z_0 *= (np.exp(-eigenvals_0[k + nsites]) + np.exp(-eigenvals_0[k])) 
 
-    diag = N_t.T.conj() @ rho_dressed_herm @ N_t
-    eigenvals = diag.diagonal()
-   
+    for k in range (nsites):
+        n_expect[k] = Z_dressed / Z_0 * np.exp(-eigenvals[k]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
+        n_expect[k + nsites] = Z_dressed / Z_0 * np.exp(-eigenvals[k + nsites]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
+    
     print('dressed_matrix_test')
     print(rho_dressed)
     print(rho_dressed_herm)
     print('N_t')
     print(N_t)
-    print('rho_diagonalized')
-    print( diag)
     print('eigenvalues')
     print(eigenvals)
-    print('eigenvalues')
-    print(-np.log(eigenvals))
-    return (-np.log(eigenvals)), N_t  # eigenvalues of exponent of dressed DM, matrix that diagonalizes dressed density matrix rho_dresse
+    
+    return n_expect, N_t  # eigenvalues of exponent of dressed DM, matrix that diagonalizes dressed density matrix rho_dresse
