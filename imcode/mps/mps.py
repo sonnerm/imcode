@@ -135,6 +135,8 @@ class SimpleMPS(MPS):
         self.S=_S_helper(tpmps)
         _tp_canonical_form(tpmps)
         self.L=tpmps.L
+    def bond_entropy(self):
+        return self.tpmps.entanglement_entropy()
 
     def save_to_hdf5(self,hdf5obj,name=None):
         if name is not None:
