@@ -34,11 +34,13 @@ class MPS(ABC):
             sites.append(Site(LegCharge.from_trivial(b.shape[2])))
         return SimpleMPS(tenpy.networks.mps.MPS.from_Bflat(sites,bss,Svs,form=None))
     @classmethod
-    def load_hdf5(cls,hdf5obj):
+    def load_from_hdf5(cls,hdf5obj,name=None):
+        if name is not None:
+            hdf5obj=hdf5obj[name]
         Ws=[]
-        for i in range(hdf5obj["L"]):
-            Ws[i]=np.array(hdf5obj["M_%i"%i])
-        cls.from_matrices(Ws)
+        for i in range(int(np.array(hdf5obj["L"]))):
+            Ws.append(np.array(hdf5obj["M_%i"%i]))
+        return cls.from_matrices(Ws)
     @classmethod
     def from_tenpy(cls,tpmps):
         return SimpleMPS(tpmps)
@@ -134,10 +136,15 @@ class SimpleMPS(MPS):
         _tp_canonical_form(tpmps)
         self.L=tpmps.L
 
-    def save_hdf5(self,hdf5obj):
-        hdf5obj["L"]=self.L
-        for i in range(L):
-            hdf5obj["M_%i"]=np.array(self.get_B(i))
+    def save_to_hdf5(self,hdf5obj,name=None):
+        if name is not None:
+            hdf5obj=hdf5obj.create_group(name)
+        L=self.tpmps.L
+        hdf5obj["L"]=L
+        for i in range(L-1):
+            hdf5obj["M_%i"%i]=np.array(self.get_B(i))
+        hdf5obj["M_%i"%(L-1)]=np.array(self.get_B(L-1)*self.tpmps.norm)
+
     def get_B(self,i):
         return self.tpmps.get_B(i,copy=True).to_ndarray().transpose([0,2,1])
     def get_S(self,i):
@@ -205,11 +212,13 @@ class MPO(ABC):
             wss.append(Wn)
         return SimpleMPO(tenpy.networks.mpo.MPO(sites,wss))
     @classmethod
-    def load_hdf5(cls,hdf5obj):
+    def load_from_hdf5(cls,hdf5obj,name=None):
+        if name is not None:
+            hdf5obj=hdf5obj[name]
         Ws=[]
-        for i in range(hdf5obj["L"]):
-            Ws[i]=np.array(hdf5obj["M_%i"%i])
-        cls.from_matrices(Ws)
+        for i in range(int(np.array(hdf5obj["L"]))):
+            Ws.append(np.array(hdf5obj["M_%i"%i]))
+        return cls.from_matrices(Ws)
 
     @classmethod
     def from_tenpy(cls,tpmpo):
@@ -234,10 +243,12 @@ class SimpleMPO(MPO):
         return self #already contracted
     def get_W(self,i):
         return self.tpmpo.get_W(i,True).to_ndarray()
-    def save_hdf5(self,hdf5obj):
-        hdf5obj["L"]=self.L
-        for i in range(L):
-            hdf5obj["M_%i"]=np.array(self.get_W(i))
+    def save_to_hdf5(self,hdf5obj,name):
+        if name is not None:
+            hdf5obj=hdf5obj.create_group(name)
+        hdf5obj["L"]=self.tpmpo.L
+        for i in range(self.tpmpo.L):
+            hdf5obj["M_%i"%i]=np.array(self.get_W(i))
     def input_dims(self):
         return [M.shape[3] for M in self.Ms]
     def output_dims(self):
