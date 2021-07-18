@@ -8,10 +8,10 @@ def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
     # initialize diagonal matricx that encodes dressing
     D_beta = np.zeros((2 ,2, 2*nsites), dtype=np.complex_)#first dimension: branch, second dimension: sites 0 and 0+L
 
-    D_beta[0,0, 0] = np.exp(beta_tilde)
-    D_beta[0,1, nsites] = np.exp(-beta_tilde)
-    D_beta[1,0, 0] = np.exp(-beta_tilde)
-    D_beta[1,1, nsites] = np.exp(beta_tilde)
+    D_beta[0,0, 0] = np.exp(-beta_tilde)
+    D_beta[0,1, nsites] = np.exp(beta_tilde)
+    D_beta[1,0, 0] = np.exp(beta_tilde)
+    D_beta[1,1, nsites] = np.exp(-beta_tilde)
 
     # initialize evolvers
     # first dimension 2 is for forward/backward branch (0 is forward, 1 is backward), second dimension 2 is because we do not compute correlations at every site in the environment but only at site 1 -> two relevant lines (site 0 and 0+L in env.) are extracted (in principle one would have dimension 2*nsites here,too)

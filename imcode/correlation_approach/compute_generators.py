@@ -59,8 +59,8 @@ def compute_generators(nsites, Jx=0, Jy=0, g=0):
 
     beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 
-    G_1[0, 0] = 2 * beta_tilde
-    G_1[nsites, nsites] = -2 * beta_tilde
+    G_1[0, 0] = - 2 * beta_tilde#edit
+    G_1[nsites, nsites] = +2 * beta_tilde#edit (sign)
 
     # give out explicit form of generators
     print('G_XY_even = ')
