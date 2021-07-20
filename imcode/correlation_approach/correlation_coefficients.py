@@ -23,7 +23,8 @@ def correlation_coefficients(T_tilde, nsites, nbr_Floquet_layers):
       
         # A-arguments: dressing, hermitian_conj_of_N, backward branch, "Zeta/+ Majorana", time, lattice index
         A[:, :, 1, 1, tau,:] = T_tilde[:, :, 1, tau, 0, :] + T_tilde[:, :, 1, tau, 1, :]
-        print ('array-shapes:', A.shape)
+        print ('array-shapes_cooo:', A.shape)
+        print (A[0, 0, 1, 1, tau,:],A[1, 0, 1, 1, tau,:])
 
     return A
 

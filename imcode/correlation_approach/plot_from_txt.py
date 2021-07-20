@@ -5,7 +5,7 @@ def zero_to_nan(values):
     return [float('nan') if x==0 else x for x in values]
 
 
-filename = 'ent_entropy_Jx=0_Jy=0.7853981633974483_g=0.31_beta=0_L=300.0'
+filename = '/Users/julianthoenniss/Documents/PhD/data/ent_entropy_Jx=0.4_Jy=0.5_g=0_beta=0_L=200'
 data = np.loadtxt(filename + '.txt')
 
 num_rows, num_cols = data.shape
@@ -31,4 +31,7 @@ ax.tick_params(axis="y",direction="in")
 ax.tick_params(axis="x",direction="in")
 ax.legend(loc="lower right")
 
-plt.savefig('post_' + filename + '.pdf') 
+mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach'
+work_path = '/Users/julianthoenniss/Documents/PhD/data/'
+fiteo1_path = '/home/thoennis/data/correlation_apporach/'
+plt.savefig(filename + '_post.png')

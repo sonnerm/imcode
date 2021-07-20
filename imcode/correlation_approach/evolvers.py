@@ -6,7 +6,7 @@ from numpy.linalg import matrix_power
 def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
 
     # initialize diagonal matricx that encodes dressing
-    D_beta = np.zeros((2 ,2, 2*nsites), dtype=np.complex_)#arguments:branch,  sites 0 and 0+L
+    D_beta = np.zeros((2 ,2, 2*nsites), dtype=np.complex_)#arguments:branch,  sites 0 and 0+L, lattice_site (0-2L)
 
     D_beta[0,0, 0] = np.exp(-beta_tilde)
     D_beta[0,1, nsites] = np.exp(beta_tilde)
