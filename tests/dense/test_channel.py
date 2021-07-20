@@ -1,7 +1,7 @@
 import imcode.dense as dense
 import pytest
 import numpy as np
-def test_unitary_channel(seed_rng):
+def test_unitary_channel_sandwich(seed_rng):
     L=4
     F=np.random.normal(size=(2**L,2**L))+1.0j*np.random.normal(size=(2**L,2**L))
     init=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
@@ -16,7 +16,7 @@ def test_unitary_channel(seed_rng):
     assert trad==pytest.approx(newm)
 #
 def test_unitary_channel_generic(seed_rng):
-    L=2
+    L=4
     F=np.random.normal(size=(2**L,2**L))+1.0j*np.random.normal(size=(2**L,2**L))
     init=np.random.normal(size=(2**L,2**L))+1.0j*np.random.normal(size=(2**L,2**L))
     trad=F@init@F.T.conj()
