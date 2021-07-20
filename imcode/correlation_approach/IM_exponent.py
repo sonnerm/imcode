@@ -90,35 +90,32 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             prefac_x = alpha * np.tan(Jx)
             prefac_y = alpha * np.tan(Jy)
 
-            B[4 * tau_1, 4 * tau_2] = -1j * G_Feynman_thetatheta * prefac_y**2
-            B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2
-            B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * prefac_y**2
-            B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * G_AntiFeynman_thetatheta * prefac_y**2
+            B[4 * tau_1, 4 * tau_2] = -1j * G_Feynman_thetatheta * prefac_y**2 * 2
+            B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2 * 2
+            B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * prefac_y**2 * 2
+            B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * G_AntiFeynman_thetatheta * prefac_y**2 * 2
 
-            B[4 * tau_1, 4 * tau_2 + 2] = -1 * G_Feynman_thetazeta * prefac_x * prefac_y
-            B[4 * tau_1, 4 * tau_2 + 3] = G_lesser_thetazeta * prefac_x * prefac_y
-            B[4 * tau_1 + 1, 4 * tau_2 + 2] = -1 * G_greater_thetazeta * prefac_x * prefac_y
-            B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * prefac_x * prefac_y
+            B[4 * tau_1, 4 * tau_2 + 2] = -1 * G_Feynman_thetazeta * prefac_x * prefac_y * 2
+            B[4 * tau_1, 4 * tau_2 + 3] = G_lesser_thetazeta * prefac_x * prefac_y * 2
+            B[4 * tau_1 + 1, 4 * tau_2 + 2] = -1 * G_greater_thetazeta * prefac_x * prefac_y * 2
+            B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * prefac_x * prefac_y * 2
 
-            B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y
-            B[4 * tau_1 + 2, 4 * tau_2 + 1] = -1 * G_lesser_zetatheta * prefac_x * prefac_y
-            B[4 * tau_1 + 3, 4 * tau_2] = G_greater_zetatheta * prefac_x * prefac_y
-            B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * prefac_x * prefac_y
+            B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y * 2
+            B[4 * tau_1 + 2, 4 * tau_2 + 1] = -1 * G_lesser_zetatheta * prefac_x * prefac_y * 2
+            B[4 * tau_1 + 3, 4 * tau_2] = G_greater_zetatheta * prefac_x * prefac_y * 2
+            B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * prefac_x * prefac_y * 2
 
-            B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * G_Feynman_zetazeta * prefac_x**2
-            B[4 * tau_1 + 2, 4 * tau_2 + 3] = - 1j * G_lesser_zetazeta * prefac_x**2
-            B[4 * tau_1 + 3, 4 * tau_2 + 2] = - 1j * G_greater_zetazeta * prefac_x**2
-            B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * G_AntiFeynman_zetazeta * prefac_x**2
+            B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * G_Feynman_zetazeta * prefac_x**2 * 2
+            B[4 * tau_1 + 2, 4 * tau_2 + 3] = - 1j * G_lesser_zetazeta * prefac_x**2 * 2
+            B[4 * tau_1 + 3, 4 * tau_2 + 2] = - 1j * G_greater_zetazeta * prefac_x**2 * 2
+            B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * G_AntiFeynman_zetazeta * prefac_x**2 * 2
 
     for tau in range(nbr_Floquet_layers):  # trivial factor
 
-        B[4 * tau, 4 * tau + 2] += 0.5
-        B[4 * tau + 1, 4 * tau + 3] -= 0.5
-        B[4 * tau + 2, 4 * tau] -= 0.5
-        B[4 * tau + 3, 4 * tau + 1] += 0.5
-
-    # factor 2 to fit Alessio's notes where we have 1/2 B in exponent of influence matrix
-    B = np.dot(2., B)
+        B[4 * tau, 4 * tau + 2] +=  (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
+        B[4 * tau + 1, 4 * tau + 3] -=   (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
+        B[4 * tau + 2, 4 * tau] -=   (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
+        B[4 * tau + 3, 4 * tau + 1] +=  (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
 
     print('B\n')
     print(B)
