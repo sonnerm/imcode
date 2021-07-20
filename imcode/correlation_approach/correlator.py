@@ -10,7 +10,10 @@ def correlator(A, n_expect, branch1, majorana_type1, tau_1, branch2, majorana_ty
     result = 0
    
     if tau_2_index == tau_1_index and branch1 == branch2 and majorana_type1 != majorana_type2:#dressing only for second observable (first argument = 0 in second coefficient array)
-        result = np.einsum('k,k,k-> ',A[1, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[0, 1,branch2, majorana_type2, tau_2_index])
+        if branch1 == 0:
+            result = np.einsum('k,k,k-> ',A[0, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[1, 1,branch2, majorana_type2, tau_2_index])
+        else:
+            result = np.einsum('k,k,k-> ',A[1, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[0, 1,branch2, majorana_type2, tau_2_index])
     else:#dressing in both cases (first argument = 1 in both coefficient arrays)
         result = np.einsum('k,k,k-> ',A[1, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[1, 1,branch2, majorana_type2, tau_2_index])
     
