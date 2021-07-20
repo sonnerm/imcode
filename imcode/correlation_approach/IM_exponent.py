@@ -17,13 +17,12 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
 
     # procompute evolvers T from which the correlation coefficients A can be inferred
     # T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,eigenvalues_G_eff_bw, nsites, nbr_Floquet_layers, beta_tilde)  # array containing the evolvers
-    T_tilde, T_tilde_mod = evolvers(
+    T_tilde = evolvers(
         evolution_matrix, N_t, nsites, nbr_Floquet_layers, beta_tilde)
     print(T_tilde)
     # precompute correlation coefficients A from which we construct the correlation functions
     # array containing all correlation coefficients (computed from evolvers T_tilde)
-    A = correlation_coefficients(
-        T_tilde, T_tilde_mod, nsites, nbr_Floquet_layers)
+    A = correlation_coefficients( T_tilde,  nsites, nbr_Floquet_layers)
     print ('IM_d', A.shape)
     # exponent of IM
     B = np.zeros((4 * nbr_Floquet_layers, 4 *
