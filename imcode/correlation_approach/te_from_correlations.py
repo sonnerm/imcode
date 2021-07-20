@@ -16,18 +16,18 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 32
-max_time2 = 40
-stepsize1 = 10
+max_time1 = 30
+max_time2 = 52
+stepsize1 = 2
 stepsize2 = 20
 
 # lattice sites:
-nsites = 60
+nsites = 100
 
 # model parameters:
-Jx = np.pi/4-1e-6 # 0.31
-Jy = np.pi/4+1e-6
-g = 0
+Jx =0.5# 0.31 # 0.31
+Jy = 0.3#np.pi/4
+g =0#np.pi/4
 beta = 0  # temperature
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
 gamma_test_range = 6
@@ -60,10 +60,10 @@ for total_time in range(2, max_time1, stepsize1):
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
     print('alpha_0_square', alpha_0_square)
-    rho_eigvals, N_t = dress_density_matrix(
+    n_expect, N_t, Z_dressed_over_Z_0 = dress_density_matrix(
         rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     B = IM_exponent(evolution_matrix, N_t, nsites,
-                    nbr_Floquet_layers, Jx, Jy, rho_eigvals)
+                    nbr_Floquet_layers, Jx, Jy, n_expect, Z_dressed_over_Z_0)
     # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
