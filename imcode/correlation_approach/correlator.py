@@ -20,8 +20,8 @@ def correlator(A, n_expect, branch1, majorana_type1, tau_1, branch2, majorana_ty
 
         result_compare += A[branch2, majorana_type2, tau_2_index, k + nsites]*A[branch1, majorana_type1, tau_1_index, k] * n_expect[k]+ A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites] * n_expect[k + nsites]
     """
-    print ('corr_shape', A[0,branch1, majorana_type1, tau_1_index].shape, A.shape)
-    result3 = np.einsum('k,k,k-> ',A[0,branch1, majorana_type1, tau_1_index] , n_expect, A[1,branch2, majorana_type2, tau_2_index])
+    
+    result3 = np.einsum('k,k,k-> ',A[1, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[1, 1,branch2, majorana_type2, tau_2_index])
 
         #print ('correlator_comparison', (result - result_compare) / result , result)
         # infinite temperature limit in Ising case (in xy case, even the infinite temperature density matrix is nontrivial when dressed)
