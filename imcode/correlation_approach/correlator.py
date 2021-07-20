@@ -1,8 +1,4 @@
 import numpy as np
-from numpy.linalg import eigvals
-from fermi_distr import n_F
-# seed random number generator
-
 
 # i and j are site indices, s and sp specify whether the fermionic operators have a dagger (=1) or not (=0), t2 and t1 denote times, M is the matrix of eigenvetors (as columns) and eigenvalues_G_eff contains eigenvalues of G_eff )
 # returns greater correlation function
@@ -12,22 +8,11 @@ def correlator(A, n_expect, branch1, majorana_type1, tau_1, branch2, majorana_ty
     tau_1_index = tau_1 - 1
     tau_2_index = tau_2 - 1
     result = 0
-    result_compare = 0 #without phase-independent evolution operators
-  
-    """
-    for k in range(nsites):
-        result += A_mod[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k] * n_expect[k] + A_mod[branch2, majorana_type2, tau_2_index, k + nsites]*A[branch1, majorana_type1, tau_1_index, k+nsites] * n_expect[k + nsites]
-
-        result_compare += A[branch2, majorana_type2, tau_2_index, k + nsites]*A[branch1, majorana_type1, tau_1_index, k] * n_expect[k]+ A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites] * n_expect[k + nsites]
-    """
+   
+    if tau_2_index == tau_1_index and branch1 == branch2 and majorana_type1 != majorana_type2:#dressing only for second observable (first argument = 0 in second coefficient array)
+        result = np.einsum('k,k,k-> ',A[1, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[0, 1,branch2, majorana_type2, tau_2_index])
+    else:#dressing in both cases (first argument = 1 in both coefficient arrays)
+        result = np.einsum('k,k,k-> ',A[1, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[1, 1,branch2, majorana_type2, tau_2_index])
     
-    result3 = np.einsum('k,k,k-> ',A[1, 0,branch1, majorana_type1, tau_1_index] , n_expect, A[1, 1,branch2, majorana_type2, tau_2_index])
 
-        #print ('correlator_comparison', (result - result_compare) / result , result)
-        # infinite temperature limit in Ising case (in xy case, even the infinite temperature density matrix is nontrivial when dressed)
-        # result += (A[branch2, majorana_type2, tau_2_index, k+nsites]*A[branch1, majorana_type1, tau_1_index, k] + A[branch2, majorana_type2, tau_2_index, k]*A[branch1, majorana_type1, tau_1_index, k+nsites]) * 0.5 #edit
-
-    # the following simplification is only possible in the Ising limit:
-    #result = - 0.5 * np.dot(A[branch1, majorana_type1, tau_1_index] ,A[branch2, majorana_type2, tau_2_index].T.conj())
-
-    return result3
+    return result
