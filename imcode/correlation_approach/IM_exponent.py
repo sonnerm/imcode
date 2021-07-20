@@ -7,7 +7,7 @@ from correlator import correlator
 
 
 # nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
-def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_expect):
+def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_expect, Z_dressed_over_Z_0):
     f = 1  # need to prove that this is always tru
     # define parameters:
     #T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
@@ -27,6 +27,7 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
     # exponent of IM
     B = np.zeros((4 * nbr_Floquet_layers, 4 *
                  nbr_Floquet_layers), dtype=np.complex_)
+
 
     for tau_1 in range(nbr_Floquet_layers):
         for tau_2 in range(nbr_Floquet_layers):
@@ -90,6 +91,8 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             prefac_x = alpha * np.tan(Jx)
             prefac_y = alpha * np.tan(Jy)
 
+
+            # B is the matrix that contains all the correlations, excatly corresponding to the matrix [[G_thetatheta, G_thetazeta],[G_zetatheta, G_zetazeta]] in my notes, without additional prefactors
             B[4 * tau_1, 4 * tau_2] = -1j * G_Feynman_thetatheta * prefac_y**2 * 2
             B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2 * 2
             B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * prefac_y**2 * 2
@@ -110,12 +113,11 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             B[4 * tau_1 + 3, 4 * tau_2 + 2] = - 1j * G_greater_zetazeta * prefac_x**2 * 2
             B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * G_AntiFeynman_zetazeta * prefac_x**2 * 2
 
-    for tau in range(nbr_Floquet_layers):  # trivial factor
-
-        B[4 * tau, 4 * tau + 2] +=  (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
-        B[4 * tau + 1, 4 * tau + 3] -=   (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
-        B[4 * tau + 2, 4 * tau] -=   (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
-        B[4 * tau + 3, 4 * tau + 1] +=  (1 - 2 * np.tan(Jx) * np.tan(Jy) / (1 + np.tan(Jx) * np.tan(Jy)))
+    for tau in range(nbr_Floquet_layers):  # trivial factor. Note that there is no factor 0.5 here since it is absorbed into B which already has a prefactor 0.5 in the exponent
+        B[4 * tau, 4 * tau + 2] +=  Z_dressed_over_Z_0
+        B[4 * tau + 1, 4 * tau + 3] -=   Z_dressed_over_Z_0
+        B[4 * tau + 2, 4 * tau] -=   Z_dressed_over_Z_0
+        B[4 * tau + 3, 4 * tau + 1] +=  Z_dressed_over_Z_0
 
     print('B\n')
     print(B)
