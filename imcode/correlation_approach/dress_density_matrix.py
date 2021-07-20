@@ -32,16 +32,15 @@ def dress_density_matrix(rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
 
 
-    Z_dressed = 1
-    Z_0 = 1
+    Z_dressed_over_Z_0 = 1
+    
     n_expect = np.zeros((2 * nsites),dtype=np.complex_)
     for k in range (nsites):
-        Z_dressed *= (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
-        Z_0 *= (np.exp(-eigenvals_0[k + nsites]) + np.exp(-eigenvals_0[k])) 
-
+        Z_dressed_over_Z_0 *= (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) / (np.exp(-eigenvals_0[k + nsites]) + np.exp(-eigenvals_0[k])) 
+       
     for k in range (nsites):
-        n_expect[k] = Z_dressed / Z_0 * np.exp(-eigenvals[k]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
-        n_expect[k + nsites] = Z_dressed / Z_0 * np.exp(-eigenvals[k + nsites]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
+        n_expect[k] = Z_dressed_over_Z_0 * np.exp(-eigenvals[k]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
+        n_expect[k + nsites] = Z_dressed_over_Z_0 * np.exp(-eigenvals[k + nsites]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
     
     print('dressed_matrix_test')
     print(rho_dressed)
@@ -51,4 +50,4 @@ def dress_density_matrix(rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     print('eigenvalues')
     print(eigenvals)
     
-    return n_expect, N_t  # eigenvalues of exponent of dressed DM, matrix that diagonalizes dressed density matrix rho_dresse
+    return n_expect, N_t , Z_dressed_over_Z_0 # eigenvalues of exponent of dressed DM, matrix that diagonalizes dressed density matrix rho_dresse
