@@ -12,7 +12,8 @@ def brickwork_H(L,gates):
 
 
 def brickwork_F(L,gates,reversed=False):
-    if len(gates)==L-1:
+    assert (len(gates)!=L) or (L%2==0) #periodic doesn't work for odd number of sites
+    if (len(gates)==L-1) and (L%2==0):
         gates.append(np.eye(4))
     evs=kron([g for g in gates[::2]]+([np.eye(2)] if L%2==1 else []))
     ods=kron([g for g in gates[1::2]]+([np.eye(2)] if L%2==1 else []))
