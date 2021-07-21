@@ -38,21 +38,15 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             G_lesser_zetazeta = 1j * correlator(A, n_expect, 0, 1, time_1, 1, 1, time_2, nsites)
             G_greater_zetazeta = -1j * correlator(A, n_expect, 0, 1, time_2, 1, 1, time_1, nsites)
 
-
             G_lesser_zetatheta = correlator(A, n_expect, 0, 1, time_1, 1, 0, time_2, nsites)
             G_greater_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 1, 1, time_1, nsites)
        
-
             G_lesser_thetazeta = correlator(A, n_expect, 0, 0, time_1, 1, 1, time_2, nsites)
             G_greater_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 1, 0, time_1, nsites)
-   
-
 
             G_lesser_thetatheta = -1j * correlator(A, n_expect, 0, 0, time_1, 1, 0, time_2, nsites)
             G_greater_thetatheta = 1j * correlator(A, n_expect, 0, 0, time_2, 1, 0, time_1, nsites)
            
-
-            
             G_Feynman_zetazeta = 0
             G_AntiFeynman_zetazeta = 0
             G_Feynman_zetatheta = 0
@@ -99,14 +93,22 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * G_AntiFeynman_thetatheta * prefac_y**2 * 2
 
             B[4 * tau_1, 4 * tau_2 + 2] = -1 * G_Feynman_thetazeta * prefac_x * prefac_y * 2
+            if tau_1 == tau_2:
+                B[4 * tau_1, 4 * tau_2 + 2] *= 1. / alpha
             B[4 * tau_1, 4 * tau_2 + 3] = G_lesser_thetazeta * prefac_x * prefac_y * 2
             B[4 * tau_1 + 1, 4 * tau_2 + 2] = -1 * G_greater_thetazeta * prefac_x * prefac_y * 2
             B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * prefac_x * prefac_y * 2
+            if tau_1 == tau_2:
+                B[4 * tau_1 + 1, 4 * tau_2 + 3] *= 1. / alpha
 
             B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y * 2
+            if tau_1 == tau_2:
+                B[4 * tau_1 + 2, 4 * tau_2] *= 1. / alpha
             B[4 * tau_1 + 2, 4 * tau_2 + 1] = -1 * G_lesser_zetatheta * prefac_x * prefac_y * 2
             B[4 * tau_1 + 3, 4 * tau_2] = G_greater_zetatheta * prefac_x * prefac_y * 2
             B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * prefac_x * prefac_y * 2
+            if tau_1 == tau_2:
+                B[4 * tau_1 + 3, 4 * tau_2 + 1] *= 1. / alpha
 
             B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * G_Feynman_zetazeta * prefac_x**2 * 2
             B[4 * tau_1 + 2, 4 * tau_2 + 3] = - 1j * G_lesser_zetazeta * prefac_x**2 * 2
@@ -114,10 +116,10 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * G_AntiFeynman_zetazeta * prefac_x**2 * 2
 
     for tau in range(nbr_Floquet_layers):  # trivial factor. Note that there is no factor 0.5 here since it is absorbed into B which already has a prefactor 0.5 in the exponent
-        B[4 * tau, 4 * tau + 2] +=  Z_dressed_over_Z_0
-        B[4 * tau + 1, 4 * tau + 3] -=   Z_dressed_over_Z_0
-        B[4 * tau + 2, 4 * tau] -=   Z_dressed_over_Z_0
-        B[4 * tau + 3, 4 * tau + 1] +=  Z_dressed_over_Z_0
+        B[4 * tau, 4 * tau + 2] +=  1
+        B[4 * tau + 1, 4 * tau + 3] -=  1
+        B[4 * tau + 2, 4 * tau] -=  1
+        B[4 * tau + 3, 4 * tau + 1] += 1
 
     print('B\n')
     print(B)
