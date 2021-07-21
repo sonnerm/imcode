@@ -39,9 +39,9 @@ def dress_density_matrix(rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
         Z_dressed_over_Z_0 *= (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) / (np.exp(-eigenvals_0[k + nsites]) + np.exp(-eigenvals_0[k])) 
        
     for k in range (nsites):
-        n_expect[k] = Z_dressed_over_Z_0 * np.exp(-eigenvals[k]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
-        n_expect[k + nsites] = Z_dressed_over_Z_0 * np.exp(-eigenvals[k + nsites]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
-    
+        n_expect[k] =  np.exp(-eigenvals[k]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
+        n_expect[k + nsites] =  np.exp(-eigenvals[k + nsites]) /  (np.exp(-eigenvals[k + nsites]) + np.exp(-eigenvals[k])) 
+
     print('dressed_matrix_test')
     print(rho_dressed)
     print(rho_dressed_herm)
