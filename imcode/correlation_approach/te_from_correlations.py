@@ -58,8 +58,8 @@ for total_time in range(2, max_time1, stepsize1):
     nbr_Floquet_layers = total_time + 1
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
-    n_expect, N_t, Z_dressed_over_Z_0 = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
-    
+    n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+
     B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, n_expect)
 
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
