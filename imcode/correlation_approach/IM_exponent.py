@@ -90,46 +90,36 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
                 G_AntiFeynman_thetazeta = correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2, nsites)
 
 
-            
-            prefac_x = alpha * np.tan(Jx)
-            prefac_y = alpha * np.tan(Jy)
-
+            #define prefactors for correlators to make notation more compact
+            prefac_x = alpha * np.tan(Jx) * np.sqrt(2)
+            prefac_y = alpha * np.tan(Jy) * np.sqrt(2)
 
             # B is the matrix that contains all the correlations, excatly corresponding to the matrix [[G_thetatheta, G_thetazeta],[G_zetatheta, G_zetazeta]] in my notes, without additional prefactors
-            B[4 * tau_1, 4 * tau_2] = -1j * G_Feynman_thetatheta * prefac_y**2 * 2
-            B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2 * 2
-            B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * prefac_y**2 * 2
-            B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * G_AntiFeynman_thetatheta * prefac_y**2 * 2
+            B[4 * tau_1, 4 * tau_2] = -1j * G_Feynman_thetatheta * prefac_y**2 
+            B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2 
+            B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * prefac_y**2 
+            B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * G_AntiFeynman_thetatheta * prefac_y**2 
 
-            B[4 * tau_1, 4 * tau_2 + 2] = -1 * G_Feynman_thetazeta * prefac_x * prefac_y * 2
-            if tau_1 == tau_2:
-                B[4 * tau_1, 4 * tau_2 + 2] *= 1. / alpha
-                print ('t1,', B[4 * tau_1, 4 * tau_2 + 2])
+            B[4 * tau_1, 4 * tau_2 + 2] = - 1 * G_Feynman_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1, 4 * tau_2 + 3] = G_lesser_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1 + 1, 4 * tau_2 + 2] = - 1 * G_greater_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * prefac_x * prefac_y 
 
-            B[4 * tau_1, 4 * tau_2 + 3] = G_lesser_thetazeta * prefac_x * prefac_y * 2
-            B[4 * tau_1 + 1, 4 * tau_2 + 2] = -1 * G_greater_thetazeta * prefac_x * prefac_y * 2
-            B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * prefac_x * prefac_y * 2
-            if tau_1 == tau_2:
-                B[4 * tau_1 + 1, 4 * tau_2 + 3] *= 1. / alpha
-                print ('t2,', B[4 * tau_1 + 1, 4 * tau_2 + 3])
+            B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 2, 4 * tau_2 + 1] = - 1 * G_lesser_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 3, 4 * tau_2] = G_greater_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * prefac_x * prefac_y 
+           
+            B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * G_Feynman_zetazeta * prefac_x**2 
+            B[4 * tau_1 + 2, 4 * tau_2 + 3] = -1j * G_lesser_zetazeta * prefac_x**2 
+            B[4 * tau_1 + 3, 4 * tau_2 + 2] = - 1j * G_greater_zetazeta * prefac_x**2 
+            B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * G_AntiFeynman_zetazeta * prefac_x**2 
 
-
-            B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y * 2
-            if tau_1 == tau_2:
-                B[4 * tau_1 + 2, 4 * tau_2] *= 1. / alpha
-                print ('t3,', B[4 * tau_1 + 2, 4 * tau_2])
-
-            B[4 * tau_1 + 2, 4 * tau_2 + 1] = -1 * G_lesser_zetatheta * prefac_x * prefac_y * 2
-            B[4 * tau_1 + 3, 4 * tau_2] = G_greater_zetatheta * prefac_x * prefac_y * 2
-            B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * prefac_x * prefac_y * 2
-            if tau_1 == tau_2:
-                B[4 * tau_1 + 3, 4 * tau_2 + 1] *= 1. / alpha
-                print ('t4,', B[4 * tau_1 + 3, 4 * tau_2 + 1])
-
-            B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * G_Feynman_zetazeta * prefac_x**2 * 2
-            B[4 * tau_1 + 2, 4 * tau_2 + 3] = - 1j * G_lesser_zetazeta * prefac_x**2 * 2
-            B[4 * tau_1 + 3, 4 * tau_2 + 2] = - 1j * G_greater_zetazeta * prefac_x**2 * 2
-            B[4 * tau_1 + 3, 4 * tau_2 + 3] = 1j * G_AntiFeynman_zetazeta * prefac_x**2 * 2
+            if tau_1 == tau_2:#equal time correlators between same operators on same branch have only one factor alpha -> cancel out one of the two.
+                B[4 * tau_1, 4 * tau_2 + 2] *= 1. / alpha #G_Feynman_thetazeta
+                B[4 * tau_1 + 1, 4 * tau_2 + 3] *= 1. / alpha #G_AntiFeynman_thetazeta
+                B[4 * tau_1 + 2, 4 * tau_2] *= 1. / alpha #G_Feynman_zetatheta
+                B[4 * tau_1 + 3, 4 * tau_2 + 1] *= 1. / alpha #G_AntiFeynman_zetatheta
 
     for tau in range(nbr_Floquet_layers):  # trivial factor. Note that there is no factor 0.5 here since it is absorbed into B which already has a prefactor 0.5 in the exponent
         B[4 * tau, 4 * tau + 2] +=  1
