@@ -1,15 +1,9 @@
 import numpy as np
 from scipy.linalg import expm
 from scipy import linalg
-from numpy.linalg import matrix_power
-import math
-
 
 def evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
 
-    # non-unitary gate stemming from vacuum projections (note that there is no imaginary j in from of G_1)
-    # non-unitary local gate in xy-model that causes eigenvalues to be complex. Contributes only for non-Ising couplings.
-    
     # compute evolution matrix:
     evolution_matrix = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     evolution_matrix[0] = linalg.inv(expm(1.j*G_g) @ expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd) @ expm( G_1))   # forward branch
