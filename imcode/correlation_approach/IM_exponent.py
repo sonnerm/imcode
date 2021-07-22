@@ -7,26 +7,20 @@ from correlator import correlator
 
 
 # nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
-def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_expect, Z_dressed_over_Z_0):
-    f = 1  # need to prove that this is always tru
+def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_expect):
+
     # define parameters:
-    #T_xy = 1 / (1 + f * np.tan(Jx) * np.tan(Jy))
     beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
     alpha = np.sqrt(2 * pow(np.cos(Jx)*np.cos(Jy),2) / (np.cos(2*Jx) + np.cos(2*Jy)))
 
-
     # procompute evolvers T from which the correlation coefficients A can be inferred
-    # T_tilde = evolvers(M_fw, M_fw_inverse, M_bw, M_bw_inverse, N_t, eigenvalues_G_eff_fw,eigenvalues_G_eff_bw, nsites, nbr_Floquet_layers, beta_tilde)  # array containing the evolvers
-    T_tilde = evolvers(
-        evolution_matrix, N_t, nsites, nbr_Floquet_layers, beta_tilde)
-    print(T_tilde)
-    # precompute correlation coefficients A from which we construct the correlation functions
-    # array containing all correlation coefficients (computed from evolvers T_tilde)
+    T_tilde = evolvers(evolution_matrix, N_t, nsites, nbr_Floquet_layers, beta_tilde)
+   
+    # precompute correlation coefficients A from which we construct the correlation functions, i.e. an array containing all correlation coefficients (computed from evolvers T_tilde)
     A = correlation_coefficients( T_tilde,  nsites, nbr_Floquet_layers)
-    print ('IM_d', A.shape)
-    # exponent of IM
-    B = np.zeros((4 * nbr_Floquet_layers, 4 *
-                 nbr_Floquet_layers), dtype=np.complex_)
+  
+    # define matrix B that is twice exponent of IM:
+    B = np.zeros((4 * nbr_Floquet_layers, 4 * nbr_Floquet_layers), dtype=np.complex_)
 
 
     for tau_1 in range(nbr_Floquet_layers):

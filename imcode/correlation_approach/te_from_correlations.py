@@ -56,15 +56,12 @@ iterator = 1
 # total_time = 0 means one floquet-layer
 for total_time in range(2, max_time1, stepsize1):
     nbr_Floquet_layers = total_time + 1
-    # dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
-    print('alpha_0_square', alpha_0_square)
-    n_expect, N_t, Z_dressed_over_Z_0 = dress_density_matrix(
-        rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
-    B = IM_exponent(evolution_matrix, N_t, nsites,
-                    nbr_Floquet_layers, Jx, Jy, n_expect, Z_dressed_over_Z_0)
-    # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
+    n_expect, N_t, Z_dressed_over_Z_0 = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+    
+    B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, n_expect)
+
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
     time_cuts = np.arange(1, nbr_Floquet_layers)
