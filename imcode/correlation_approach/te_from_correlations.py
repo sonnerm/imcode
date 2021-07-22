@@ -34,7 +34,7 @@ gamma_test_range = 6
 
 # define initial density matrix and determine matrix which diagonalizes it:
 # this is the EXPONENT of the BARE gaussian density matrix
-rho_0 = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
+rho_0_exponent = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
 # must be initialized as matrix that diagonalizes dressed density matrix
 N_t = np.identity(2 * nsites, dtype=np.complex_)
 
@@ -61,7 +61,7 @@ for total_time in range(2, max_time1, stepsize1):
 
     print('alpha_0_square', alpha_0_square)
     n_expect, N_t, Z_dressed_over_Z_0 = dress_density_matrix(
-        rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+        rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     B = IM_exponent(evolution_matrix, N_t, nsites,
                     nbr_Floquet_layers, Jx, Jy, n_expect, Z_dressed_over_Z_0)
     # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
