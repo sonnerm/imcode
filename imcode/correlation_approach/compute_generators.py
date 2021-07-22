@@ -54,13 +54,13 @@ def compute_generators(nsites, Jx=0, Jy=0, g=0):
         G_g[i, i] = - 2 * g
         G_g[i + nsites, i + nsites] = 2 * g
 
-    # G_1 - residual gate coming from projecting interaction gate of xy-model on the vacuum at site 0
+    #residual gate coming from projecting interaction gate of xy-model on the vacuum at site 0
     G_1 = np.zeros((2 * nsites, 2 * nsites))
 
     beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 
-    G_1[0, 0] = - 2 * beta_tilde#edit
-    G_1[nsites, nsites] = +2 * beta_tilde#edit (sign)
+    G_1[0, 0] = - 2 * beta_tilde
+    G_1[nsites, nsites] = +2 * beta_tilde
 
     # give out explicit form of generators
     print('G_XY_even = ')
