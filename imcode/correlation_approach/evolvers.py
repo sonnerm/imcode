@@ -1,5 +1,4 @@
 import numpy as np
-#from numpy.core.einsumfunc import einsum
 from numpy.linalg import matrix_power
 
 
@@ -29,6 +28,4 @@ def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
             T_tilde[1, 0,branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t#with dressing 
             T_tilde[1, 1,branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t_mod#with dressing 
            
-    #test if evolvers reproduce correct relations for Ising limit
-    #print('compare_test', T_tilde[0,0] @ T_tilde[0,0].T.conj())
     return T_tilde
