@@ -13,8 +13,7 @@ def entropy(correlation_block, ntimes, time_cut):
     # print (correlation_block_reduced)
     eigenvalues_correlations, ev_correlations = linalg.eig(correlation_block_reduced)
     eigenvalues_correlations[::-1].sort()
-    print ('cut:' , time_cut , ', reduced eigenvalue correlations:',eigenvalues_correlations)
-
+    
     entropy = 0
     for i in range(0, 4 * time_cut, 1):
         kappa = eigenvalues_correlations[i]
