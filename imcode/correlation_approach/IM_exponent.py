@@ -29,17 +29,17 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             time_1 = nbr_Floquet_layers - tau_1
             time_2 = nbr_Floquet_layers - tau_2
 
-            G_lesser_zetazeta = 1j * correlator(A, n_expect, 0, 1, time_1, 1, 1, time_2, nsites)
-            G_greater_zetazeta = -1j * correlator(A, n_expect, 0, 1, time_2, 1, 1, time_1, nsites)
+            G_lesser_zetazeta = 1j * correlator(A, n_expect, 0, 1, time_1, 1, 1, time_2)
+            G_greater_zetazeta = -1j * correlator(A, n_expect, 0, 1, time_2, 1, 1, time_1)
 
-            G_lesser_zetatheta = correlator(A, n_expect, 0, 1, time_1, 1, 0, time_2, nsites)
-            G_greater_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 1, 1, time_1, nsites)
+            G_lesser_zetatheta = correlator(A, n_expect, 0, 1, time_1, 1, 0, time_2)
+            G_greater_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 1, 1, time_1)
        
-            G_lesser_thetazeta = correlator(A, n_expect, 0, 0, time_1, 1, 1, time_2, nsites)
-            G_greater_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 1, 0, time_1, nsites)
+            G_lesser_thetazeta = correlator(A, n_expect, 0, 0, time_1, 1, 1, time_2)
+            G_greater_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 1, 0, time_1)
 
-            G_lesser_thetatheta = -1j * correlator(A, n_expect, 0, 0, time_1, 1, 0, time_2, nsites)
-            G_greater_thetatheta = 1j * correlator(A, n_expect, 0, 0, time_2, 1, 0, time_1, nsites)
+            G_lesser_thetatheta = -1j * correlator(A, n_expect, 0, 0, time_1, 1, 0, time_2)
+            G_greater_thetatheta = 1j * correlator(A, n_expect, 0, 0, time_2, 1, 0, time_1)
            
             G_Feynman_zetazeta = 0
             G_AntiFeynman_zetazeta = 0
@@ -51,37 +51,37 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             G_AntiFeynman_thetatheta = 0
 
             if tau_2 > tau_1:
-                G_Feynman_zetazeta = 1j * correlator(A, n_expect, 0, 1, time_1, 0, 1, time_2, nsites)
-                G_AntiFeynman_zetazeta = -1j * correlator(A, n_expect, 1, 1, time_2, 1, 1, time_1, nsites)
+                G_Feynman_zetazeta = 1j * correlator(A, n_expect, 0, 1, time_1, 0, 1, time_2)
+                G_AntiFeynman_zetazeta = -1j * correlator(A, n_expect, 1, 1, time_2, 1, 1, time_1)
 
-                G_Feynman_zetatheta = correlator(A, n_expect, 0, 1, time_1, 0, 0, time_2, nsites)
-                G_AntiFeynman_zetatheta = - correlator(A, n_expect, 1, 0, time_2, 1, 1, time_1, nsites)
+                G_Feynman_zetatheta = correlator(A, n_expect, 0, 1, time_1, 0, 0, time_2)
+                G_AntiFeynman_zetatheta = - correlator(A, n_expect, 1, 0, time_2, 1, 1, time_1)
 
-                G_Feynman_thetazeta = correlator(A, n_expect, 0, 0, time_1, 0, 1, time_2, nsites)
-                G_AntiFeynman_thetazeta = - correlator(A, n_expect, 1, 1, time_2, 1, 0, time_1, nsites)
+                G_Feynman_thetazeta = correlator(A, n_expect, 0, 0, time_1, 0, 1, time_2)
+                G_AntiFeynman_thetazeta = - correlator(A, n_expect, 1, 1, time_2, 1, 0, time_1)
 
-                G_Feynman_thetatheta = -1j * correlator(A, n_expect, 0, 0, time_1, 0, 0, time_2, nsites)
-                G_AntiFeynman_thetatheta = 1j * correlator(A, n_expect, 1, 0, time_2, 1, 0, time_1, nsites)
+                G_Feynman_thetatheta = -1j * correlator(A, n_expect, 0, 0, time_1, 0, 0, time_2)
+                G_AntiFeynman_thetatheta = 1j * correlator(A, n_expect, 1, 0, time_2, 1, 0, time_1)
 
             elif tau_2 < tau_1:  
-                G_Feynman_zetazeta = -1j * correlator(A, n_expect, 0, 1, time_2, 0, 1, time_1, nsites)
-                G_AntiFeynman_zetazeta = 1j * correlator(A, n_expect, 1, 1, time_1, 1, 1, time_2, nsites)
+                G_Feynman_zetazeta = -1j * correlator(A, n_expect, 0, 1, time_2, 0, 1, time_1)
+                G_AntiFeynman_zetazeta = 1j * correlator(A, n_expect, 1, 1, time_1, 1, 1, time_2)
 
-                G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1, nsites)
-                G_AntiFeynman_zetatheta = correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2, nsites)
+                G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1)
+                G_AntiFeynman_zetatheta = correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2)
 
-                G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1, nsites)
-                G_AntiFeynman_thetazeta = correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2, nsites)
+                G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1)
+                G_AntiFeynman_thetazeta = correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2)
 
-                G_Feynman_thetatheta = 1j * correlator(A, n_expect, 0, 0, time_2, 0, 0, time_1, nsites)
-                G_AntiFeynman_thetatheta = -1j * correlator(A, n_expect, 1, 0, time_1, 1, 0, time_2, nsites)
+                G_Feynman_thetatheta = 1j * correlator(A, n_expect, 0, 0, time_2, 0, 0, time_1)
+                G_AntiFeynman_thetatheta = -1j * correlator(A, n_expect, 1, 0, time_1, 1, 0, time_2)
 
             else:# for tau_1 = tau_2, G_Feynman and G_AntiFeynman are zero for same fields
-                G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1, nsites)
-                G_AntiFeynman_zetatheta = correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2, nsites)
+                G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1)
+                G_AntiFeynman_zetatheta = correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2)
 
-                G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1, nsites)
-                G_AntiFeynman_thetazeta = correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2, nsites)
+                G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1)
+                G_AntiFeynman_thetazeta = correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2)
 
 
             #define prefactors for correlators to make notation more compact
@@ -93,17 +93,17 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
             B[4 * tau_1, 4 * tau_2 + 1] = -1j * G_lesser_thetatheta * prefac_y**2 
             B[4 * tau_1 + 1, 4 * tau_2] = -1j * G_greater_thetatheta * prefac_y**2 
             B[4 * tau_1 + 1, 4 * tau_2 + 1] = -1j * G_AntiFeynman_thetatheta * prefac_y**2 
+            
+            B[4 * tau_1, 4 * tau_2 + 2] = - 1j * G_Feynman_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1, 4 * tau_2 + 3] = 1j* G_lesser_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1 + 1, 4 * tau_2 + 2] = - 1j * G_greater_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1 + 1, 4 * tau_2 + 3] =1j* G_AntiFeynman_thetazeta * prefac_x * prefac_y 
 
-            B[4 * tau_1, 4 * tau_2 + 2] = - 1 * G_Feynman_thetazeta * prefac_x * prefac_y 
-            B[4 * tau_1, 4 * tau_2 + 3] = G_lesser_thetazeta * prefac_x * prefac_y 
-            B[4 * tau_1 + 1, 4 * tau_2 + 2] = - 1 * G_greater_thetazeta * prefac_x * prefac_y 
-            B[4 * tau_1 + 1, 4 * tau_2 + 3] = G_AntiFeynman_thetazeta * prefac_x * prefac_y 
-
-            B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y 
-            B[4 * tau_1 + 2, 4 * tau_2 + 1] = - 1 * G_lesser_zetatheta * prefac_x * prefac_y 
-            B[4 * tau_1 + 3, 4 * tau_2] = G_greater_zetatheta * prefac_x * prefac_y 
-            B[4 * tau_1 + 3, 4 * tau_2 + 1] = G_AntiFeynman_zetatheta * prefac_x * prefac_y 
-           
+            B[4 * tau_1 + 2, 4 * tau_2] = -1j * G_Feynman_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 2, 4 * tau_2 + 1] = - 1j * G_lesser_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 3, 4 * tau_2] = 1j*G_greater_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 3, 4 * tau_2 + 1] = 1j*G_AntiFeynman_zetatheta * prefac_x * prefac_y 
+            
             B[4 * tau_1 + 2, 4 * tau_2 + 2] = 1j * G_Feynman_zetazeta * prefac_x**2 
             B[4 * tau_1 + 2, 4 * tau_2 + 3] = -1j * G_lesser_zetazeta * prefac_x**2 
             B[4 * tau_1 + 3, 4 * tau_2 + 2] = - 1j * G_greater_zetazeta * prefac_x**2 
