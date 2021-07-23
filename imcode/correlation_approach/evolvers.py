@@ -21,11 +21,14 @@ def evolvers(evolution_matrix,  N_t, nsites, nbr_Floquet_layers, beta_tilde):
     N_t_mod[0:nsites,:] = N_t[nsites:2*nsites,:].conj()
     N_t_mod[nsites:2*nsites,:] = N_t[0:nsites,:].conj()
 
+    #N_t_mod = np.bmat([[N_t[0:nsites,0:nsites], N_t[nsites:2*nsites,0:nsites].conj()],[N_t[nsites:2*nsites,0:nsites], N_t[0:nsites,0:nsites].conj()]])
+
+
     for branch in range (2):
         for tau_index in range(0, nbr_Floquet_layers):
-            T_tilde[0, 0,branch, tau_index] =  (matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t)[(0,nsites),:]#without dressing 
-            T_tilde[0, 1,branch, tau_index] =  (matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t_mod)[(0,nsites),:]#without dressing 
-            T_tilde[1, 0,branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t#with dressing 
-            T_tilde[1, 1,branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t_mod#with dressing 
+            T_tilde[0, 0,branch, tau_index] =  (matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t)[(0,nsites),:]#without dressing, without N_hermitian_conj
+            T_tilde[0, 1,branch, tau_index] =  (matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t_mod)[(0,nsites),:]#without dressing, with N_hermitian_conj
+            T_tilde[1, 0,branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t#with dressing, without N_hermitian_conj
+            T_tilde[1, 1,branch, tau_index] =  D_beta[branch] @ matrix_power(evolution_matrix[branch], tau_index + 1)  @ N_t_mod#with dressing, with N_hermitian_conj
            
     return T_tilde
