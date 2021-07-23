@@ -4,6 +4,7 @@ from numpy import version
 from evolvers import evolvers
 from correlation_coefficients import correlation_coefficients
 from correlator import correlator
+from tests import test_identity_correlations
 
 
 # nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
@@ -22,6 +23,7 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_exp
     # define matrix B that is twice exponent of IM:
     B = np.zeros((4 * nbr_Floquet_layers, 4 * nbr_Floquet_layers), dtype=np.complex_)
 
+    test_identity_correlations(A,n_expect, nbr_Floquet_layers)
 
     for tau_1 in range(nbr_Floquet_layers):
         for tau_2 in range(nbr_Floquet_layers):
