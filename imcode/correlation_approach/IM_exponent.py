@@ -8,10 +8,9 @@ from tests import test_identity_correlations
 
 
 # nrb_Floquet_layer = total_time + 1 (total time= 0 corresponds to one Floquet layer)
-def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, n_expect):
+def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect):
 
     # define parameters:
-    beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
     alpha = np.sqrt(2 * pow(np.cos(Jx)*np.cos(Jy),2) / (np.cos(2*Jx) + np.cos(2*Jy)))
 
     # procompute evolvers T from which the correlation coefficients A can be inferred

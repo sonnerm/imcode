@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import expm
 from scipy import linalg
 
-def compute_generators(nsites, Jx=0, Jy=0, g=0):
+def compute_generators(nsites, Jx=0, Jy=0, g=0, beta_tilde = 0):
     # define generators for unitary transformation
 
     # G_XY - two-site gates (XX + YY)
@@ -56,8 +56,6 @@ def compute_generators(nsites, Jx=0, Jy=0, g=0):
 
     #residual gate coming from projecting interaction gate of xy-model on the vacuum at site 0
     G_1 = np.zeros((2 * nsites, 2 * nsites))
-
-    beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 
     G_1[0, 0] = - 2 * beta_tilde
     G_1[nsites, nsites] = +2 * beta_tilde

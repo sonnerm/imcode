@@ -29,6 +29,7 @@ Jx =0.5# 0.31 # 0.31
 Jy = 0.3#np.pi/4
 g =0#np.pi/4
 beta = 0  # temperature
+beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
 gamma_test_range = 6
 
@@ -46,9 +47,8 @@ times = np.zeros(int(max_time1/stepsize1) +
 ising_gamma_times = np.zeros(gamma_test_range)
 ising_gamma_values = np.zeros(gamma_test_range)
 # find generators and matrices which diagonalize them:
-G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g)
-evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(
-    nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
+G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
+evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
 #M, eigenvalues_G_eff, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
 #ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites, gamma_test_range)
 
@@ -59,8 +59,8 @@ for total_time in range(2, max_time1, stepsize1):
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
     n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
-
-    B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, n_expect)
+    
+    B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
 
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
