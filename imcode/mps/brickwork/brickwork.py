@@ -1,29 +1,35 @@
 import numpy as np
 import numpy.linalg as la
 from .. import MPO
-def brickwork_Fe(gatese):
+def brickwork_Fe(L,gatese):
     Bs=[]
     for g in gatese:
         u,s,v=la.svd(gate)
-        gateb=(v).reshape((4,1,2,2))
-        gatea=(u*s).T.reshape((1,4,2,2))
+        gateb=(v*np.sqrt(s)).reshape((4,1,2,2))
+        gatea=(u*np.sqrt(s)).T.reshape((1,4,2,2))
         Bs.append(gateb)
         Bs.append(gatea)
+    gatebound=np.array([[np.eye(2)]])
+    if L%2==1:
+        Bs.append(gatebound)
     return MPO.from_matrices(Bs)
 
-def brickwork_Fo(gateso):
+def brickwork_Fo(L,gateso):
     gatebound=np.array([[np.eye(2)]])
     Bs=[gatebound]
     for g in gateso:
         u,s,v=la.svd(gate)
-        gateb=(v).reshape((16,1,4,4))
-        gatea=(u*s).T.reshape((1,16,4,4))
+        gateb=(v*np.sqrt(s)).reshape((16,1,4,4))
+        gatea=(u*np.sqrt(s)).T.reshape((1,16,4,4))
         Bs.append(gateb)
         Bs.append(gatea)
-    Bs.append(gatebound)
+    if L%2==0:
+        Bs.append(gatebound)
     return MPO.from_matrices(Bs)
-def brickwork_F(gates):
+def brickwork_F(L,gates):
     return (brickwork_Fe(gates[::2])@brickwork_Fo(gates[1::2])).contract()
+def brickwork_H(L,gates):
+    pass
 def brickwork_Sa(t, gate):
     '''
         dual layer of the brickwork transfer matrix without boundary states
