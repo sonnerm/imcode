@@ -27,51 +27,51 @@ def test_dense_ising_h_complex(seed_rng):
     assert dih.conj()*dih!=pytest.approx(np.eye(dih.shape[0]))
     assert dih.conj()!=pytest.approx(dih)
 
-def test_dense_ising_W_real(seed_rng):
+def test_dense_ising_g_real(seed_rng):
     T=3
     g=np.random.normal()
     init=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
     final=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
     init=init.T.conj()+init #init hermitian
     final=final.T.conj()+final #final hermitian
-    diW=dense.ising.ising_W(T,g,init,final)
+    diW=dense.ising.ising_g(T,g,init,final)
     assert diW.dtype==np.complex_
     assert diW.shape==(64,64)
     assert np.diag(np.diag(diW))==pytest.approx(diW) #diagonal
     assert diW.conj()*diW!=pytest.approx(np.eye(64)) #generic
     assert diW.conj()!=pytest.approx(diW)
 
-def test_dense_ising_W_complex(seed_rng):
+def test_dense_ising_g_complex(seed_rng):
     T=3
     g=np.random.normal()+1.0j*np.random.normal()
     init=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
     final=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
-    diW=dense.ising.ising_W(T,g,init,final)
+    diW=dense.ising.ising_g(T,g,init,final)
     assert diW.dtype==np.complex_
     assert diW.shape==(64,64)
     assert np.diag(np.diag(diW))==pytest.approx(diW) #diagonal
     assert diW.conj()*diW!=pytest.approx(np.eye(diW.shape[0]))
     assert diW.conj()!=pytest.approx(diW)
-def test_dense_ising_W_T1(seed_rng):
+def test_dense_ising_g_T1(seed_rng):
     T=1
     g=np.random.normal()
-    diW=dense.ising.ising_W(T,g)
+    diW=dense.ising.ising_g(T,g)
 
-def test_dense_ising_W_zero():
+def test_dense_ising_g_zero():
     T=3
     g=0.0
-    diW=dense.ising.ising_W(T,g)
+    diW=dense.ising.ising_g(T,g)
     diWc=np.zeros((4**T,4**T))
     diWc[0,0]=0.5
     diWc[-1,-1]=0.5
     assert diW==pytest.approx(diWc)
 
 # @pytest.mark.skip
-# def test_dense_ising_W_pi4():
+# def test_dense_ising_g_pi4():
 #     #dual unitary case, not 100% sure what to expect
 #     T=2
 #     g=np.pi/4
-#     diW=dense.ising.ising_W(T,g,init=np.ones((2,2)),final=np.ones((2,2)))*4
+#     diW=dense.ising.ising_g(T,g,init=np.ones((2,2)),final=np.ones((2,2)))*4
 #     print(np.diag(diW))
 #     print(np.diag(diW.conj())*np.diag(diW))
 #     assert diW.dtype==np.complex_

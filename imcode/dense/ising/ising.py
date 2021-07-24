@@ -1,4 +1,5 @@
 from .. import kron,SX,SZ,ID,outer
+from ..channel import unitary_channel
 from functools import lru_cache
 import numpy as np
 import scipy.linalg as scla
@@ -47,15 +48,17 @@ def ising_h(T,h):
     k=-h.conj()
     elem=np.diag(np.exp(1.0j*np.array([h+k,h-k,-h+k,-h-k])))
     return kron([elem for _ in range(T)])
-def ising_W(T,g,init=np.eye(2)/2,final=np.eye(2)):
-    gate=np.cos(g)*ID+1.0j*np.sin(g)*SX
-    ret=np.einsum("ab,bc,dc->ad",gate,init,gate.conj())
-    gate=np.einsum("ab,cd->acbd",gate,gate.conj()).reshape((4,4))
-    for i in range(T-1):
+def ising_W(T,channels,init=np.eye(2)/2,final=np.eye(2)):
+    ret=channels[0]@init.ravel()
+    for i,ch in enumerate(channels[1:]):
         ret=ret.reshape((4**i,4))
-        ret=np.einsum("ab,bc->abc",ret,gate)
+        ret=np.einsum("ab,bc->abc",ret,ch)
     ret=np.einsum("ab,b->ab",ret.reshape(4**(T-1),4),final.T.ravel())
     return np.diag(np.ravel(ret))
+def ising_kick(g):
+    return np.cos(g)*ID+1.0j*np.sin(g)*SX
+def ising_g(T,g,init=np.eye(2)/2,final=np.eye(2)):
+    return ising_W(T,[unitary_channel(ising_kick(g))]*T,init,final)
 
 def ising_T(T,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
     r'''
@@ -63,7 +66,7 @@ def ising_T(T,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
         chain. See arXiv:2009.10105 for details. The sites are ordered according
         to the folded picture.
     '''
-    U1=ising_h(T,h)*ising_W(T,g,init,final)
+    U1=ising_h(T,h)*ising_g(T,g,init,final)
     U2=ising_J(T,J)
     return U2@U1
 
