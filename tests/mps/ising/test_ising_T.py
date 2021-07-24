@@ -9,13 +9,13 @@ def test_mps_ising_h(seed_rng):
     mih=mps.ising.ising_h(t,h)
     assert dih==pytest.approx(mih.to_dense())
 
-def test_mps_ising_W(seed_rng):
+def test_mps_ising_g(seed_rng):
     t=3
     g=np.random.normal()+np.random.normal()*1.0j
     init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
     final=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
-    diW=dense.ising.ising_W(t,g,init,final)
-    miW=mps.ising.ising_W(t,g,init,final)
+    diW=dense.ising.ising_g(t,g,init,final)
+    miW=mps.ising.ising_g(t,g,init,final)
     assert diW==pytest.approx(miW.to_dense())
 
 def test_mps_ising_J(seed_rng):
@@ -47,11 +47,11 @@ def test_mps_ising_T_onesite(seed_rng):
     miT=mps.ising.ising_T(t,J,g,h,init,final)
     assert diT==pytest.approx(miT.to_dense())
 
-def test_mps_ising_W_onesite(seed_rng):
+def test_mps_ising_g_onesite(seed_rng):
     t=1
     g=np.random.normal()+np.random.normal()*1.0j
     init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
     final=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
-    diW=dense.ising.ising_W(t,g,init,final)
-    miW=mps.ising.ising_W(t,g,init,final)
+    diW=dense.ising.ising_g(t,g,init,final)
+    miW=mps.ising.ising_g(t,g,init,final)
     assert diW==pytest.approx(miW.to_dense())

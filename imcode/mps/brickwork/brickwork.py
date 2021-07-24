@@ -30,6 +30,10 @@ def brickwork_F(L,gates):
     return (brickwork_Fe(gates[::2])@brickwork_Fo(gates[1::2])).contract()
 def brickwork_H(L,gates):
     pass
+def brickwork_La():
+    pass
+def brickwork_Lb():
+    pass
 def brickwork_Sa(t, gate):
     '''
         dual layer of the brickwork transfer matrix without boundary states

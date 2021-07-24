@@ -1,6 +1,8 @@
 from .. import MPO
 import numpy as np
 from ...dense import ID,SZ,SX
+from ...dense import unitary_channel
+from ...dense.ising import ising_kick
 ZE=np.zeros_like(ID)
 def ising_H(L,J,g,h):
     J=np.array(J)
@@ -44,17 +46,19 @@ def ising_F(L,J,g,h):
     WJ.append(wjc)
     mpJ=MPO.from_matrices(WJ)
     return (mpJ@mph@mpg).contract()
-def ising_W(t,g,init=np.eye(2)/2,final=np.eye(2)):
+def ising_g(t,g,init=np.eye(2)/2,final=np.eye(2)):
+    gate=ising_kick(g)
+    return ising_W(t,[unitary_channel(gate)]*t,init,final)
 
-    gate=np.cos(g)*ID+1.0j*np.sin(g)*SX
-    init=np.einsum("ab,bc,dc->ad",gate,init,gate.conj())
+def ising_W(t,channels,init=np.eye(2)/2,final=np.eye(2)):
+    init=channels[0]@init.ravel()
     if t==1:
         return MPO.from_matrices([np.einsum("a,a,ab,cd->cdab",init.ravel(),final.T.ravel(),np.eye(4),np.eye(1))])
-    gate=np.einsum("ab,cd->acbd",gate,gate.conj()).reshape((4,4))
-    W0=np.einsum("bc,cd,d->bcd",np.eye(4),np.eye(4),init.ravel())[None,:,:,:]
-    Wm=np.einsum("ab,bc,cd->abcd",gate,np.eye(4),np.eye(4))
-    Wf=np.einsum("ab,bc,c->abc",gate,np.eye(4),final.T.ravel())[:,None,:,:]
-    return MPO.from_matrices([W0]+[Wm]*(t-2)+[Wf])
+    Ws=[np.einsum("bc,cd,d->bcd",np.eye(4),np.eye(4),init.ravel())[None,:,:,:]]
+    for ch in channels[1:-1]:
+        Ws.append(np.einsum("ab,bc,cd->abcd",ch,np.eye(4),np.eye(4)))
+    Ws.append(np.einsum("ab,bc,c->abc",channels[-1],np.eye(4),final.T.ravel())[:,None,:,:])
+    return MPO.from_matrices(Ws)
 
 def ising_h(t,h):
     k=-np.conj(h)
@@ -71,4 +75,4 @@ def ising_J(t,J):
     Ja=np.array([[np.exp(1.0j*Jprim)]])
     return MPO.from_matrices([Ja]*t)
 def ising_T(t,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
-    return (ising_J(t,J)@ising_W(t,g,init,final)@ising_h(t,h)).contract()
+    return (ising_J(t,J)@ising_g(t,g,init,final)@ising_h(t,h)).contract()
