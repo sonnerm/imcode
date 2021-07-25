@@ -34,3 +34,17 @@ def test_identity_correlations(A, n_expect, ntimes):
         print ('Testing identity correlations sucessfully terminated..')    
     else: 
         print ('Identity correlation tests not passed in ',status, 'cases.' )
+
+
+def anti_sym_check(matrix):
+    dim = len(matrix[0])
+    check = 0
+    for i in range (dim):
+        for j in range (i,dim):
+            check += abs(matrix[i,j] + matrix[j,i])
+    
+    if check > 1e-6:
+        print ('Antisymmetry test not passed..', check)
+    
+    else:
+        print ('Antisymmetry test successfully passed..')
