@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from numpy.linalg import multi_dot
 from reorder_eigenvecs import reorder_eigenvecs
 from compute_generators import compute_generators
-#from numpy.core.einsumfunc import einsum
+from add_cmplx_random_antisym
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
 
@@ -51,14 +51,15 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     G_eff[1] = +1j * linalg.logm(U_eff[1])
     
     # add small random part to G_eff to lift degenaracies, such that numerical diagnoalization is more stable
-    random_part = np.random.rand(2 * nsites, 2 * nsites) * 1e-14
-    # symmetrize random part
-    for i in range(2*nsites):
-        for j in range(i, 2*nsites):
-            random_part[i, j] = random_part[j, i]
+    rand_magn = 1e-8
+    rand_A = np.random.rand(nsites,nsites) * rand_magn
+    rand_B = add_cmplx_random_antisym(np.zeros((nsites,nsites), dtype=np.complex_), rand_magn)
+    rand_C = add_cmplx_random_antisym(np.zeros((nsites,nsites), dtype=np.complex_), rand_magn)
+    random_part = np.bmat([[rand_A,rand_B], [rand_C, -rand_A.T]])
+
     G_eff_E += random_part
-    #G_eff[0] += random_part
-    #G_eff[1] += random_part
+    G_eff[0] += random_part
+    G_eff[1] += random_part
 
     # compute eigensystem of G_eff. Set of eigenvectors "eigenvectors_G_eff_fw/bw" diagnonalizes G_eff_fw/bw
     # first dimension: foward branch (index 0) and backward branch (index 1)

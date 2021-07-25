@@ -8,27 +8,27 @@ def test_identity_correlations(A, n_expect, ntimes):
         #first Majorana type (0, Theta, -)
         #forward branch
         test = correlator(A,n_expect, 0, 0, tau, 0, 0, tau)
-        if (abs(test) - 1) > 1e-12:
-            print('Identity correlation test not passed, forward branch, Majorana type 0 (Theta/- Majorana)',' tau=', tau) 
+        if (abs(test) - 1) > 1e-6:
+            print('Identity correlation test not passed, forward branch, Majorana type 0 (Theta/- Majorana)',' tau=', tau, 'value: ', test) 
             status += 1
 
         #backward brnach
         test = correlator(A,n_expect, 1, 0, tau, 1, 0, tau)
-        if (abs(test) - 1) > 1e-12:
-            print('Identity correlation test not passed, backward branch, Majorana type 0 (Theta/- Majorana)',' tau=', tau) 
+        if (abs(test) - 1) > 1e-6:
+            print('Identity correlation test not passed, backward branch, Majorana type 0 (Theta/- Majorana)',' tau=', tau, 'value: ', test) 
             status += 1
 
 
         #second Majorana type (1, Zeta, +)
         #forward branch
         test = correlator(A,n_expect, 0, 1, tau, 0, 1, tau)
-        if (abs(test) - 1) > 1e-12:
-            print('Identity correlation test not passed, forward branch, Majorana type 1 (Zeta/+ Majorana)',' tau=', tau) 
+        if (abs(test) - 1) > 1e-6:
+            print('Identity correlation test not passed, forward branch, Majorana type 1 (Zeta/+ Majorana)',' tau=', tau, 'value: ', test) 
             status += 1
         #backward branch
         test = correlator(A,n_expect, 1, 1, tau, 1, 1, tau)
-        if (abs(test) - 1) > 1e-12:
-            print('Identity correlation test not passed, backward branch, Majorana type 1 (Zeta/+ Majorana)',' tau=', tau) 
+        if (abs(test) - 1) > 1e-6:
+            print('Identity correlation test not passed, backward branch, Majorana type 1 (Zeta/+ Majorana)',' tau=', tau, 'value: ', test) 
             status += 1
     if status == 0:
         print ('Testing identity correlations sucessfully terminated..')    

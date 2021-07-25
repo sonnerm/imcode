@@ -3,6 +3,7 @@ from numpy.linalg import matrix_power
 from scipy.linalg import expm
 from scipy import linalg
 from reorder_eigenvecs import reorder_eigenvecs
+from add_cmplx_random_antisym import add_cmplx_random_antisym
 
 
 def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers):
@@ -13,24 +14,22 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floque
 
     # diagonalize dressed density matrix:
     rho_dressed_exponent = -linalg.logm(rho_dressed)#find exponent of density operator
-    random_part = np.random.rand(2 * nsites, 2 * nsites) * 1e-12
-    # symmetrize random part
-    for i in range(2*nsites):
-        for j in range(i, 2*nsites):
-            random_part[i, j] = random_part[j, i]
+    rand_magn = 1e-8
+    rand_A = np.random.rand(nsites,nsites) * rand_magn
+    rand_B = add_cmplx_random_antisym(np.zeros((nsites,nsites), dtype=np.complex_), rand_magn)
+    rand_C = add_cmplx_random_antisym(np.zeros((nsites,nsites), dtype=np.complex_), rand_magn)
+    random_part = np.bmat([[rand_A,rand_B], [rand_C, -rand_A.T]])
 
     rho_dressed_exponent += random_part#stabilize numerical diagonalization by adding random part
     rho_dressed_exponent_herm = 0.5 * (rho_dressed_exponent + rho_dressed_exponent.T.conj())#this stabilizes search for eigenvectors
     eigenvals_dressed, eigenvecs_dressed = linalg.eigh(rho_dressed_exponent_herm)
 
-    N_t = eigenvecs_dressed#this is the matrix that diagonalizes the dressed density matrix is N_t.T.conj() @ rho_dressed @ N_t
+    #By knowledge of the structure of N, i.e. (N = [[A, B^*],[B, A^*]]), we can construct the right part of the matrix from the left part of the matrix "eigenvecs_dressed", such that all phase factors and the order of eigenvectors are as desired.
+    N_t = np.bmat([[eigenvecs_dressed[0:nsites,0:nsites], eigenvecs_dressed[nsites:2*nsites,0:nsites].conj()],[eigenvecs_dressed[nsites:2*nsites,0:nsites], eigenvecs_dressed[0:nsites,0:nsites].conj()]])
     print ('N_t\n',N_t)
-    for i in range (int(nsites / 2)):
-        N_t[:,[nsites + i, 2 * nsites - 1 - i]] = N_t[:,[2 * nsites - 1 - i, nsites + i]]#switch columns such that eigenvalues with different signs are nsites entries apart.
-    
     #check:
-    diag_check = N_t.T.conj() @ rho_dressed @ N_t
-    eigenvals_dressed = -np.diag(N_t.T.conj() @ rho_dressed_exponent @ N_t)
+    diag_check = N_t.T.conj() @ rho_dressed_exponent_herm @ N_t
+    eigenvals_dressed = -np.diag(N_t.T.conj() @ rho_dressed_exponent_herm @ N_t)
     print('Dressed density matrix diagonalized', diag_check )
     print('Eigenvalues of exponent:', eigenvals_dressed)
 
