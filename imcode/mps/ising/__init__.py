@@ -1,4 +1,5 @@
 from .ising import ising_h,ising_J,ising_W,ising_T,ising_H,ising_F,ising_g
+from .dissipation import dephaser_T
 from .im import open_boundary_im,perfect_dephaser_im,dephaser_im
 from .im_algo import im_triangle,im_rectangle,im_diamond
 from .channel import im_channel_dense

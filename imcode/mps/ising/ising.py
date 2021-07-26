@@ -47,7 +47,7 @@ def ising_F(L,J,g,h):
     mpJ=MPO.from_matrices(WJ)
     return (mpJ@mph@mpg).contract()
 def ising_g(t,g,init=np.eye(2)/2,final=np.eye(2)):
-    gate=ising_kick(g)
+    gate=ising_F(1,[],[0],[g])
     return ising_W(t,[unitary_channel(gate)]*t,init,final)
 
 def ising_W(t,channels,init=np.eye(2)/2,final=np.eye(2)):
