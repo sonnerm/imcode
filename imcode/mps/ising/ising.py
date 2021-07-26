@@ -56,8 +56,8 @@ def ising_W(t,channels,init=np.eye(2)/2,final=np.eye(2)):
         return MPO.from_matrices([np.einsum("a,a,ab,cd->cdab",init.ravel(),final.T.ravel(),np.eye(4),np.eye(1))])
     Ws=[np.einsum("bc,cd,d->bcd",np.eye(4),np.eye(4),init.ravel())[None,:,:,:]]
     for ch in channels[1:-1]:
-        Ws.append(np.einsum("ab,bc,cd->abcd",ch,np.eye(4),np.eye(4)))
-    Ws.append(np.einsum("ab,bc,c->abc",channels[-1],np.eye(4),final.T.ravel())[:,None,:,:])
+        Ws.append(np.einsum("ba,bc,cd->abcd",ch,np.eye(4),np.eye(4)))
+    Ws.append(np.einsum("ba,bc,c->abc",channels[-1],np.eye(4),final.T.ravel())[:,None,:,:])
     return MPO.from_matrices(Ws)
 
 def ising_h(t,h):

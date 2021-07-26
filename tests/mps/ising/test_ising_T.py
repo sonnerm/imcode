@@ -1,4 +1,5 @@
 import imcode.mps as mps
+import numpy.linalg as la
 import numpy as np
 import imcode.dense as dense
 import pytest
@@ -55,5 +56,27 @@ def test_mps_ising_g_onesite(seed_rng):
     diW=dense.ising.ising_g(t,g,init,final)
     miW=mps.ising.ising_g(t,g,init,final)
     assert diW==pytest.approx(miW.to_dense())
+def test_mps_ising_W_onesite(seed_rng):
+    t=1
+    H=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
+    H=H.T.conj()+H
+    init=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
+    final=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
+    _,U=la.eigh(H)
+    ch=dense.unitary_channel(U)
+    diW=dense.ising.ising_W(t,[ch],init,final)
+    miW=mps.ising.ising_W(t,[ch],init,final)
+    assert diW==pytest.approx(miW.to_dense())
+
+
 def test_mps_ising_W(seed_rng):
-    pass
+    t=4
+    H=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(t)]
+    H=[h.T.conj()+h for h in H]
+    init=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
+    final=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
+    U=[la.eigh(h)[1] for h in H]
+    ch=[dense.unitary_channel(u) for u in U]
+    diW=dense.ising.ising_W(t,ch,init,final)
+    miW=mps.ising.ising_W(t,ch,init,final)
+    assert diW==pytest.approx(miW.to_dense(),abs=1e-6,rel=1e-6)
