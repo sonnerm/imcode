@@ -104,7 +104,7 @@ def test_dense_ising_J_zero(seed_rng):
     assert diJ==pytest.approx(np.ones((64,64)))
 
 def test_dense_ising_T_real(seed_rng):
-    T=3
+    T=4
     J=np.random.normal()
     g=np.random.normal()
     h=np.random.normal()
@@ -112,7 +112,16 @@ def test_dense_ising_T_real(seed_rng):
     init=init.T.conj()+init
     init=init@init
     init/=np.trace(init)#init is a proper density matrix
+    init=np.array([[1,0],[0,0]])
     diT=dense.ising.ising_T(T,J,g,h,init)
+    ch=dense.unitary_channel(dense.ising.ising_F(1,[],[g],[h]))
+    ch0=dense.unitary_channel(dense.ising.ising_F(1,[],[g],[0]))
+    diT2=dense.ising.ising_J(T,J)@dense.ising.ising_W(T,[ch,ch,ch,ch],init)
+    # print(np.where(np.abs(diT-diT2)>1e-6))
+    # print('=======')
+    # print(diT[np.where(np.abs(diT-diT2)>1e-6)])
+    # print(diT2[np.where(np.abs(diT-diT2)>1e-6)])
+    assert diT==pytest.approx(diT2,abs=1e-6,rel=1e-6)
     assert diT.dtype==np.complex_
     assert diT.shape==(4**T,4**T)
     ditev=la.eigvals(diT)
@@ -132,6 +141,9 @@ def test_dense_ising_T_pi4():
     # init/=np.trace(init)#init is a proper density matrix
     init=np.eye(2)/2
     diT=dense.ising.ising_T(T,J,g,h,init)
+    ch=dense.unitary_channel(dense.ising.ising_F(1,[],[g],[h]))
+    diT2=dense.ising.ising_J(T,J)@dense.ising.ising_W(T,[ch]*T)
+    assert diT==pytest.approx(diT2)
     assert diT.dtype==np.complex_
     assert diT.shape==(64,64)
     ditev,ditevv=la.eig(diT)
@@ -140,4 +152,9 @@ def test_dense_ising_T_pi4():
     pdev=ditevv[:,np.argmax(np.abs(ditev))]
     print(pdev/pdev[0])
     assert np.sort_complex(ditev)==pytest.approx(ditevc,rel=5e-4,abs=5e-4)
-    assert pdev/pdev[0]==pytest.approx(dense.ising.perfect_dephaser_im(T))
+    assert pdev/pdev[0]==pytest.approx(dense.ising.perfect_dephaser_im(T),rel=1e-7,abs=1e-7)
+def test_dense_ising_W(seed_rng):
+    T=3
+    g=np.random.normal()+1.0j*np.random.normal()
+    h=np.random.normal()+1.0j*np.random.normal()
+    ch=dense.unitary_channel(dense.ising.ising_F(1,[],[g],[h]))

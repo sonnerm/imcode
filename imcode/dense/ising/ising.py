@@ -35,7 +35,6 @@ def ising_F(L,J,g,h):
     '''
     return scla.expm(1.0j*ising_H(L,J,[0.0]*L,h))@scla.expm(1.0j*ising_H(L,[0.0]*L,g,[0.0]*L))
 
-
 def ising_J(T,J):
     J=np.array(J)
     K=-J.conj()
@@ -52,13 +51,11 @@ def ising_W(T,channels,init=np.eye(2)/2,final=np.eye(2)):
     ret=channels[0]@init.ravel()
     for i,ch in enumerate(channels[1:]):
         ret=ret.reshape((4**i,4))
-        ret=np.einsum("ab,bc->abc",ret,ch)
+        ret=np.einsum("ab,cb->abc",ret,ch)
     ret=np.einsum("ab,b->ab",ret.reshape(4**(T-1),4),final.T.ravel())
     return np.diag(np.ravel(ret))
-def ising_kick(g):
-    return np.cos(g)*ID+1.0j*np.sin(g)*SX
 def ising_g(T,g,init=np.eye(2)/2,final=np.eye(2)):
-    return ising_W(T,[unitary_channel(ising_kick(g))]*T,init,final)
+    return ising_W(T,[unitary_channel(ising_F(1,[],[g],[0.0]))]*T,init,final)
 
 def ising_T(T,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
     r'''
