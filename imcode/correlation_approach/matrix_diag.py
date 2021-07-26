@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from numpy.linalg import multi_dot
 from reorder_eigenvecs import reorder_eigenvecs
 from compute_generators import compute_generators
-from add_cmplx_random_antisym
+from add_cmplx_random_antisym import add_cmplx_random_antisym
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
 
