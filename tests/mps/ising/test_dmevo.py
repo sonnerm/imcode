@@ -21,7 +21,7 @@ def test_boundary_single_dmevo_ising(seed_rng):
     im=mps.ising.open_boundary_im(t)
     for T in Ts:
         im=(T@im).contract(chi_max=chi)
-    dms=mps.ising.boundary_dm_evolution(im,lop,init)
+    dms=mps.ising.boundary_dm_evolution(im,dense.unitary_channel(lop),init)
     F=dense.ising.ising_F(L+1,Js,gs,hs)
     # Fc=dense.unitary_channel(F)
     # state=dense.outer([np.eye(2).ravel()/2]*(L)+[init.ravel()])
@@ -58,7 +58,7 @@ def test_embedded_double_dmevo_ising(seed_rng):
     for T in Tsr:
         rim=(T@rim).contract(chi_max=chi)
     assert (np.array(rim.tpmps.chi)<=chi).all()
-    dms=mps.ising.embedded_dm_evolution(lim,lop,rim,init)
+    dms=mps.ising.embedded_dm_evolution(lim,dense.unitary_channel(lop),rim,init)
     F=dense.ising.ising_F(Ll+Lr+2,Js,gs,hs)
     state=dense.kron([np.eye(2)/2]*(Ll)+[init]+[np.eye(2)/2]*(Lr))
     summil=dense.kron([np.eye(2)]*(Ll))
@@ -91,7 +91,7 @@ def test_embedded_single_dmevo_ising(seed_rng):
     rim=mps.ising.open_boundary_im(t)
     for T in Tsr:
         rim=(T@rim).contract(chi_max=chi)
-    dms=mps.ising.embedded_dm_evolution(lim,lop,rim,init)
+    dms=mps.ising.embedded_dm_evolution(lim,dense.unitary_channel(lop),rim,init)
     F=dense.ising.ising_F(Ll+Lr+1,Js,gs,hs)
     # Fc=dense.unitary_channel(F)
     state=dense.kron([np.eye(2)/2]*(Ll)+[init]+[np.eye(2)/2]*(Lr))
