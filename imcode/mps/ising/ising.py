@@ -2,7 +2,7 @@ from .. import MPO
 import numpy as np
 from ...dense import ID,SZ,SX
 from ...dense import unitary_channel
-from ...dense.ising import ising_kick
+from ... import dense
 ZE=np.zeros_like(ID)
 def ising_H(L,J,g,h):
     J=np.array(J)
@@ -47,7 +47,7 @@ def ising_F(L,J,g,h):
     mpJ=MPO.from_matrices(WJ)
     return (mpJ@mph@mpg).contract()
 def ising_g(t,g,init=np.eye(2)/2,final=np.eye(2)):
-    gate=ising_F(1,[],[0],[g])
+    gate=dense.ising.ising_F(1,[],[g],[0])
     return ising_W(t,[unitary_channel(gate)]*t,init,final)
 
 def ising_W(t,channels,init=np.eye(2)/2,final=np.eye(2)):

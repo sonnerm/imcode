@@ -55,3 +55,5 @@ def test_mps_ising_g_onesite(seed_rng):
     diW=dense.ising.ising_g(t,g,init,final)
     miW=mps.ising.ising_g(t,g,init,final)
     assert diW==pytest.approx(miW.to_dense())
+def test_mps_ising_W(seed_rng):
+    pass

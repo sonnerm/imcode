@@ -115,7 +115,6 @@ def test_dense_ising_T_real(seed_rng):
     init=np.array([[1,0],[0,0]])
     diT=dense.ising.ising_T(T,J,g,h,init)
     ch=dense.unitary_channel(dense.ising.ising_F(1,[],[g],[h]))
-    ch0=dense.unitary_channel(dense.ising.ising_F(1,[],[g],[0]))
     diT2=dense.ising.ising_J(T,J)@dense.ising.ising_W(T,[ch,ch,ch,ch],init)
     # print(np.where(np.abs(diT-diT2)>1e-6))
     # print('=======')
