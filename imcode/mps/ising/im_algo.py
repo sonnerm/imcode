@@ -11,9 +11,9 @@ def im_rectangle(Ts,boundary=None,**kwargs):
     for T in Ts:
         mps=(T@mps).contract(**kwargs)
         yield mps.copy()
-def im_diamond(Ts,**kwargs):
+def im_diamond(Ts,boundary=None,**kwargs):
     mpsit=MPS.from_product_state([[1,0,0,1]])
-    mps=None
+    mps=boundary
     for T in Ts:
         if mps is None:
             mps=mpsit.copy()
@@ -21,9 +21,9 @@ def im_diamond(Ts,**kwargs):
             mps=outer([mpsit,mps,mpsit])
         mps=(T@mps).contract(**kwargs)
         yield mps.copy()
-def im_triangle(Ts,**kwargs):
+def im_triangle(Ts,boundary=None,**kwargs):
     mpsit=MPS.from_product_state([[1,0,0,1]])
-    mps=None
+    mps=boundary
     for T in Ts:
         if mps is None:
             mps=mpsit.copy()
