@@ -2,13 +2,13 @@ import numpy as np
 import scipy.linalg as la
 from ...dense.brickwork import heisenberg_lop,heisenberg_gate
 from ...dense import SX,SY,SZ,ID
-from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb
+from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb,brickwork_F,brickwork_H
 def heisenberg_F(L,Jx,Jy,Jz,hx=None,hy=None,hz=None,reversed=False):
-    gates=[]
-    for i in range(L//2):
-        gates.append(heisenberg_gate(Jx[2*i],Jy[2*i],Jz[2*i],hx[2*i],hy[2*i],hz[2*i],hx[2*i+1],hy[2*i+1],hz[2*i+1]))
-        gates.append(heisenberg_gate(Jx[2*i+1],Jy[2*i+1],Jz[2*i+1]))
-    gates.append(heisenberg_gate(Jx[-1],Jy[-1],Jz[-1],hx[-2],hy[-2],hz[-2],hx[-1],hy[-1],hz[-1]))
+    ogates=[heisenberg_gate(jx,jy,jz) for (jx,jy,jz) in zip(Jx[1::2],Jy[1::2],Jz[1::2])]
+    egates=[heisenberg_gate(jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) for (jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) in zip(Jx[::2],Jy[::2],Jz[::2],hx[::2],hy[::2],hz[::2],hx[1::2],hy[1::2],hz[1::2])]
+    gates=[None]*(len(ogates)+len(egates))
+    gates[::2]=egates
+    gates[1::2]=ogates
     return brickwork_F(L,gates,reversed)
 def heisenberg_H(L,Jx,Jy,Jz,hx=None,hy=None,hz=None):
     gates=[]
