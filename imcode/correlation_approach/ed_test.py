@@ -45,23 +45,25 @@ for i in range (int(L/2) - 1):#iteratibely apply Floquet layer and trace out las
     print('layer odd shape',layer_odd.shape)
 
     #even layer
-    layer_even = F_even
+    layer_even = kron(np.identity(2), F_even)
     for i in range (int((L - n_traced)/2) - 2):
         layer_even = kron(layer_even, F_even)
     print('layer even shape',layer_even.shape)
     layer_even = kron(layer_even, np.identity(2))
   
-    #reshape layer such that it can be multiplied to state
-    F = np.einsum('ij, ajbk -> aibk', layer_even , np.reshape(layer_odd, (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))))
 
+    apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
+    F = np.reshape(layer_even @ layer_odd, apply_shape)
+    
     #apply double layer of gates, F
-    state = np.einsum('aibj, jck, eldk  -> iabcdel', F,state, F.conj())
+    state = np.einsum('aibj, jck, kdle  -> iabcdel', F,state, F.T.conj())
 
     #update number of open legs (in spatial direction)
     dim_open_legs = 2**(2 * n_traced + 4)
 
     #reshape state such that last spin can be traced out
-    state = np.reshape(state,(2**(L - 1 - n_traced - 2),2 ,2, dim_open_legs, 2**(L - 1 - n_traced - 2), 2, 2))
+    trace_shape = (2**(L - 1 - n_traced - 2),2 ,2, dim_open_legs, 2**(L - 1 - n_traced - 2), 2, 2)
+    state = np.reshape(state, trace_shape)
   
     #trace out the two last spins
     state = np.trace(state, axis1 = 2, axis2 = 6)# trace out last spin
@@ -72,16 +74,15 @@ for i in range (int(L/2) - 1):#iteratibely apply Floquet layer and trace out las
 
 #last layer consists only of single gate that coupled system and bath (i.e. "odd layer")
 
-#reshape last gate such that it can be mutliplied to state
-last_gate =  np.reshape(F_odd, (2,2,2,2))
-
+apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
+print(apply_shape)
 #apply last gate
-state = np.einsum('aibj, jck, eldk  -> iabcdel', last_gate, state, last_gate.conj())
+state = np.einsum('aibj, jck, kdle  -> iabcdel', np.reshape(F_odd, apply_shape), state, np.reshape(F_odd.T.conj(), apply_shape))
 
 #reshape such that last "non-ancilla" - spin can be traced out. After this step, only open legs in temporal direction remain.
 state = np.reshape(state,(2, 2**(2 * L),2))
 #trace out last "non-ancilla" - spin
 state = np.trace(state, axis1 = 0, axis2 = 2)
 
-
 state = np.reshape(state, np.tile(2,2 * L))
+print('Terminated..')
