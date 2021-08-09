@@ -3,3 +3,4 @@ from .utils import ising_to_brickwork
 from .im import open_boundary_im,perfect_dephaser_im,dephaser_im
 from ..im_algo import im_diag
 from .im_algo import im_diamond,im_rectangle,im_triangle
+from .disorder import hr_operator,Jr_operator
