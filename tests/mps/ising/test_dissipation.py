@@ -51,5 +51,3 @@ def test_depolarize(seed_rng):
         ddms.append(np.einsum("a,abc->bc",summi,state.reshape((4**L),2,2)))
     for d,dd in zip(dms[::2],ddms):
         assert d==pytest.approx(dd)
-def test_depolarize_z(seed_rng):
-    pass
