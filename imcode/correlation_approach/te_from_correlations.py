@@ -17,17 +17,17 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 # define fixed parameters:
 # step sizes for total times t
 max_time1 = 30
-max_time2 = 52
-stepsize1 = 2
+max_time2 = 120
+stepsize1 = 4
 stepsize2 = 20
 
 # lattice sites:
-nsites = 100
+nsites = 150
 
 # model parameters:
-Jx =0.5# 0.31 # 0.31
-Jy = 0.3#np.pi/4
-g =0#np.pi/4
+Jx =0#0.5# 0.31 # 0.31
+Jy = 0.31#np.pi/4
+g =np.pi/4
 beta = 0  # temperature
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
@@ -53,7 +53,7 @@ ising_gamma_values = np.zeros(gamma_test_range)
 G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
 evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
 
-#M, eigenvalues_G_eff, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
+M, M_E, eigenvalues_G_eff, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
 #ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites, gamma_test_range)
 
 iterator = 1
@@ -63,7 +63,7 @@ for total_time in range(2, max_time1, stepsize1):
     nbr_Floquet_layers = total_time + 1
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
-    n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+    n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers, M_E)
     
     B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
 
@@ -76,28 +76,26 @@ for total_time in range(2, max_time1, stepsize1):
     for cut in time_cuts:
         entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
     iterator += 1
-"""
+
 
 for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
     nbr_Floquet_layers = total_time + 1
-    # dressed density matrix: (F_E^\prime )^{t+1} \rho_0 (F_E^\prime )^{\dagger,t+1}
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
-    rho_eigvals, N_t  = dress_density_matrix(
-        rho_0, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
-    B = IM_exponent(evolution_matrix, N_t, nsites,
-                    nbr_Floquet_layers, Jx, Jy, rho_eigvals)
-    # B = add_cmplx_random_antisym(B, 1e-10)#add random antisymmetric part to matrix to lift degeneracies and stabilize numerics
+    n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers, M_E)
+    
+    B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
+
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
     time_cuts = np.arange(1, nbr_Floquet_layers)
 
     entropy_values[iterator, 0] = nbr_Floquet_layers
+
     for cut in time_cuts:
-        entropy_values[iterator, cut] = entropy(
-            correlation_block, nbr_Floquet_layers, cut)
+        entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
     iterator += 1
-"""
+
 
 print(entropy_values)
 
