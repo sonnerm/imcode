@@ -131,6 +131,8 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         M_E[:, i] = eigenvectors_G_eff_E[:, argsort_E[i]]
         M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
 
+
+    print ('M0', M[0])
     #M[0] = reorder_eigenvecs(M[0], nsites)
     #M_E = reorder_eigenvecs(M_E, nsites)
     #M[1] = reorder_eigenvecs(M[1], nsites)
@@ -204,4 +206,4 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     
     # return M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, f
     
-    return M, eigenvalues_G_eff, f
+    return M, M_E, eigenvalues_G_eff, f
