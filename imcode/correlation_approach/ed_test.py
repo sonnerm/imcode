@@ -24,8 +24,6 @@ print (ham)
 
 gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
 
-J = 0.31
-g = np.pi/4
 #density matarix for pure ground state of xy-Hamiltonian
 state = gs @ gs.T.conj()
 
@@ -38,9 +36,13 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 
 state = np.reshape(state, (2**(L-1) , 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
 
-F_odd = expm(1j * ham_ising(2,g)) @ expm(1j * ham_ising(2,J))
+#Parameters for KIC Floquet evolution
+J = 0.31
+g = np.pi/4
+
+F_odd = expm(1j * ham_ising(2,0,g)) @ expm(1j * ham_ising(2,J,0))
 print('gate_odd\m', F_odd.shape)
-F_even = expm(1j * ham_ising(2,J))
+F_even = expm(1j * ham_ising(2,J,0))
 print('gate_even\m', F_even.shape)
 
 n_traced = 0#this variable keeps track of the number of spins in the spin chain that have been integrated out 
@@ -97,7 +99,7 @@ state = np.trace(state, axis1 = 0, axis2 = 2)
 state = np.reshape(state, (2**L, 2**L))
 
 
-entr_eigvals = eigvalsh(state @ state.T.conj())
+entr_eigvals = eigvalsh(state)
 print (entr_eigvals)
 entropy_values = []
 for i in range (L):
