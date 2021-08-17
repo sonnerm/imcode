@@ -34,8 +34,6 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-state = np.reshape(state, (2**(L-1) , 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
-
 #Parameters for KIC Floquet evolution
 J = 0.31
 g = np.pi/4
@@ -47,8 +45,13 @@ print('gate_even\m', F_even.shape)
 
 n_traced = 0#this variable keeps track of the number of spins in the spin chain that have been integrated out 
 
+state = np.reshape(state, (2**(L-1) , 1, 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
+
+
+
 for i in range (int(L/2) - 1):#iteratibely apply Floquet layer and trace out last two spins until the spin chain has become a pure ancilla spin chain.
 
+    
 #odd layer
     layer_odd = F_odd
     for i in range (int((L - n_traced)/2) - 1 ):
@@ -67,29 +70,28 @@ for i in range (int(L/2) - 1):#iteratibely apply Floquet layer and trace out las
     F = np.reshape(layer_even @ layer_odd, F_apply_shape)
     
     #apply double layer of gates, F
-    state = np.einsum('aibj, jck, kdle  -> iabcdel', F,state, F.T.conj())
+    state = np.einsum('aibj, jqrk, kdle  -> iqabrdel', F, state, F.T.conj())
+
+    #update number of "non-ancilla"-spins of the original chain that will be traced out after this cycle
+    n_traced += 2
 
     #update number of open legs (in spatial direction)
-    dim_open_legs = 2**(2 * n_traced + 4)
+    dim_open_legs_per_branch = 2**n_traced
 
     #reshape state such that last spin can be traced out
-    trace_shape = (2**(L - 1 - n_traced - 2),2 ,2, dim_open_legs, 2**(L - 1 - n_traced - 2), 2, 2)
+    trace_shape = (2**(L - 1 - n_traced),2 ,2, dim_open_legs_per_branch, dim_open_legs_per_branch, 2**(L - 1 - n_traced), 2, 2)
     state = np.reshape(state, trace_shape)
   
     #trace out the two last spins
-    state = np.trace(state, axis1 = 2, axis2 = 6)# trace out last spin
-    state = np.trace(state, axis1 = 1, axis2 = 4)# trace out second to last spin
-
-    #update number of "non-ancilla"-spins of the original chain that have been traced out
-    n_traced += 2
-   
+    state = np.trace(state, axis1 = 2, axis2 = 7)# trace out last spin
+    state = np.trace(state, axis1 = 1, axis2 = 5)# trace out second to last spin   
 
 
 #last layer consists only of single gate that coupled system and bath (i.e. "odd layer")
 F_apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
 
 #apply last gate
-state = np.einsum('aibj, jck, kdle  -> iabcdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
+state = np.einsum('aibj, jqrk, kdle  -> iqabrdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
 
 #reshape such that last "non-ancilla" - spin can be traced out. After this step, only open legs in temporal direction remain.
 state = np.reshape(state,(2, 2**(2 * L),2))
