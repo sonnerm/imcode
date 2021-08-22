@@ -54,17 +54,18 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 #Parameters for KIC Floquet evolution
-Jx = 0
-Jy = 0.7
-g = 0.2
+Jx = 0.3
+Jy = 0.5
+g = 0
 
 sigma_x = [[0,1],[1,0]]
+sigma_y = [[0,-1j],[1j,0]]
 sigma_z = [[1,0],[0,-1]]
-ham_Ising = Jy * np.kron(sigma_z, sigma_z)
-kick_two_site = g * ( np.kron(sigma_x, np.identity(2)) + np.kron(np.identity(2), sigma_x)  ) 
+ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
+kick_two_site = g * ( np.kron(sigma_z, np.identity(2)) + np.kron(np.identity(2), sigma_z)  ) 
 
-F_odd = expm(1j * kick_two_site) @ expm(1j * ham_Ising)
-F_even = expm(1j * ham_Ising)
+F_odd = expm(1j * kick_two_site) @ expm(1j * ham_XY)
+F_even = expm(1j * ham_XY)
 
 n_traced = 0#this variable keeps track of the number of spins in the spin chain that have been integrated out 
 
