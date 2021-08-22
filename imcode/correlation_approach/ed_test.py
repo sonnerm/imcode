@@ -79,14 +79,14 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
 #odd layer
     layer_odd = F_odd
     for i in range (int((L - n_traced)/2) - 1 ):
-        layer_odd = kron(layer_odd, F_odd)
+        layer_odd = np.kron(layer_odd, F_odd)
     print('layer odd shape',layer_odd.shape)
     #even layer
-    layer_even = kron(np.identity(2), F_even)
+    layer_even = np.kron(np.identity(2), F_even)
     for i in range (int((L - n_traced)/2) - 2):
-        layer_even = kron(layer_even, F_even)
+        layer_even = np.kron(layer_even, F_even)
     print('layer even shape',layer_even.shape)
-    layer_even = kron(layer_even, np.identity(2))
+    layer_even = np.kron(layer_even, np.identity(2))
   
 
     F_apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
