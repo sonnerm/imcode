@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import zero_to_nan
-def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, method,  ising_gamma_times = 0, gamma_test_vals = 0):
-    #plot
-    
+
+
+def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, method,  ising_gamma_times= [0], gamma_test_vals=[0]):
+    # plot
+
     max_entropies = np.zeros(iterator)
     half_entropies = np.zeros(iterator)
     for i in range(iterator):
@@ -11,38 +13,51 @@ def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, method,  ising_gam
         if entropy_values[i, 0] % 2 == 0:
             halftime = entropy_values[i, 0] / 2
             half_entropies[i] = entropy_values[i, int(halftime)]
+        else:
+            halftime = entropy_values[i, 0] // 2
+            half_entropies[i] = entropy_values[i, int(halftime)]
 
     print(max_entropies)
     print(half_entropies)
 
-    fig, ax = plt.subplots(2)
-    ax[0].plot(entropy_values[:iterator, 0], max_entropies,
+    nbr_plots = 1
+    if len(ising_gamma_times) > 1:
+            nbr_plots += 1
+    fig, ax = plt.subplots(nbr_plots)
+
+    ax_main_plot = 0
+    if nbr_plots > 1:
+            ax_main_plot = ax[0]
+    else: 
+        ax_main_plot = ax
+    ax_main_plot.plot(entropy_values[:iterator, 0], max_entropies,
             'ro-', label=r'$max_t S$, ' + r'$J_x={},J_y={}, g={},  L={}$'.format(Jx, Jy, g, nsites))
-    ax[0].plot(entropy_values[:iterator, 0], zero_to_nan(half_entropies),
+    ax_main_plot.plot(entropy_values[:iterator, 0], zero_to_nan(half_entropies),
             'ro--', label=r'$S(t/2)$, ' + r'$J_x={},J_y={}, g={},  L={}$'.format(Jx, Jy, g, nsites), color='green')
-    ax[0].set_xlabel(r'$t$')
+    ax_main_plot.set_xlabel(r'$t$')
 
-    ax[0].yaxis.set_ticks_position('both')
-    ax[0].tick_params(axis="y", direction="in")
-    ax[0].tick_params(axis="x", direction="in")
-    ax[0].legend(loc="lower right")
-    # ax[0].set_ylim([0,1])
-    ax[0].set_xlabel(r'$t$')
+    ax_main_plot.yaxis.set_ticks_position('both')
+    ax_main_plot.tick_params(axis="y", direction="in")
+    ax_main_plot.tick_params(axis="x", direction="in")
+    ax_main_plot.legend(loc="lower right")
+    # ax_main_plot.set_ylim([0,1])
+    ax_main_plot.set_xlabel(r'$t$')
 
 
-    ax[1].plot(ising_gamma_times, gamma_test_vals,
-            'ro-', label=r'$\gamma(t)$')
-    #ax[1].plot(np.arange(0,gamma_test_range), 5 * np.arange(0,gamma_test_range, dtype=float)**(-1.5), label= r'$t^{-3/2}$')
-    print('gamma', gamma_test_vals[0])
-    ax[1].set_xlabel(r'$t$')
-    # ax[1].set_xscale("log")
-    # ax[1].set_yscale("log")
-    # ax[1].set_ylim([1e-6,1])
-    ax[1].legend(loc="lower left")
+    if len(ising_gamma_times) > 1:
+        ax[1].plot(ising_gamma_times, gamma_test_vals,
+                'ro-', label=r'$\gamma(t)$')
+        # ax[1].plot(np.arange(0,gamma_test_range), 5 * np.arange(0,gamma_test_range, dtype=float)**(-1.5), label= r'$t^{-3/2}$')
+        print('gamma', gamma_test_vals[0])
+        ax[1].set_xlabel(r'$t$')
+        # ax[1].set_xscale("log")
+        # ax[1].set_yscale("log")
+        # ax[1].set_ylim([1e-6,1])
+        ax[1].legend(loc="lower left")
 
-    ax[1].yaxis.set_ticks_position('both')
-    ax[1].tick_params(axis="y", direction="in")
-    ax[1].tick_params(axis="x", direction="in")
+        ax[1].yaxis.set_ticks_position('both')
+        ax[1].tick_params(axis="y", direction="in")
+        ax[1].tick_params(axis="x", direction="in")
 
 
     mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach'
