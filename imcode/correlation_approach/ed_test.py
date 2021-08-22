@@ -1,5 +1,6 @@
 from math import e
 from os import stat_result
+from numpy.lib.type_check import real
 from scipy.linalg import expm
 from scipy.linalg import eigvalsh
 from scipy.sparse.linalg import eigsh #diagonalization via Lanczos for initial state
@@ -27,40 +28,51 @@ np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
 L = 8# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 
+#Pauli matrices
+sigma_x = np.array([[0,1],[1,0]])
+sigma_y = np.array([[0,-1j],[1j,0]])
+sigma_z = np.array([[1,0],[0,-1]])
 #------------------------------------------------------------ Define initial state density matrix--------------------------------------------------------------------
 
 #--------------- ground state of XY Hamiltonian -----------------------------------------------
 
 #compute initial state (2^(L-1) indices)
 #Hamiltonian of XX model:
-"""
-ham = ham_XY((L - 1), jxy= 1.0, bz = 0.0)#create XY-Hamiltonian using quimb
-print (ham)
-ham = ham - eye(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
-print (ham)
+
+ham_XX = np.zeros((2**(L-1), 2**(L-1)))
+
+ham_XX_twosite = np.real(np.kron(sigma_x,sigma_x) + np.kron(sigma_y,sigma_y) )
+
+for i in range(0,L-2):
+    ham_XX += np.kron(np.kron(np.identity(2**(L-3-i)), ham_XX_twosite), np.identity(2**i)) 
+#periodic boundary conditions
+ham_XX += np.real( np.kron( np.kron(sigma_x, np.identity(2**(L-3))), sigma_x) + np.kron( np.kron(sigma_y, np.identity(2**(L-3))), sigma_y) )
+
+ham = ham_XX
+
+ham -= np.identity(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
+
 
 gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
 
 #density matarix for pure ground state of xy-Hamiltonian
 state = gs @ gs.T.conj()
-"""
+
 #--------------- infinite temperature initial state  -----------------------------------------------
 
 #density matrix for infinite temperature ground state
-state = np.identity(2**(L-1)) / 2**(L-1)
+#state = np.identity(2**(L-1)) / 2**(L-1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 #Parameters for KIC Floquet evolution
-Jx = 0.3
-Jy = 0.5
+Jx = 0.5
+Jy = 0.3
 g = 0
 
-sigma_x = [[0,1],[1,0]]
-sigma_y = [[0,-1j],[1j,0]]
-sigma_z = [[1,0],[0,-1]]
+
 ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
 kick_two_site = g * ( np.kron(sigma_z, np.identity(2)) + np.kron(np.identity(2), sigma_z)  ) 
 
