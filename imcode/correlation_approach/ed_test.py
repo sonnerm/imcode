@@ -24,7 +24,7 @@ def rdm(vec,sites):
     ret=np.einsum("ij,kj->ik",vec.conj(),vec)
     return ret
 
-np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
 L = 8# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 
@@ -51,9 +51,11 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+entropy_values = np.zeros((L // 2 + 1, L//2 + 2))  # entropies
+
 #Parameters for KIC Floquet evolution
-J = 1.06
-g = 0.6
+J = 0.7
+g = 0.2
 
 sigma_x = [[0,1],[1,0]]
 sigma_z = [[1,0],[0,-1]]
@@ -68,7 +70,7 @@ n_traced = 0#this variable keeps track of the number of spins in the spin chain 
 #state = np.reshape(state, (2**(L-1) , 1, 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
 state = np.reshape(state, (2**(L-1) , 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
 
-
+iterator = 0
 
 for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out last two spins until the spin chain has become a pure ancilla spin chain.
 
@@ -78,7 +80,6 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
     for i in range (int((L - n_traced)/2) - 1 ):
         layer_odd = kron(layer_odd, F_odd)
     print('layer odd shape',layer_odd.shape)
-    print(layer_odd)
     #even layer
     layer_even = kron(np.identity(2), F_even)
     for i in range (int((L - n_traced)/2) - 2):
@@ -110,6 +111,16 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
     state = np.trace(state, axis1 = 1, axis2 = 4)# trace out last and second to last spin 
 
 
+    #compute intermediate temporal entanglement entropy
+    iterator += 1
+    state_for_entr = np.trace(state, axis1 = 0, axis2 = 2)
+    for cut in range (max(iterator - 2, 0 ), iterator + 1):
+        rdm_state = rdm(state_for_entr.reshape(-1), list(range(2 * cut, 2 * (n_traced - cut))))
+        entr_eigvals = eigvalsh(rdm_state)
+        entropy_values[iterator,0] = iterator
+        entropy_values[iterator,cut + 1] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
+
+
 #last layer consists only of single gate that coupled system and bath (i.e. "odd layer")
 F_apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
 
@@ -122,17 +133,19 @@ state = np.reshape(state,(2, 2**(2 * L),2))
 #trace out last "non-ancilla" - spin
 state = np.trace(state, axis1 = 0, axis2 = 2)
 
+#update number of "non-ancilla"-spins of the original chain that will be traced out after this cycle
+n_traced += 2
 
 #state = state.reshape(2**(L//2),2**(L//2),2**(L//2),2**(L//2) )
 #rdm_dm = np.trace(state, axis1 = 1, axis2 = 3) # view state as dm and trace out complementary times
+iterator += 1
 
-rdm_state = rdm(state.reshape(-1), list(range(L//2,3*L//2)))
-print(rdm_state)
-entr_eigvals = eigvalsh(rdm_state)
-print (entr_eigvals)
-
-entropy_value = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0)))
-print (entropy_value)
+for cut in range (max(iterator - 2, 0 ), iterator + 1):
+    rdm_state = rdm(state.reshape(-1), list(range(2 * cut, 2 * (n_traced - cut))))
+    entr_eigvals = eigvalsh(rdm_state)
+    entropy_values[iterator,0] = iterator
+    entropy_values[iterator,cut + 1] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
+print (entropy_values)
 
 
 print('Terminated..')
