@@ -8,6 +8,7 @@ from scipy.linalg import block_diag
 import  numpy as np
 from scipy import sparse
 from quimb import *
+from plot_entropy import plot_entropy
 
 def rdm(vec,sites):
     '''
@@ -54,7 +55,8 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 entropy_values = np.zeros((L // 2 + 1, L//2 + 2))  # entropies
 
 #Parameters for KIC Floquet evolution
-J = 0.7
+Jx = 0
+Jy = 0.7
 g = 0.2
 
 sigma_x = [[0,1],[1,0]]
@@ -147,5 +149,6 @@ for cut in range (max(iterator - 2, 0 ), iterator + 1):
     entropy_values[iterator,cut + 1] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
 print (entropy_values)
 
+plot_entropy(entropy_values, iterator, Jx, Jy, g,  L, 'ED_')
 
 print('Terminated..')

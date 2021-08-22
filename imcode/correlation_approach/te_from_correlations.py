@@ -99,4 +99,4 @@ for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsi
 np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 print(entropy_values)
 
-plot_entropy(entropy_values, iterator, Jx, Jy, g,  nsites, ising_gamma_times, ising_gamma_values)
+plot_entropy(entropy_values, iterator, Jx, Jy, g,  nsites, 'Corr_', ising_gamma_times, ising_gamma_values)

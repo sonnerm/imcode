@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import zero_to_nan
-def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, ising_gamma_times = 0, gamma_test_vals = 0):
+def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, method,  ising_gamma_times = 0, gamma_test_vals = 0):
     #plot
     
     max_entropies = np.zeros(iterator)
@@ -48,8 +48,8 @@ def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, ising_gamma_times 
     mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach'
     work_path = '/Users/julianthoenniss/Documents/PhD/data/'
     fiteo1_path = '/home/thoennis/data/correlation_apporach/'
-    np.savetxt(work_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
+    np.savetxt(work_path + method + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
 
 
-    plt.savefig(work_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' +
+    plt.savefig(work_path + method + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' +
                 str(g) + '_L=' + str(nsites) + '.png')
