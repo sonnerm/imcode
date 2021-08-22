@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import zero_to_nan
-def plot_entropy(entropy_values,ising_gamma_times, gamma_test_vals, iterator, Jx, Jy, g, beta, nsites):
+def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, ising_gamma_times = 0, gamma_test_vals = 0):
     #plot
     
     max_entropies = np.zeros(iterator)
@@ -17,9 +17,9 @@ def plot_entropy(entropy_values,ising_gamma_times, gamma_test_vals, iterator, Jx
 
     fig, ax = plt.subplots(2)
     ax[0].plot(entropy_values[:iterator, 0], max_entropies,
-            'ro-', label=r'$max_t S$, ' + r'$J_x={},J_y={}, g={}, \beta = {}, L={}$'.format(Jx, Jy, g, beta, nsites))
+            'ro-', label=r'$max_t S$, ' + r'$J_x={},J_y={}, g={},  L={}$'.format(Jx, Jy, g, nsites))
     ax[0].plot(entropy_values[:iterator, 0], zero_to_nan(half_entropies),
-            'ro--', label=r'$S(t/2)$, ' + r'$J_x={},J_y={}, g={}, \beta = {}, L={}$'.format(Jx, Jy, g, beta, nsites), color='green')
+            'ro--', label=r'$S(t/2)$, ' + r'$J_x={},J_y={}, g={},  L={}$'.format(Jx, Jy, g, nsites), color='green')
     ax[0].set_xlabel(r'$t$')
 
     ax[0].yaxis.set_ticks_position('both')
@@ -48,9 +48,8 @@ def plot_entropy(entropy_values,ising_gamma_times, gamma_test_vals, iterator, Jx
     mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach'
     work_path = '/Users/julianthoenniss/Documents/PhD/data/'
     fiteo1_path = '/home/thoennis/data/correlation_apporach/'
-    np.savetxt(work_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_beta=' +
-            str(beta) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
+    np.savetxt(work_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
 
 
     plt.savefig(work_path + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' +
-                str(g) + '_beta=' + str(beta) + '_L=' + str(nsites) + '.png')
+                str(g) + '_L=' + str(nsites) + '.png')
