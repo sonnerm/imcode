@@ -1,13 +1,11 @@
 from math import e
 from os import stat_result
-from quimb.evo import schrodinger_eq_dop
 from scipy.linalg import expm
 from scipy.linalg import eigvalsh
 from scipy.sparse.linalg import eigsh #diagonalization via Lanczos for initial state
 from scipy.linalg import block_diag
 import  numpy as np
 from scipy import sparse
-from quimb import *
 from plot_entropy import plot_entropy
 
 def rdm(vec,sites):
@@ -35,6 +33,7 @@ L = 8# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 
 #compute initial state (2^(L-1) indices)
 #Hamiltonian of XX model:
+"""
 ham = ham_XY((L - 1), jxy= 1.0, bz = 0.0)#create XY-Hamiltonian using quimb
 print (ham)
 ham = ham - eye(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
@@ -44,7 +43,7 @@ gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eige
 
 #density matarix for pure ground state of xy-Hamiltonian
 state = gs @ gs.T.conj()
-
+"""
 #--------------- infinite temperature initial state  -----------------------------------------------
 
 #density matrix for infinite temperature ground state
