@@ -52,7 +52,7 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-entropy_values = np.zeros((L // 2 + 1, L//2 + 2))  # entropies
+entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 #Parameters for KIC Floquet evolution
 Jx = 0
@@ -61,7 +61,7 @@ g = 0.2
 
 sigma_x = [[0,1],[1,0]]
 sigma_z = [[1,0],[0,-1]]
-ham_Ising = J * np.kron(sigma_z, sigma_z)
+ham_Ising = Jy * np.kron(sigma_z, sigma_z)
 kick_two_site = g * ( np.kron(sigma_x, np.identity(2)) + np.kron(np.identity(2), sigma_x)  ) 
 
 F_odd = expm(1j * kick_two_site) @ expm(1j * ham_Ising)
@@ -114,13 +114,14 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
 
 
     #compute intermediate temporal entanglement entropy
-    iterator += 1
-    state_for_entr = np.trace(state, axis1 = 0, axis2 = 2)
-    for cut in range (max(iterator - 2, 0 ), iterator + 1):
-        rdm_state = rdm(state_for_entr.reshape(-1), list(range(2 * cut, 2 * (n_traced - cut))))
-        entr_eigvals = eigvalsh(rdm_state)
-        entropy_values[iterator,0] = iterator
-        entropy_values[iterator,cut + 1] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
+    if n_traced > 2:
+        iterator += 1
+        state_for_entr = np.trace(state, axis1 = 0, axis2 = 2)
+        for cut in range (max( int(n_traced / 2) - 2, 0 ), int(n_traced / 2) + 1):
+            rdm_state = rdm(state_for_entr.reshape(-1), list(range(2 * cut, 2 * (n_traced - cut))))
+            entr_eigvals = eigvalsh(rdm_state)
+            entropy_values[iterator,0] = int(n_traced / 2)
+            entropy_values[iterator,cut] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
 
 
 #last layer consists only of single gate that coupled system and bath (i.e. "odd layer")
@@ -142,13 +143,13 @@ n_traced += 2
 #rdm_dm = np.trace(state, axis1 = 1, axis2 = 3) # view state as dm and trace out complementary times
 iterator += 1
 
-for cut in range (max(iterator - 2, 0 ), iterator + 1):
+for cut in range (max( int(n_traced / 2) - 2, 0 ),  int(n_traced / 2) + 1):
     rdm_state = rdm(state.reshape(-1), list(range(2 * cut, 2 * (n_traced - cut))))
     entr_eigvals = eigvalsh(rdm_state)
-    entropy_values[iterator,0] = iterator
-    entropy_values[iterator,cut + 1] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
+    entropy_values[iterator,0] =  int(n_traced / 2)
+    entropy_values[iterator,cut] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
 print (entropy_values)
 
-plot_entropy(entropy_values, iterator, Jx, Jy, g,  L, 'ED_')
+plot_entropy(entropy_values, iterator + 1, Jx, Jy, g,  L, 'ED_')
 
 print('Terminated..')
