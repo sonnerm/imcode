@@ -6,7 +6,7 @@ from reorder_eigenvecs import reorder_eigenvecs
 from add_cmplx_random_antisym import add_cmplx_random_antisym
 
 
-def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers, M_E):
+def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers):
     nsites = int (len(rho_0_exponent[0]) / 2)
    
     rho_0 = expm(- rho_0_exponent)
@@ -30,7 +30,7 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floque
     N_t = np.bmat([[eigenvecs_dressed[0:nsites,0:nsites], eigenvecs_dressed[nsites:2*nsites,0:nsites].conj()],[eigenvecs_dressed[nsites:2*nsites,0:nsites], eigenvecs_dressed[0:nsites,0:nsites].conj()]])
     
 
-    
+    """
     #Ising fermi sea:
     rho_dressed = rho_0
     N_t = M_E# this relies on the fact that in the Ising case, forward and backward branch are the same
@@ -61,5 +61,5 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floque
         eval = eigenvals_dressed[k]
         n_expect[k] = np.exp(- eval) / (2 * np.cosh(eval) ) # for < c^dagger c >
         n_expect[k + nsites] = 1 - n_expect[k] # for < c c^dagger >
-    """
+    
     return n_expect, N_t 
