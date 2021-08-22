@@ -116,11 +116,12 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
     if n_traced > 2:
         iterator += 1
         state_for_entr = np.trace(state, axis1 = 0, axis2 = 2)
-        for cut in range (max( int(n_traced / 2) - 2, 0 ), int(n_traced / 2) + 1):
-            rdm_state = rdm(state_for_entr.reshape(-1), list(range(2 * cut, 2 * (n_traced - cut))))
+        c = int(n_traced / 2)
+        for cut in range (c - c%2 , c + 1, 2):
+            rdm_state = rdm(state_for_entr.reshape(-1), list(range(cut, 2 * n_traced - cut)))
             entr_eigvals = eigvalsh(rdm_state)
             entropy_values[iterator,0] = int(n_traced / 2)
-            entropy_values[iterator,cut] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
+            entropy_values[iterator,int(cut / 2)] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
 
 
 #last layer consists only of single gate that coupled system and bath (i.e. "odd layer")
@@ -142,11 +143,12 @@ n_traced += 2
 #rdm_dm = np.trace(state, axis1 = 1, axis2 = 3) # view state as dm and trace out complementary times
 iterator += 1
 
-for cut in range (max( int(n_traced / 2) - 2, 0 ),  int(n_traced / 2) + 1):
-    rdm_state = rdm(state.reshape(-1), list(range(2 * cut, 2 * (n_traced - cut))))
+c = int(n_traced / 2)
+for cut in range ( c - c%2 , c + 1, 2):
+    rdm_state = rdm(state.reshape(-1), list(range(cut, 2 * n_traced - cut)))
     entr_eigvals = eigvalsh(rdm_state)
     entropy_values[iterator,0] =  int(n_traced / 2)
-    entropy_values[iterator,cut] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
+    entropy_values[iterator,int(cut / 2)] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
 print (entropy_values)
 
 plot_entropy(entropy_values, iterator + 1, Jx, Jy, g,  L, 'ED_')
