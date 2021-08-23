@@ -62,7 +62,7 @@ def plot_entropy(entropy_values, iterator, Jx, Jy, g, nsites, method,  ising_gam
 
     mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach'
     work_path = '/Users/julianthoenniss/Documents/PhD/data/'
-    fiteo1_path = '/home/thoennis/data/correlation_apporach/'
+    fiteo1_path = '/home/thoennis/data/correlation_approach/'
     np.savetxt(work_path + method + 'ent_entropy_Jx=' + str(Jx) + '_Jy=' + str(Jy) + '_g=' + str(g) + '_L=' + str(nsites) + '.txt', entropy_values,  delimiter=' ', fmt='%1.5f')
 
 
