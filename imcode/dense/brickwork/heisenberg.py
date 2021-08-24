@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg as la
 from .. import kron,SX,SY,SZ,ID
-from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb,brickwork_F
+from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_La,brickwork_Lb,brickwork_F
 
 def heisenberg_H(L,Jx,Jy,Jz,hx,hy,hz):
     assert len(hy)==L
@@ -48,8 +48,6 @@ def heisenberg_Sa(t,Jx,Jy,Jz):
     return brickwork_Sa(t,heisenberg_gate(Jx,Jy,Jz))
 def heisenberg_Sb(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
     return brickwork_Sb(t,heisenberg_gate(Jx,Jy,Jz,hx,hy,hz),init,final)
-def heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz,init=np.eye(4),final=np.eye(4)):
-    return brickwork_T(t,heisenberg_gate(Jx,Jy,Jz),heisenberg_gate(Jx,Jy,Jz,hx,hy,hz),init,final)
 def heisenberg_La(t):
     return brickwork_La(t)
 def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2),final=np.eye(2)):

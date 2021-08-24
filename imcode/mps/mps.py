@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as la
 import tenpy.linalg.np_conserved as npc
 from tenpy.linalg.charges import LegCharge
 from tenpy.networks.site import Site
@@ -26,11 +27,20 @@ class MPS(ABC):
     def from_matrices(cls,Bs,Svs=None,norm=1.0):
         sites=[]
         bss=[]
+        Bs[0]=Bs[0]*norm
         for b in Bs:
             b=np.array(b)
             bss.append(b.transpose([2,0,1])) #for some stupid reason
             sites.append(Site(LegCharge.from_trivial(b.shape[2])))
         return SimpleMPS(tenpy.networks.mps.MPS.from_Bflat(sites,bss,Svs,form=None))
+    @classmethod
+    def load_from_hdf5(cls,hdf5obj,name=None):
+        if name is not None:
+            hdf5obj=hdf5obj[name]
+        Ws=[]
+        for i in range(int(np.array(hdf5obj["L"]))):
+            Ws.append(np.array(hdf5obj["M_%i"%i]))
+        return cls.from_matrices(Ws)
     @classmethod
     def from_tenpy(cls,tpmps):
         return SimpleMPS(tpmps)
@@ -70,16 +80,25 @@ def _tp_canonical_form(tpmps):
     if tpmps.L>2:
         tpmps.canonical_form(False)
     elif tpmps.L==2:
-        B1=tpmps.get_B(0)
-        B2=tpmps.get_B(1)
-        M=np.einsum("abc,bed->ce",B1,B2)
+        B1=tpmps.get_B(0,form=None).to_ndarray()
+        B2=tpmps.get_B(1,form=None).to_ndarray()
+        M=np.einsum("acb,bed->ce",B1,B2)
         U,S,V=la.svd(M)
-        tpmps.set_B(0,U,form="A")
-        tpmps.set_B(1,V,form="A")
+        leg_t=LegCharge.from_trivial(1)
+        leg_o=LegCharge.from_trivial(U.shape[1])
+        leg_p=LegCharge.from_trivial(U.shape[0])
+        V=np.diag(S)@V
+        U=npc.Array.from_ndarray(U.T[None,:,:],[leg_t,leg_o.conj(),leg_p],labels=["vL","vR","p"])
+        V=npc.Array.from_ndarray(V[:,None,:],[leg_o,leg_t.conj(),leg_p],labels=["vL","vR","p"])
+        tpmps.set_B(0,U,form="B")
+        tpmps.set_B(1,V,form="B")
         tpmps.set_SR(0,S)
     else:
         #well if L=1 it is already canonical but we still need to teach this to tenpy
-        tpmps.set_B(0,tpmps.get_B(0,None),"A")
+        B=tpmps.get_B(0,None)
+        tpmps.set_B(0,B,"B")
+        tpmps.set_SL(0,np.array([1.0]))
+        tpmps.set_SR(0,np.array([1.0]))
         pass
 def _tp_overlap_plain(left,right):
     left=left.copy()
@@ -90,7 +109,7 @@ def _tp_overlap_plain(left,right):
     return left.overlap(right)
 def _process_options(kwargs):
     if "chi_max" in kwargs.keys():
-        kwargs.get("trunc_params",{})["chi_max"]=kwargs["chi_max"]
+        kwargs.setdefault("trunc_params",{})["chi_max"]=kwargs["chi_max"]
         del kwargs["chi_max"]
     kwargs["verbose"]=False
     kwargs["compression_method"]="SVD"
@@ -116,12 +135,24 @@ class SimpleMPS(MPS):
         self.S=_S_helper(tpmps)
         _tp_canonical_form(tpmps)
         self.L=tpmps.L
+    def bond_entropy(self):
+        return self.tpmps.entanglement_entropy()
+
+    def save_to_hdf5(self,hdf5obj,name=None):
+        if name is not None:
+            hdf5obj=hdf5obj.create_group(name)
+        L=self.tpmps.L
+        hdf5obj["L"]=L
+        for i in range(L-1):
+            hdf5obj["M_%i"%i]=np.array(self.get_B(i))
+        hdf5obj["M_%i"%(L-1)]=np.array(self.get_B(L-1)*self.tpmps.norm)
+
     def get_B(self,i):
         return self.tpmps.get_B(i,copy=True).to_ndarray().transpose([0,2,1])
     def get_S(self,i):
         return self.tpmps.get_SR(i)
     def canonicalize(self):
-        self.canonicalize(False)
+        _tp_canonical_form(self.tpmps)
     def contract(self,**kwargs):
         return self
     def compress(self,**kwargs):
@@ -182,6 +213,14 @@ class MPO(ABC):
             Wn=npc.Array.from_ndarray(w,[leg_i,leg_o.conj(),leg_p,leg_p.conj()],labels=["wL","wR","p","p*"])
             wss.append(Wn)
         return SimpleMPO(tenpy.networks.mpo.MPO(sites,wss))
+    @classmethod
+    def load_from_hdf5(cls,hdf5obj,name=None):
+        if name is not None:
+            hdf5obj=hdf5obj[name]
+        Ws=[]
+        for i in range(int(np.array(hdf5obj["L"]))):
+            Ws.append(np.array(hdf5obj["M_%i"%i]))
+        return cls.from_matrices(Ws)
 
     @classmethod
     def from_tenpy(cls,tpmpo):
@@ -206,6 +245,12 @@ class SimpleMPO(MPO):
         return self #already contracted
     def get_W(self,i):
         return self.tpmpo.get_W(i,True).to_ndarray()
+    def save_to_hdf5(self,hdf5obj,name):
+        if name is not None:
+            hdf5obj=hdf5obj.create_group(name)
+        hdf5obj["L"]=self.tpmpo.L
+        for i in range(self.tpmpo.L):
+            hdf5obj["M_%i"%i]=np.array(self.get_W(i))
     def input_dims(self):
         return [M.shape[3] for M in self.Ms]
     def output_dims(self):
@@ -254,9 +299,11 @@ def outer(mpss):
     for mps in mpss:
         assert isinstance(mps,SimpleMPS)
     Bs=[]
+    norm=1.0
     for mps in mpss:
         Bs.extend([mps.get_B(i) for i in range(mps.L)])
-    return MPS.from_matrices(Bs)
+        norm*=mps.tpmps.norm
+    return MPS.from_matrices(Bs,norm=norm)
 
 
 def kron(mpos):

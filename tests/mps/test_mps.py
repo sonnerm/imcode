@@ -1,36 +1,33 @@
 import pytest
 import numpy as np
-# import tenpy.tools.hdf5_io as hdf5_io
-# import h5py
+import h5py
 import imcode.mps as mps
-# import imcode.dense as dense
+import imcode.dense as dense
 #
 #
-# def test_store_mpo(tmpdir):
-#     f=h5py.File(tmpdir.join("test_mpo.h5"),"w")
-#     seed_rng("store_mpo")
-#     t,J,g,h=4,np.random.normal(),np.random.normal(),np.random.normal()
-#     mpo=mps.fold.ising_T(t,J,g,h)
-#     hdf5_io.save_to_hdf5(f,mpo,"mpo")
-#     f.close()
-#     del mpo
-#     del f
-#     f2=h5py.File(tmpdir.join("test_mpo.h5"))
-#     mpo2=hdf5_io.load_from_hdf5(f2,"mpo")
-#     assert mps.mpo_to_dense(mpo2)==pytest.approx(dense.ising_T(t,J,g,h))
-# def test_store_mps(tmpdir):
-#     f=h5py.File(tmpdir.join("test_mps.h5"),"w")
-#     seed_rng("store_mps")
-#     t,J,g,h=4,np.random.normal(),np.random.normal(),np.random.normal()
-#     mpo=mps.fold.ising_T(t,J,g,h)
-#     mps1=mps.im_iterative(mpo,chi=128)
-#     hdf5_io.save_to_hdf5(f,mps1,"mps")
-#     f.close()
-#     del mps1
-#     del f
-#     f2=h5py.File(tmpdir.join("test_mps.h5"))
-#     mps2=hdf5_io.load_from_hdf5(f2,"mps")
-#     assert mps.mps_to_dense(mps2)==pytest.approx(dense.im_iterative(dense.ising_T(t,J,g,h)))
+def test_store_mpo(tmpdir,seed_rng):
+    f=h5py.File(tmpdir.join("test_mpo.h5"),"w")
+    t,J,g,h=4,np.random.normal(),np.random.normal(),np.random.normal()
+    mpo=mps.ising.ising_T(t,J,g,h)
+    mpo.save_to_hdf5(f,"mpo")
+    f.close()
+    del mpo
+    del f
+    f2=h5py.File(tmpdir.join("test_mpo.h5"))
+    mpo2=mps.MPO.load_from_hdf5(f2,"mpo")
+    assert mpo2.to_dense()==pytest.approx(dense.ising.ising_T(t,J,g,h))
+def test_store_mps(tmpdir,seed_rng):
+    f=h5py.File(tmpdir.join("test_mps.h5"),"w")
+    t,J,g,h=4,np.random.normal(),np.random.normal(),np.random.normal()
+    mpo=mps.ising.ising_T(t,J,g,h)
+    mps1=list(mps.ising.im_rectangle(mpo,chi=64))[-1]
+    mps1.save_to_hdf5(f,"mps")
+    f.close()
+    del mps1
+    del f
+    f2=h5py.File(tmpdir.join("test_mps.h5"))
+    mps2=mps.MPS.load_from_hdf5(f2,"mps")
+    assert mps2.to_dense()==pytest.approx(dense.ising.im_diag(dense.ising.ising_T(t,J,g,h)))
 def test_contract_order(seed_rng):
     L=4
     chi_mpo=5

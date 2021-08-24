@@ -4,31 +4,15 @@ import scipy.linalg as la
 import numpy as np
 import pytest
 
-def test_boundary_single_dmevo_lops(seed_rng):
-    L=4
-    t=4
-    chi=64
-    Js=np.random.normal(size=(L,))
-    gs=np.random.normal(size=(L,))
-    hs=np.random.normal(size=(L,))
-    Ts=[mps.ising.ising_T(t,J,g,h,np.eye(2),np.eye(2)) for J,g,h in zip(Js,gs,hs)]
-    lops=[np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j for _ in range(t)]
-    lops=[la.expm(l-l.T.conj()) for l in lops]
-    init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
-    init=init+init.T.conj()
-    im=mps.ising.open_boundary_im(t)
-    for T in Ts:
-        im=(T@im).contract(chi_max=chi)
-    dms=mps.ising.boundary_dm_evolution(im,lops,init)
 
 def test_boundary_single_dmevo_ising(seed_rng):
     L=4
-    t=4
-    chi=64
+    t=10
+    chi=32
     Js=np.random.normal(size=(L,))
     gs=np.random.normal(size=(L+1,))
     hs=np.random.normal(size=(L+1,))
-    Ts=[mps.ising.ising_T(t,J,g,h,np.eye(2),np.eye(2)) for J,g,h in zip(Js,gs[:-1],hs[:-1])]
+    Ts=[mps.ising.ising_T(t,J,g,h,np.eye(2)/2,np.eye(2)) for J,g,h in zip(Js,gs[:-1],hs[:-1])]
     lop=la.expm(1.0j*hs[-1]*dense.SZ)@la.expm(1.0j*gs[-1]*dense.SX)
     init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
     init=init+init.T.conj()
@@ -37,20 +21,86 @@ def test_boundary_single_dmevo_ising(seed_rng):
     im=mps.ising.open_boundary_im(t)
     for T in Ts:
         im=(T@im).contract(chi_max=chi)
-    dms=mps.ising.boundary_dm_evolution(im,lop,init)
+    dms=mps.ising.boundary_dm_evolution(im,dense.unitary_channel(lop),init)
     F=dense.ising.ising_F(L+1,Js,gs,hs)
-    Fc=dense.unitary_channel(F)
-    state=dense.outer([np.eye(2).ravel()/2]*(L)+[init.ravel()])
-    summi=dense.outer([np.eye(2).ravel()]*(L))
-    ddms=[np.einsum("a,ab->b",summi,state.reshape((4**L),4)).reshape((2,2))]
+    # Fc=dense.unitary_channel(F)
+    # state=dense.outer([np.eye(2).ravel()/2]*(L)+[init.ravel()])
+    state=dense.kron([np.eye(2)/2]*(L)+[init])
+    summi=dense.kron([np.eye(2)]*(L))
+    ddms=[np.einsum("ab,acbd->cd",summi,state.reshape((2**L),2,(2**L),2)).reshape((2,2))]
     for i in range(t):
-        state=Fc@state
-        ddms.append(np.einsum("a,ab->b",summi,state.reshape((4**L),4)).reshape((2,2)))
+        state=F@state@F.T.conj()
+        ddms.append(np.einsum("ab,acbd->cd",summi,state.reshape((2**L),2,(2**L),2)).reshape((2,2)))
     for d,dd in zip(dms[::2],ddms):
         assert d==pytest.approx(dd)
 
-def test_embedded_double_dmevo(seed_rng):
-    pass
+def test_embedded_double_dmevo_ising(seed_rng):
+    Ll=2
+    Lr=3
+    t=10
+    chi=32
+    Js=np.random.normal(size=(Ll+Lr+1,))
+    gs=np.random.normal(size=(Ll+Lr+2,))
+    hs=np.random.normal(size=(Ll+Lr+2,))
+    Tsl=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:Ll],gs[:Ll],hs[:Ll])]
+    Tsr=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[-1:-Lr-1:-1],gs[-1:-Lr-1:-1],hs[-1:-Lr-1:-1])]
 
-def test_embedded_single_dmevo(seed_rng):
-    pass
+    lop=dense.ising.ising_F(2,Js[Ll:Ll+1],gs[Ll:Ll+2],hs[Ll:Ll+2])
+    init=np.random.normal(size=(4,4))+np.random.normal(size=(4,4))*1.0j
+    init=init+init.T.conj()
+    init=init@init
+    init/=np.trace(init)
+    lim=mps.ising.open_boundary_im(t)
+    for T in Tsl:
+        lim=(T@lim).contract(chi_max=chi)
+    assert (np.array(lim.tpmps.chi)<=chi).all()
+    rim=mps.ising.open_boundary_im(t)
+    for T in Tsr:
+        rim=(T@rim).contract(chi_max=chi)
+    assert (np.array(rim.tpmps.chi)<=chi).all()
+    dms=mps.ising.embedded_dm_evolution(lim,dense.unitary_channel(lop),rim,init)
+    F=dense.ising.ising_F(Ll+Lr+2,Js,gs,hs)
+    state=dense.kron([np.eye(2)/2]*(Ll)+[init]+[np.eye(2)/2]*(Lr))
+    summil=dense.kron([np.eye(2)]*(Ll))
+    summir=dense.kron([np.eye(2)]*(Lr))
+    ddms=[np.einsum("ad,abcdef,cf->be",summil,state.reshape((2**Ll),4,(2**Lr),(2**Ll),4,(2**Lr)),summir)]
+    for i in range(t):
+        state=F@state@F.T.conj()
+        ddms.append(np.einsum("ad,abcdef,cf->be",summil,state.reshape((2**Ll),4,(2**Lr),(2**Ll),4,(2**Lr)),summir))
+    for d,dd in zip(dms[::2],ddms):
+        assert d==pytest.approx(dd)
+
+def test_embedded_single_dmevo_ising(seed_rng):
+    Ll=3
+    Lr=2
+    t=10
+    chi=32
+    Js=np.random.normal(size=(Ll+Lr,))
+    gs=np.random.normal(size=(Ll+Lr+1,))
+    hs=np.random.normal(size=(Ll+Lr+1,))
+    Tsl=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:Ll],gs[:Ll],hs[:Ll])]
+    Tsr=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[-1:-Lr-1:-1],gs[-1:-Lr-1:-1],hs[-1:-Lr-1:-1])]
+    lop=la.expm(1.0j*hs[Ll]*dense.SZ)@la.expm(1.0j*gs[Ll]*dense.SX)
+    init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
+    init=init+init.T.conj()
+    init=init@init
+    init/=np.trace(init)
+    lim=mps.ising.open_boundary_im(t)
+    for T in Tsl:
+        lim=(T@lim).contract(chi_max=chi)
+    rim=mps.ising.open_boundary_im(t)
+    for T in Tsr:
+        rim=(T@rim).contract(chi_max=chi)
+    dms=mps.ising.embedded_dm_evolution(lim,dense.unitary_channel(lop),rim,init)
+    F=dense.ising.ising_F(Ll+Lr+1,Js,gs,hs)
+    # Fc=dense.unitary_channel(F)
+    state=dense.kron([np.eye(2)/2]*(Ll)+[init]+[np.eye(2)/2]*(Lr))
+    summil=dense.kron([np.eye(2)]*(Ll))
+    summir=dense.kron([np.eye(2)]*(Lr))
+    ddms=[np.einsum("ad,abcdef,cf->be",summil,state.reshape((2**Ll),2,(2**Lr),(2**Ll),2,(2**Lr)),summir)]
+    for i in range(t):
+        state=F@state@F.T.conj()
+        ddms.append(np.einsum("ad,abcdef,cf->be",summil,state.reshape((2**Ll),2,(2**Lr),(2**Ll),2,(2**Lr)),summir))
+
+    for d,dd in zip(dms[::2],ddms):
+        assert d==pytest.approx(dd)

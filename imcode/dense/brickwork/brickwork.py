@@ -1,5 +1,5 @@
 import numpy as np
-from .. import kron,outer
+from .. import kron,outer,operator_to_state
 def brickwork_H(L,gates):
     assert L>1
     ret=np.zeros((2**L,2**L),dtype=np.common_type(*gates))
@@ -12,8 +12,9 @@ def brickwork_H(L,gates):
 
 
 def brickwork_F(L,gates,reversed=False):
-    if len(gates)==L-1:
-        gates.append(np.eye(4))
+    assert (len(gates)!=L) or (L%2==0) #periodic doesn't work for odd number of sites
+    if (len(gates)==L-1) and (L%2==0):
+        gates=gates+[np.eye(4)]#no modification inplace
     evs=kron([g for g in gates[::2]]+([np.eye(2)] if L%2==1 else []))
     ods=kron([g for g in gates[1::2]]+([np.eye(2)] if L%2==1 else []))
     ods=ods.reshape((2**(L-1),2,2**(L-1),2)).transpose([1,0,3,2]).reshape((2**L,2**L))
@@ -21,34 +22,27 @@ def brickwork_F(L,gates,reversed=False):
         return ods@evs
     else:
         return evs@ods
-def brickwork_T(t,even,odd,init=np.eye(4)/4,final=np.eye(4)):
-    sa=brickwork_Sa(t,odd)
-    sb=brickwork_Sb(t,even,init,final)
-    return sa@sb
 
 
 def brickwork_Sa(t, gate):
     '''
         "gate" portion of the brickwork transfer matrix
     '''
-    dual=np.einsum("abcd,efgh->aecgbfdh",gate.reshape((2,2,2,2)),gate.conj().reshape((2,2,2,2))).reshape(16,16)
-    return kron([dual]*t)
+    gate=gate.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((16,16))
+    return kron([gate]*t)
 
 def brickwork_Sb(t, gate,init=np.eye(4)/4,final=np.eye(4)):
-    gate=gate.reshape((2,2,2,2))
-    dual=np.einsum("abcd,efgh->aecgbfdh",gate,gate.conj()).reshape((16,16))
-    init=np.einsum("cdab,abef,cdgh->egfh",init.reshape((2,2,2,2)),gate,gate.conj()) #No idea why init.T but works
-    init=init.reshape((4,4))
-    # print(init)
-    final=np.einsum("abcd->acbd",final.reshape((2,2,2,2))).reshape((4,4))
-    return kron([init]+[dual]*(t-1)+[final])
+    init=operator_to_state(init)
+    init=(gate@init).reshape((4,4))
+    final=operator_to_state(final.T).reshape((4,4))
+    gate=gate.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((16,16))
+    return kron([init]+[gate]*(t-1)+[final])
 
 def brickwork_La(t):
     ret=outer([np.eye(4).ravel()]*t).ravel()
     return ret
 
 def brickwork_Lb(t,lop,init=np.eye(2)/2,final=np.eye(2)):
-    init=np.einsum("ab,cd,ca->bd",lop,lop.conj(),init)
-    lop=np.kron(lop,lop.conj())
-    ret=outer([init.ravel()]+[lop.ravel()]*(t-1)+[final.ravel()]).ravel()
+    init=lop@init.ravel()
+    ret=outer([init.ravel()]+[lop.T.ravel()]*(t-1)+[final.T.ravel()]).ravel()
     return ret

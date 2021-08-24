@@ -13,7 +13,7 @@ def test_contract_6x6_mixed(seed_rng):
     gs=np.random.normal(size=(L,))
     hs=np.random.normal(size=(L,))
     Ts=[mps.ising.ising_T(t,J,g,h,i,f) for J,g,h,i,f in zip(Js,gs[:-1],hs[:-1],init[:-1],final[:-1])]
-    Ts.append((mps.ising.ising_W(t,gs[-1],init[-1],final[-1])@mps.ising.ising_h(t,hs[-1])).contract())
+    Ts.append((mps.ising.ising_g(t,gs[-1],init[-1],final[-1])@mps.ising.ising_h(t,hs[-1])).contract())
     bc=mps.ising.open_boundary_im(t)
     for T in Ts:
         bc=(T@bc).contract(chi_max=chi)
@@ -40,7 +40,7 @@ def test_contract_unity(seed_rng):
     gs=np.random.normal(size=(L,))
     hs=np.random.normal(size=(L,))
     Ts=[mps.ising.ising_T(t,J,g,h,i,f) for J,g,h,i,f in zip(Js,gs[:-1],hs[:-1],init[:-1],final[:-1])]
-    Ts.append(mps.ising.ising_W(t,gs[-1],init[-1],final[-1])@mps.ising.ising_h(t,hs[-1]))
+    Ts.append(mps.ising.ising_g(t,gs[-1],init[-1],final[-1])@mps.ising.ising_h(t,hs[-1]))
     bc=mps.ising.open_boundary_im(t)
     for T in Ts:
         bc=(T@bc).contract(chi_max=chi)

@@ -1,6 +1,12 @@
 from . import open_boundary_im
 from .. import outer
 import numpy as np
+import numpy.linalg as la
+def im_diag(T):
+    ev,evv=la.eig(T)
+    oev=evv[:,np.argmax(np.abs(ev))]
+    oev/=oev[0]
+    return oev
 def im_rectangle(Ts,boundary=None):
     if isinstance(Ts,np.ndarray) and len(Ts.shape)==2:
         Ts=[Ts]*int(np.log2(Ts.shape[0]))
