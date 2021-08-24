@@ -66,10 +66,10 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
-#Parameters for KIC Floquet evolution
-Jx = 0.5
-Jy = 0.3
-g = 0
+#Parameters for Floquet evolution (can handle KIC as well as XY model)
+Jx = 0
+Jy = 0.31
+g = np.pi / 4
 
 
 ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
@@ -80,14 +80,13 @@ F_even = expm(1j * ham_XY)
 
 n_traced = 0#this variable keeps track of the number of spins in the spin chain that have been integrated out 
 
-state = np.reshape(state, (2**(L-1) , 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
+state = np.reshape(state, (2**(L-1) , 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs "in the middle"
 
-iterator = 0
+iterator = 0#this variable counts the number of floquet steps for which the entropy is evaluated. 
 
 for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out last two spins until the spin chain has become a pure ancilla spin chain.
 
-    
-#odd layer
+    #odd layer
     layer_odd = F_odd
     for i in range (int((L - n_traced)/2) - 1 ):
         layer_odd = np.kron(layer_odd, F_odd)
