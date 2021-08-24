@@ -22,10 +22,6 @@ def brickwork_F(L,gates,reversed=False):
         return ods@evs
     else:
         return evs@ods
-def brickwork_T(t,even,odd,init=np.eye(4)/4,final=np.eye(4)):
-    sa=brickwork_Sa(t,odd)
-    sb=brickwork_Sb(t,even,init,final)
-    return sa@sb
 
 
 def brickwork_Sa(t, gate):
