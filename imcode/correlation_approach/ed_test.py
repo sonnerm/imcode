@@ -16,8 +16,6 @@ def rdm(vec,sites):
     L=int(np.log2(len(vec)))
     complement=sorted(list(set(range(L))-set(sites)))
     vec=vec/np.sqrt(np.sum(vec.conj()*vec))
-    print(sites+complement)
-    print(sites)
     vec=vec.reshape((2,)*L)
     vec=np.transpose(vec,sites+complement)
     vec=vec.reshape((2**len(sites),2**(len(complement))))
@@ -34,11 +32,11 @@ sigma_y = np.array([[0,-1j],[1j,0]])
 sigma_z = np.array([[1,0],[0,-1]])
 #------------------------------------------------------------ Define initial state density matrix--------------------------------------------------------------------
 
-#--------------- ground state of XY Hamiltonian -----------------------------------------------
+#--------------- ground state of XX Hamiltonian (not tested)-----------------------------------------------
 
 #compute initial state (2^(L-1) indices)
 #Hamiltonian of XX model:
-
+""" 
 ham_XX = np.zeros((2**(L-1), 2**(L-1)))
 
 ham_XX_twosite = np.real(np.kron(sigma_x,sigma_x) + np.kron(sigma_y,sigma_y) )
@@ -57,11 +55,12 @@ gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eige
 
 #density matarix for pure ground state of xy-Hamiltonian
 state = gs @ gs.T.conj()
+"""
 
-#--------------- infinite temperature initial state  -----------------------------------------------
+#--------------- infinite temperature initial state  (tested) -----------------------------------------------
 
 #density matrix for infinite temperature ground state
-#state = np.identity(2**(L-1)) / 2**(L-1)
+state = np.identity(2**(L-1)) / 2**(L-1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -81,7 +80,6 @@ F_even = expm(1j * ham_XY)
 
 n_traced = 0#this variable keeps track of the number of spins in the spin chain that have been integrated out 
 
-#state = np.reshape(state, (2**(L-1) , 1, 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
 state = np.reshape(state, (2**(L-1) , 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs
 
 iterator = 0
@@ -93,12 +91,10 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
     layer_odd = F_odd
     for i in range (int((L - n_traced)/2) - 1 ):
         layer_odd = np.kron(layer_odd, F_odd)
-    print('layer odd shape',layer_odd.shape)
     #even layer
     layer_even = np.kron(np.identity(2), F_even)
     for i in range (int((L - n_traced)/2) - 2):
         layer_even = np.kron(layer_even, F_even)
-    print('layer even shape',layer_even.shape)
     layer_even = np.kron(layer_even, np.identity(2))
   
 
@@ -106,7 +102,6 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
     F = np.reshape(layer_even @ layer_odd, F_apply_shape)
     
     #apply double layer of gates, F
-    #state = np.einsum('aibj, jqrk, kdle  -> iqabrdel', F, state, F.T.conj())
     state = np.einsum('aibj, jqk, kdle  -> iabqdel', F, state, F.T.conj())
 
     #update number of "non-ancilla"-spins of the original chain that will be traced out after this cycle
@@ -116,32 +111,29 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
     dim_open_legs_per_branch = 2**n_traced
 
     #reshape state such that last spin can be traced out
-    #trace_shape = (2**(L - 1 - n_traced), 4, dim_open_legs_per_branch, dim_open_legs_per_branch, 2**(L - 1 - n_traced), 4)
     trace_shape = (2**(L - 1 - n_traced), 4, dim_open_legs_per_branch**2, 2**(L - 1 - n_traced), 4)
     state = np.reshape(state, trace_shape)
   
     #trace out the two last spins
-    #state = np.trace(state, axis1 = 1, axis2 = 5)# trace out last and second to last spin 
     state = np.trace(state, axis1 = 1, axis2 = 4)# trace out last and second to last spin 
 
 
     #compute intermediate temporal entanglement entropy
-    if n_traced > 2:
+    if n_traced > 2:#compute temp. ent. entropy only if there is more than one Floquet layer, otherwise it is trivial
         iterator += 1
-        state_for_entr = np.trace(state, axis1 = 0, axis2 = 2)
+        state_for_entr = np.trace(state, axis1 = 0, axis2 = 2)#integrate out all spatial sites
         c = int(n_traced / 2)
-        for cut in range (c - c%2 , c + 1, 2):
-            rdm_state = rdm(state_for_entr.reshape(-1), list(range(cut, 2 * n_traced - cut)))
+        for cut in range (c - c%2 , c + 1, 2):#the lower limit can be adjusted depending on how many time cuts one want to compute. if it is set to (c - c%2), only the half-time cut is computed for even final times and the next smaller one for odd final times
+            rdm_state = rdm(state_for_entr.reshape(-1), list(range(cut, 2 * n_traced - cut)))#compute reduced density matrix, i.e. interpreting IM as a state and integrating out the corresponding times
             entr_eigvals = eigvalsh(rdm_state)
             entropy_values[iterator,0] = int(n_traced / 2)
-            entropy_values[iterator,int(cut / 2)] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
+            entropy_values[iterator,int(cut / 2)] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) #apply formula to compute entanglement entropy from eigenvalues of reduced density matrix
 
 
 #last layer consists only of single gate that coupled system and bath (i.e. "odd layer")
 F_apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
 
 #apply last gate
-#state = np.einsum('aibj, jqrk, kdle  -> iqabrdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
 state = np.einsum('aibj, jqk, kdle  -> iabqdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
 
 #reshape such that last "non-ancilla" - spin can be traced out. After this step, only open legs in temporal direction remain.
@@ -152,10 +144,9 @@ state = np.trace(state, axis1 = 0, axis2 = 2)
 #update number of "non-ancilla"-spins of the original chain that will be traced out after this cycle
 n_traced += 2
 
-#state = state.reshape(2**(L//2),2**(L//2),2**(L//2),2**(L//2) )
-#rdm_dm = np.trace(state, axis1 = 1, axis2 = 3) # view state as dm and trace out complementary times
 iterator += 1
 
+#for comments see above
 c = int(n_traced / 2)
 for cut in range ( c - c%2 , c + 1, 2):
     rdm_state = rdm(state.reshape(-1), list(range(cut, 2 * n_traced - cut)))
@@ -166,4 +157,4 @@ print (entropy_values)
 
 plot_entropy(entropy_values, iterator + 1, Jx, Jy, g,  L, 'ED_')
 
-print('Terminated..')
+print('Successfully terminated..')
