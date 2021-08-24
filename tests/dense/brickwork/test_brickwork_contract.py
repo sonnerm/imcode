@@ -5,13 +5,10 @@ from functools import reduce
 import pytest
 def test_contract_2x3_mixed(seed_rng):
     L=2
-    t=1
+    t=3
     init=np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))
     final=np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))
     gate=np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))
-    gate+=gate.T.conj()
-    _,gate=la.eigh(gate)
-    gate=np.eye(4)
     F=dense.brickwork.brickwork_F(L,[gate]*(L-1))
     acc=init
     for _ in range(t):
@@ -23,7 +20,7 @@ def test_contract_2x3_mixed(seed_rng):
 
 def test_contract_2x3_separable(seed_rng):
     L=2
-    t=1
+    t=3
     init=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
     final=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
     gate=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
@@ -41,42 +38,75 @@ def test_contract_2x3_separable(seed_rng):
     assert transverse==pytest.approx(direct)
 
 #
-# def test_contract_3x3_mixed(seed_rng):
-#     L=3
-#     t=3
-#     init=[np.random.normal(size=(2,2))+1.0j*np.random.normal((2,2)) for _ in range(L)]
-#     final=[np.random.normal(size=(2,2))+1.0j*np.random.normal((2,2)) for _ in range(L)]
-#     Js=np.random.normal(size=(L-1,))
-#     gs=np.random.normal(size=(L,))
-#     hs=np.random.normal(size=(L,))
-#     Ts=[dense.ising.ising_T(t,J,g,h,i,f) for J,g,h,i,f in zip(Js,gs[:-1],hs[:-1],init[:-1],final[:-1])]
-#     Ts.append(dense.ising.ising_g(t,gs[-1],init[-1],final[-1])@dense.ising.ising_h(t,hs[-1]))
-#     F=dense.ising.ising_F(L,Js,gs,hs)
-#     bc=dense.ising.open_boundary_im(t)
-#     initv=dense.kron(init)
-#     finalv=dense.kron(final)
-#     for T in Ts:
-#         bc=T@bc
-#     transverse=dense.ising.open_boundary_im(t)@bc
-#     for _ in range(t):
-#         initv=F@initv@F.T.conj()
-#     direct=np.trace(finalv@initv)
-#     assert transverse==pytest.approx(direct)
-#
-# def test_contract_unity(seed_rng):
-#     L=3
-#     t=3
-#     init=[np.random.normal(size=(2,2))+1.0j*np.random.normal((2,2)) for _ in range(L)]
-#     init=[i@i.T.conj() for i in init]
-#     init=[(i)/np.trace(i) for i in init]
-#     final=[np.eye(2) for _ in range(L)]
-#     Js=np.random.normal(size=(L,))
-#     gs=np.random.normal(size=(L,))
-#     hs=np.random.normal(size=(L,))
-#     Ts=[dense.ising.ising_T(t,J,g,h,i,f) for J,g,h,i,f in zip(Js,gs[:-1],hs[:-1],init[:-1],final[:-1])]
-#     Ts.append(dense.ising.ising_g(t,gs[-1],init[-1],final[-1])@dense.ising.ising_h(t,hs[-1]))
-#     bc=dense.ising.open_boundary_im(t)
-#     for T in Ts:
-#         bc=T@bc
-#     transverse=dense.ising.open_boundary_im(t)@bc
-#     assert transverse==pytest.approx(1.0)
+def test_contract_3x3(seed_rng):
+    L=3
+    t=3
+    init=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
+    final=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
+    gate=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(L-1)]
+    F=dense.brickwork.brickwork_F(L,gate)
+    acc=dense.kron(init)
+    finalvec=dense.kron(final)
+    for _ in range(t):
+        acc=F@acc@F.T.conj()
+    direct=np.trace(finalvec@acc)
+    bcla=dense.brickwork.brickwork_La(t)
+    bclb=dense.brickwork.brickwork_Lb(t,dense.unitary_channel(np.eye(2)),init[2],final[2])
+    sa=dense.brickwork.brickwork_Sa(t,dense.unitary_channel(gate[1]))
+    sb=dense.brickwork.brickwork_Sb(t,dense.unitary_channel(gate[0]),np.kron(init[0],init[1]),np.kron(final[0],final[1]))
+    transverse=bcla@(sb@(sa@bclb))
+    assert transverse==pytest.approx(direct)
+def test_contract_3x3_reversed(seed_rng):
+    L=3
+    t=3
+    init=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
+    final=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
+    gate=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(L-1)]
+    F=dense.brickwork.brickwork_F(L,gate,reversed=True)
+    acc=dense.kron(init)
+    finalvec=dense.kron(final)
+    for _ in range(t):
+        acc=F@acc@F.T.conj()
+    direct=np.trace(finalvec@acc)
+    bcla=dense.brickwork.brickwork_La(t)
+    bclb=dense.brickwork.brickwork_Lb(t,dense.unitary_channel(np.eye(2)),init[0],final[0])
+    sa=dense.brickwork.brickwork_Sa(t,dense.unitary_channel(gate[0]))
+    sb=dense.brickwork.brickwork_Sb(t,dense.unitary_channel(gate[1]),np.kron(init[1],init[2]),np.kron(final[1],final[2]))
+    transverse=bclb@(sa@(sb@bcla))
+    assert transverse==pytest.approx(direct)
+
+def test_contract_4x3(seed_rng):
+    L=4
+    t=3
+    init=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(L//2)]
+    final=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(L//2)]
+    gate=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(L-1)]
+    F=dense.brickwork.brickwork_F(L,gate)
+    acc=dense.kron(init)
+    finalvec=dense.kron(final)
+    for _ in range(t):
+        acc=F@acc@F.T.conj()
+    direct=np.trace(finalvec@acc)
+    bc=dense.brickwork.brickwork_La(t)
+    sa=dense.brickwork.brickwork_Sa(t,dense.unitary_channel(gate[1]))
+    sb1=dense.brickwork.brickwork_Sb(t,dense.unitary_channel(gate[0]),init[0],final[0])
+    sb2=dense.brickwork.brickwork_Sb(t,dense.unitary_channel(gate[2]),init[1],final[1])
+    transverse=bc@(sb1@(sa@(sb2@bc)))
+    assert transverse==pytest.approx(direct)
+
+def test_contract_3x3_unity(seed_rng):
+    L=3
+    t=3
+    init=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for _ in range(L)]
+    init=[i.T.conj()+i for i in init]
+    init=[i/np.trace(i) for i in init]
+    final=[np.eye(2) for _ in range(L)]
+    gate=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(L-1)]
+    gate=[g.T.conj()+g for g in gate]
+    gate=[la.eigh(g)[1] for g in gate]
+    bcla=dense.brickwork.brickwork_La(t)
+    bclb=dense.brickwork.brickwork_Lb(t,dense.unitary_channel(np.eye(2)),init[0],final[0])
+    sa=dense.brickwork.brickwork_Sa(t,dense.unitary_channel(gate[0]))
+    sb=dense.brickwork.brickwork_Sb(t,dense.unitary_channel(gate[1]),np.kron(init[1],init[2]),np.kron(final[1],final[2]))
+    transverse=bclb@(sa@(sb@bcla))
+    assert transverse==pytest.approx(1.0)

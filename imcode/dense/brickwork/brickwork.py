@@ -32,14 +32,14 @@ def brickwork_Sa(t, gate):
     '''
         "gate" portion of the brickwork transfer matrix
     '''
-    gate=gate.reshape((4,4,4,4)).transpose([0,2,1,3])
-    return kron([gate.reshape(16,16)]*t)
+    gate=gate.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((16,16))
+    return kron([gate]*t)
 
 def brickwork_Sb(t, gate,init=np.eye(4)/4,final=np.eye(4)):
     init=operator_to_state(init)
     init=(gate@init).reshape((4,4))
-    final=operator_to_state(final).reshape((4,4))
-    gate=gate.reshape((4,4,4,4)).transpose([0,2,1,3])
+    final=operator_to_state(final.T).reshape((4,4))
+    gate=gate.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((16,16))
     return kron([init]+[gate]*(t-1)+[final])
 
 def brickwork_La(t):
@@ -48,5 +48,5 @@ def brickwork_La(t):
 
 def brickwork_Lb(t,lop,init=np.eye(2)/2,final=np.eye(2)):
     init=lop@init.ravel()
-    ret=outer([init.ravel()]+[lop.ravel()]*(t-1)+[final.ravel()]).ravel()
+    ret=outer([init.ravel()]+[lop.T.ravel()]*(t-1)+[final.T.ravel()]).ravel()
     return ret
