@@ -18,13 +18,13 @@ def im_rectangle(Sas,Sbs,boundary=None,reversed=False):
         im=Sb@im
         im=Sa@im
         yield im
-def im_diamond(Sas,inits=itertools.repeat(np.array([1,0,0,1])/2),finals=itertools.repeat(np.array([1,0,0,1]))):
+def im_diamond(Sas):
     im=None
-    for Sa,i,f in zip(Sas,inits,finals):
+    for Sa in Sas:
         if im is None:
-            im=outer([i,f])
+            im=outer([np.array([1,0,0,1])/2,np.array([1,0,0,1])])
         else:
-            im=outer([i,im,f])
+            im=outer([np.array([1,0,0,1])/2,im,np.array([1,0,0,1])])
         im=Sa@im
         yield im
 def im_triangle(Sas,Sbs,boundary=None):
@@ -32,7 +32,7 @@ def im_triangle(Sas,Sbs,boundary=None):
         boundary=np.array(1.0)
     im=boundary
     for Sa,Sb in zip(Sas,Sbs):
-        im=outer([i,brickwork_La(1)])
+        im=outer([im,brickwork_La(1)])
         im=Sb@im
         im=Sa@im
         yield im
@@ -40,5 +40,7 @@ def im_diag(Sa,Sb):
     T=Sa@Sb
     ev,evv=la.eig(T)
     oev=evv[:,np.argmax(np.abs(ev))]
-    oev/=oev[0]
+    normi=outer([np.array([1,0,0,1])]*(int(np.log2(oev.shape[0]))//2))
+    oev/=oev@normi
+    oev*=oev.shape[0]**(1/4)
     return oev
