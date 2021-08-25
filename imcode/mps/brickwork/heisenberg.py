@@ -2,7 +2,7 @@ import numpy as np
 import scipy.linalg as la
 from ...dense.brickwork import heisenberg_lop,heisenberg_gate
 from ...dense import SX,SY,SZ,ID
-from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_T,brickwork_La,brickwork_Lb,brickwork_F,brickwork_H
+from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_La,brickwork_Lb,brickwork_F,brickwork_H
 def heisenberg_F(L,Jx,Jy,Jz,hx=None,hy=None,hz=None,reversed=False):
     ogates=[heisenberg_gate(jx,jy,jz) for (jx,jy,jz) in zip(Jx[1::2],Jy[1::2],Jz[1::2])]
     egates=[heisenberg_gate(jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) for (jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) in zip(Jx[::2],Jy[::2],Jz[::2],hx[::2],hy[::2],hz[::2],hx[1::2],hy[1::2],hz[1::2])]
