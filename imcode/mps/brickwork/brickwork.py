@@ -33,9 +33,8 @@ def brickwork_F(L,gates,reversed=False):
 def brickwork_H(L,gates):
     pass
 def brickwork_La(t):
-    Me=np.eye(4)[None,:,:]
-    Mo=np.eye(4)[:,None,:]
-    return MPS.from_matrices([Me,Mo]*t)
+    M=np.array([[np.eye(4).ravel()]])
+    return MPS.from_matrices([M]*t)
 def brickwork_Lb(t,gate,init=np.eye(2)/2,final=np.eye(2)):
     init=gate@init.ravel()
     init=init.reshape((1,1,4))
@@ -45,17 +44,16 @@ def brickwork_Lb(t,gate,init=np.eye(2)/2,final=np.eye(2)):
     vs=(v.T*np.sqrt(s)).T
     gatea=vs[None,:,:]
     gateb=us.T[:,None,:]
-    return MPS.from_matrices([init]+[gatea,gateb]*(t-1)+[final])
+    init=np.einsum("abc,bde->adce",init,gatea).reshape((1,4,16))
+    gate=np.einsum("abc,bde->adce",gateb,gatea).reshape((4,4,16))
+    final=np.einsum("abc,bde->adce",gateb,final).reshape((4,1,16))
+    return MPS.from_matrices([init]+[gate]*(t-2)+[final])
 def brickwork_Sa(t, gate):
     '''
         dual layer of the brickwork transfer matrix without boundary states
     '''
-    u,s,v=la.svd(gate)
-    us=u*np.sqrt(s)
-    vs=(v.T*np.sqrt(s)).T
-    gatea=vs.reshape((1,16,4,4))
-    gateb=us.T.reshape((16,1,4,4))
-    return MPO.from_matrices([gatea,gateb]*t)
+    dual=gate.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((1,1,16,16))
+    return MPO.from_matrices([dual]*t)
 
 def brickwork_Sb(t, gate,init=np.eye(4)/4,final=np.eye(4)):
     '''
@@ -70,4 +68,7 @@ def brickwork_Sb(t, gate,init=np.eye(4)/4,final=np.eye(4)):
     vs=(v.T*np.sqrt(s)).T
     gatea=vs.reshape((1,16,4,4))
     gateb=us.T.reshape((16,1,4,4))
-    return MPO.from_matrices([inita]+[gatea,gateb]*(t-1)+[finala])
+    init=np.einsum("abcd,befg->aecfdg",inita,gatea).reshape((1,16,16,16))
+    gate=np.einsum("abcd,befg->aecfdg",gateb,gatea).reshape((16,16,16,16))
+    final=np.einsum("abcd,befg->aecfdg",gateb,finala).reshape((16,1,16,16))
+    return MPO.from_matrices([init]+[gate]*(t-2)+[final])
