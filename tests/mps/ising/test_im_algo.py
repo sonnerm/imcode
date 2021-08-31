@@ -58,9 +58,9 @@ def test_im_triangle_het(seed_rng):
 def test_im_diamond_het(seed_rng):
     t=10
     Js,gs,hs=np.random.normal(size=(3,t))
-    Ts=[mps.ising.ising_T(t,J,g,h) for t,J,g,h in zip(range(1,t+1),Js,gs,hs)]
-    ims=[im for im in mps.ising.im_triangle(Ts,chi_max=64)]
-    for im,t in zip(ims,range(1,t+1)):
-        Tsr=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:t],gs[:t],hs[:t])]
+    Ts=[mps.ising.ising_T(t,J,g,h) for t,J,g,h in zip(range(1,t+1,2),Js,gs,hs)]
+    ims=[im for im in mps.ising.im_diamond(Ts,chi_max=64)]
+    for im,t in zip(ims,range(1,t+1,2)):
+        Tsr=[mps.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:t//2+1],gs[:t//2+1],hs[:t//2+1])]
         imo=list(mps.ising.im_rectangle(Tsr,chi_max=64))[-1]
         assert im.conj()@imo==pytest.approx(np.sqrt((im.conj()@im)*(imo.conj()@imo))) #convergence achieved
