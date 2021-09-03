@@ -24,7 +24,7 @@ def rdm(vec,sites):
 
 np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
-L = 8# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
+L = 6# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 
 #Pauli matrices
 sigma_x = np.array([[0,1],[1,0]])
@@ -67,9 +67,9 @@ state = np.identity(2**(L-1)) / 2**(L-1)
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = 0
-Jy = 0.31
-g = np.pi / 4
+Jx = 0.5
+Jy = 0.3
+g =4
 
 
 ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
@@ -101,8 +101,8 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
     F = np.reshape(layer_even @ layer_odd, F_apply_shape)
     
     #apply double layer of gates, F
-    state = np.einsum('aibj, jqk, kdle  -> iabqdel', F, state, F.T.conj())
-
+    state = np.einsum('aibj, jqk, eldk  -> iabqdel', F, state, F.conj()) #this is equivalent to np.einsum('aibj, jqk, kdle  -> iabqdel', F, state, F.T.conj())
+ 
     #update number of "non-ancilla"-spins of the original chain that will be traced out after this cycle
     n_traced += 2
 
@@ -133,7 +133,7 @@ for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out las
 F_apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
 
 #apply last gate
-state = np.einsum('aibj, jqk, kdle  -> iabqdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
+state = np.einsum('aibj, jqk, eldk  -> iabqdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.conj(), F_apply_shape))#this is equivalent to np.einsum('aibj, jqk, kdle  -> iabqdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
 
 #reshape such that last "non-ancilla" - spin can be traced out. After this step, only open legs in temporal direction remain.
 state = np.reshape(state,(2, 2**(2 * L),2))
