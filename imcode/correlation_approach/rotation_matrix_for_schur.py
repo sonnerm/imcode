@@ -31,8 +31,8 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
         D_phases[2 * i + 1,2 * i + 1] = np.exp(0.5j * np.angle(eigenvalues_hermitian_matrix[i]))
 
     R = R @ D_phases #R is generally complex
-    print('rotation matrix R')
-    print (R)
+    #print('rotation matrix R')
+    #print (R)
     B_schur = R.T.conj() @ B @ R.conj()
     #print('Schur form of B (real eigenvalues):')
     print(B_schur)
