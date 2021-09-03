@@ -35,7 +35,7 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     #print (R)
     B_schur = R.T.conj() @ B @ R.conj()
     #print('Schur form of B (real eigenvalues):')
-    print(B_schur)
+    #print(B_schur)
 
     eigenvalues_real = np.zeros(int(dim_B/2))
     for i in range(0,int(dim_B/2)):
