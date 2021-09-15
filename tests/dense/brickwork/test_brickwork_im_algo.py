@@ -44,31 +44,31 @@ def test_im_diamond_het(seed_rng):
         Sbsr=[dense.brickwork.brickwork_Sb(t,dense.unitary_channel(g)) for g in gates[:t:2]]
         Sasr=[dense.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in gates[1:t:2]]
         assert im ==pytest.approx(list(dense.brickwork.im_rectangle(Sasr,Sbsr))[-1],abs=1e-8,rel=1e-10)
-# def test_im_triangle_hom(seed_rng):
-#     gate=np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))
-#     init=np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))
-#     init=init.T.conj()@init
-#     init/=np.trace(init)
-#     final=np.eye(4)
-#     gate=la.eigh(gate+gate.T.conj())[1]
-#     Sas=[dense.brickwork.brickwork_Sa(t,dense.unitary_channel(gate)) for t in range(1,3)]
-#     Sbs=[dense.brickwork.brickwork_Sb(t,dense.unitary_channel(gate),init,final) for t in range(1,3)]
-#     ims=[im for im in dense.brickwork.im_triangle(Sas,Sbs)]
-#     for im,Sa,Sb in zip(ims,Sas,Sbs):
-#         assert im ==pytest.approx(dense.brickwork.im_diag(Sa,Sb),abs=1e-8,rel=1e-10)
-# def test_im_triangle_het(seed_rng):
-#     t=2
-#     gates=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(t)]
-#     inits=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(t//2)]
-#     inits=[i@i.T.conj() for i in inits]
-#     inits=[i/np.trace(i) for i in inits]
-#     inits=[np.eye(4)/4 for _ in range(t//2)]
-#     finals=[np.eye(4) for _ in range(t//2)]
-#     gates=[la.eigh(g+g.T.conj())[1] for g in gates]
-#     Sas=[dense.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for t,g in zip(range(1,t+1),gates[1::2])]
-#     Sbs=[dense.brickwork.brickwork_Sb(t,dense.unitary_channel(g),i,f) for t,g,i,f in zip(range(1,t+1),gates[::2],inits,finals)]
-#     ims=[im for im in dense.brickwork.im_triangle(Sas,Sbs)]
-#     for im,t in zip(ims,range(2,t+1,2)):
-#         Sbsr=[dense.brickwork.brickwork_Sb(t,dense.unitary_channel(g),i,f) for g,i,f in zip(gates[:t:2],inits,finals)]
-#         Sasr=[dense.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in gates[1:t:2]]
-#         assert im ==pytest.approx(list(dense.brickwork.im_rectangle(Sasr,Sbsr))[-1],abs=1e-8,rel=1e-10)
+def test_im_triangle_hom(seed_rng):
+    gate=np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))
+    init=np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))
+    init=init.T.conj()@init
+    init/=np.trace(init)
+    final=np.eye(4)
+    gate=la.eigh(gate+gate.T.conj())[1]
+    Sas=[dense.brickwork.brickwork_Sa(t,dense.unitary_channel(gate)) for t in range(1,3)]
+    Sbs=[dense.brickwork.brickwork_Sb(t,dense.unitary_channel(gate),init,final) for t in range(1,3)]
+    ims=[im for im in dense.brickwork.im_triangle(Sas,Sbs)]
+    for im,Sa,Sb in zip(ims,Sas,Sbs):
+        assert im ==pytest.approx(dense.brickwork.im_diag(Sa,Sb),abs=1e-8,rel=1e-10)
+def test_im_triangle_het(seed_rng):
+    t=2
+    gates=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(t)]
+    inits=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4)) for _ in range(t//2)]
+    inits=[i@i.T.conj() for i in inits]
+    inits=[i/np.trace(i) for i in inits]
+    inits=[np.eye(4)/4 for _ in range(t//2)]
+    finals=[np.eye(4) for _ in range(t//2)]
+    gates=[la.eigh(g+g.T.conj())[1] for g in gates]
+    Sas=[dense.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for t,g in zip(range(1,t+1),gates[1::2])]
+    Sbs=[dense.brickwork.brickwork_Sb(t,dense.unitary_channel(g),i,f) for t,g,i,f in zip(range(1,t+1),gates[::2],inits,finals)]
+    ims=[im for im in dense.brickwork.im_triangle(Sas,Sbs)]
+    for im,t in zip(ims,range(1,t+1)):
+        Sbsr=[dense.brickwork.brickwork_Sb(t,dense.unitary_channel(g),i,f) for g,i,f in zip(gates[:2*t+1:2],inits,finals)]
+        Sasr=[dense.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in gates[1:2*t+1:2]]
+        assert im ==pytest.approx(list(dense.brickwork.im_rectangle(Sasr,Sbsr))[-1],abs=1e-8,rel=1e-10)
