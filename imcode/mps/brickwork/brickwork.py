@@ -59,10 +59,13 @@ def brickwork_Sb(t, gate,init=np.eye(4)/4,final=np.eye(4)):
     '''
         dual layer of the brickwork transfer matrix with boundary states
     '''
+
     inita=dense.operator_to_state(init)
     inita=gate@inita
     inita=inita.reshape((1,1,4,4))
     finala=dense.operator_to_state(final.T).reshape((1,1,4,4))
+    if t==1:
+        return MPO.from_matrices([np.einsum("abcd,befg->cfdg",inita,finala).reshape((1,1,16,16))])
     u,s,v=la.svd(gate)
     us=u*np.sqrt(s)
     vs=(v.T*np.sqrt(s)).T
