@@ -5,7 +5,7 @@ import numpy as np
 import numpy.linalg as la
 import imcode.dense
 
-def im_rectangle(Sas,Sbs,boundary=None,reversed=False):
+def im_rectangle(Sas,Sbs,boundary=None):
     if isinstance(Sas,np.ndarray) and len(Sas.shape)==2:
         Sas=[Sas]*(int(np.log2(Sas.shape[0]))//4)
     if isinstance(Sbs,np.ndarray) and len(Sbs.shape)==2:
