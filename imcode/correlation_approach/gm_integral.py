@@ -59,18 +59,27 @@ def gm_integral(Jx, Jy, N_l, t):
                 A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
                 A_E[i,i+1] += gamma
                 A_E[j,j+1] += gamma
+            elif tau == 0:
+                i = find_index(x,0,1,t)
+               
+                A_E[i,i+1] += 1#infinite temperature initial state
+
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
     for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_right+tau) % 2 == 0 and tau != 0:
                 i = find_index(x_edge_right,tau,1,t)
                 A_E[i,i+1] += 1
+    i = find_index(x_edge_right,0,1,t)
+
+    A_E[i,i+1] += 1#infinite temperature initial state at right boundary
+
     #for boundary spin on right side, insert gamma from gate
     x_edge_left = 0
     for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_left+tau) % 2 == 1 and tau != 0:
                 i = find_index(x_edge_left,tau,1,t)
-                A_E[i,i+1] += gamma
+                A_E[i,i+1] += gamma 
 
     #measure
     for s in range (N_l):
