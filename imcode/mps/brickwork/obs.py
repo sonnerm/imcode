@@ -1,4 +1,4 @@
-# from .channel import im_channel_dense
+from .channel import im_channel_dense
 import numpy as np
 from ... import dense
 import scipy.sparse as sparse
@@ -15,7 +15,6 @@ def boundary_dm_evolution(im,ch,init):
         dmsd=dmsd.reshape((bimc.shape[1],dim**2//4))
         dmsd=np.einsum("ab,bc->ac",bimc,dmsd)
         dms.append(dmsd.ravel())
-
     return [dense.state_to_operator(np.sum(d.reshape((d.shape[0]//(dim**2),dim**2)),axis=0)) for d in dms]
 
 def embedded_dm_evolution(left,ch,right,init):
