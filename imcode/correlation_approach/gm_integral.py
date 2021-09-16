@@ -26,21 +26,21 @@ def gm_integral(Jx, Jy, N_l, t):
     #Define coupling parameters
     tx = np.tan(Jx)
     ty = np.tan(Jy)
-    T_xy = 1 - tx * ty
+    T_xy = 1 + tx * ty
 
     #define prefactors that arise in Grassmann Kernels
     alpha = (tx + ty) / T_xy
     beta = (ty - tx) / T_xy
-    gamma = (1 - tx * ty) / (1 + tx * ty)
+    gamma = (1 - tx * ty) / T_xy
 
     R_quad =  np.dot(1.j,np.array([[-beta, alpha],[-alpha, beta]]))
-    print (R_quad)
+    #print (R_quad)
 
     #Matrix that couples the system to the first site of the environment
     R = np.zeros((nbr_eta, nbr_xsi),dtype=np.complex_)
     for i in range (2 * t):
         R[2*i:2*i+2, 4*i:4*i+2] = R_quad
-    print (R)
+    #print (R)
 
     #Matrix that couples system variables to system variables
     A_s = np.zeros((nbr_eta, nbr_eta))#,dtype=np.complex_)
@@ -52,19 +52,24 @@ def gm_integral(Jx, Jy, N_l, t):
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     for x in range (0,N_l - 1):#this covers only positive times
-        for tau in range (2 * t -1, -4, -1):#initialize upper triangle
-            print(x,tau)
+        for tau in range (2 * t -1, -2 * t, -1):#initialize upper triangle
             if (x+tau) % 2 == 0 and tau != 0:
                 i = find_index(x,tau,1,t)
                 j = find_index(x + 1,tau,1,t)
                 A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
                 A_E[i,i+1] += gamma
                 A_E[j,j+1] += gamma
-    #for boundary spin, insert identity gate
-    x_edge = N_l - 1 
-    for tau in range (2 * t -1, -4, -1):#initialize upper triangle
-            if (x_edge+tau) % 2 == 0 and tau != 0:
-                i = find_index(x_edge,tau,1,t)
+    #for boundary spin on right side, insert identity gate
+    x_edge_right = N_l - 1 
+    for tau in range (2 * t -1, -2 * t, -1):#initialize upper triangle
+            if (x_edge_right+tau) % 2 == 0 and tau != 0:
+                i = find_index(x_edge_right,tau,1,t)
+                A_E[i,i+1] += 1
+    #for boundary spin on right side, insert gamma from gate
+    x_edge_left = 0
+    for tau in range (2 * t -1, -2 * t, -1):#initialize upper triangle
+            if (x_edge_left+tau) % 2 == 1 and tau != 0:
+                i = find_index(x_edge_left,tau,1,t)
                 A_E[i,i+1] += 1
 
     #measure
@@ -82,10 +87,8 @@ def gm_integral(Jx, Jy, N_l, t):
     for i in range(len(A_E[0])):
         for j in range(i,len(A_E[0])):
             A_E[j,i] = - A_E[i,j]
-
-
-    print (A_E)
+    #print (A_E)
 
     B = A_s + 0.5 * R @ linalg.inv(A_E) @ R.T
-    print (B)
+    #print (B)
     return B
