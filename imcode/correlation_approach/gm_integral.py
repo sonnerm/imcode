@@ -45,36 +45,36 @@ def gm_integral(Jx, Jy, N_l, t):
     #Matrix that couples system variables to system variables
     A_s = np.zeros((nbr_eta, nbr_eta))#,dtype=np.complex_)
     for i in range (2 * t):
-        A_s[2*i, 2*i+1] = gamma / 2
-        A_s[2*i+1, 2*i] = - gamma / 2
-    print (A_s)
+        A_s[2*i, 2*i+1] = gamma /2
+        A_s[2*i+1, 2*i] = - gamma /2
+        #print (A_s)
 
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     for x in range (0,N_l - 1):#this covers only positive times
-        for tau in range (2 * t -1, -2 * t, -1):#initialize upper triangle
+        for tau in range (2 * t -1, -2 * t, -1):
             if (x+tau) % 2 == 0 and tau != 0:
                 i = find_index(x,tau,1,t)
-                j = find_index(x + 1,tau,1,t)
+                j = i + 2 * (N_t - 1)# equivalent to j = find_index(x + 1,tau,1,t), i.e. i shifted by one to the right in spatial direction
                 A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
                 A_E[i,i+1] += gamma
                 A_E[j,j+1] += gamma
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
-    for tau in range (2 * t -1, -2 * t, -1):#initialize upper triangle
+    for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_right+tau) % 2 == 0 and tau != 0:
                 i = find_index(x_edge_right,tau,1,t)
                 A_E[i,i+1] += 1
     #for boundary spin on right side, insert gamma from gate
     x_edge_left = 0
-    for tau in range (2 * t -1, -2 * t, -1):#initialize upper triangle
+    for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_left+tau) % 2 == 1 and tau != 0:
                 i = find_index(x_edge_left,tau,1,t)
                 A_E[i,i+1] += gamma
 
     #measure
     for s in range (N_l):
-        for i in range (N_t - 2):#initialize upper triangle
+        for i in range (N_t - 2):
             shift = s * 2 * (N_t - 1)
             A_E[2 * i + 1 + shift,2 * i+2 + shift] += 1
 
@@ -89,6 +89,6 @@ def gm_integral(Jx, Jy, N_l, t):
             A_E[j,i] = - A_E[i,j]
     #print (A_E)
 
-    B = A_s + 0.5 * R @ linalg.inv(A_E) @ R.T
+    B = 2*( A_s + 0.5 * R @ linalg.inv(A_E) @ R.T)
     #print (B)
     return B
