@@ -70,7 +70,7 @@ def gm_integral(Jx, Jy, N_l, t):
     for tau in range (2 * t -1, -2 * t, -1):#initialize upper triangle
             if (x_edge_left+tau) % 2 == 1 and tau != 0:
                 i = find_index(x_edge_left,tau,1,t)
-                A_E[i,i+1] += 1
+                A_E[i,i+1] += gamma
 
     #measure
     for s in range (N_l):
