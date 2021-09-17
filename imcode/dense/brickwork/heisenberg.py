@@ -46,9 +46,9 @@ def heisenberg_gate(Jx,Jy,Jz,hx=0,hy=0,hz=0,hxe=None,hye=None,hze=None):
     return np.kron(lop1,lop2)@la.expm(1.0j*np.array(H))
 def heisenberg_Sa(t,Jx,Jy,Jz):
     return brickwork_Sa(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz)))
-def heisenberg_Sb(t,Jx,Jy,Jz,hx=None,hy=None,hz=None,hxe=None,hye=None,hze=None,init=np.eye(4),final=np.eye(4)):
+def heisenberg_Sb(t,Jx,Jy,Jz,hx=None,hy=None,hz=None,hxe=None,hye=None,hze=None,init=np.eye(4)/4,final=np.eye(4)):
     return brickwork_Sb(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz,hx,hy,hz,hxe,hye,hze)),init,final)
 def heisenberg_La(t):
     return brickwork_La(t)
-def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2),final=np.eye(2)):
-    return brickwork_Lb(t,heisenberg_lop(hx,hy,hz),init,final)
+def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2)/2,final=np.eye(2)):
+    return brickwork_Lb(t,unitary_channel(heisenberg_lop(hx,hy,hz)),init,final)
