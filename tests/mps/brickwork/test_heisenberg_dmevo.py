@@ -4,26 +4,27 @@ import scipy.linalg as la
 import numpy as np
 import pytest
 
-@pytest.mark.skip
-def test_boundary_single_dmevo_brickwork(seed_rng):
+def test_boundary_single_dmevo_heisenberg_bw(seed_rng):
     L=4
     t=10
-    chi=256
-    gates=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))*1.0j for _ in range(L)]
-    gates=[la.eigh(g+g.T.conj())[1] for g in gates]
-    lop=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
-    lop=la.eigh(lop+lop.T.conj())[1]
-    Sas=[mps.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in gates[1::2]]
-    Sbs=[mps.brickwork.brickwork_Sb(t,dense.unitary_channel(g)) for g in gates[::2]]
+    chi=64
+    Jx,Jy,Jz=np.random.normal(size=(3,L))
+    Jx,Jy,Jz=([Jx[0]]*L,)*3
+    hx,hy,hz=np.random.normal(size=(3,L+1))
+    hx,hy,hz=np.zeros((3,L+1))
+    sagates=[dense.brickwork.heisenberg_gate(jx,jy,jz) for jx,jy,jz in zip(Jx[1::2],Jy[1::2],Jz[1::2])]
+    sbgates=[dense.brickwork.heisenberg_gate(jx,jy,jz,hx,hy,hz,hxe,hye,hze) for jx,jy,jz,hx,hy,hz,hxe,hye,hze in zip(Jx[::2],Jy[::2],Jz[::2],hx[::2],hy[::2],hz[::2],hx[1::2],hy[1::2],hz[1::2])]
+    Sas=[mps.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in sagates]
+    Sbs=[mps.brickwork.brickwork_Sb(t,dense.unitary_channel(g)) for g in sbgates]
     im=list(mps.brickwork.im_rectangle(Sas,Sbs,chi_max=chi))[-1]
     init=np.random.normal(size=(2,2))+np.random.normal(size=(2,2))*1.0j
     init=init+init.T.conj()
     init=init@init
     init/=np.trace(init)
     # init=np.array([[1,0],[0,0]])#TODO: remove
+    lop=dense.brickwork.heisenberg_F(1,[],[],[],[hx[-1]],[hy[-1]],[hz[-1]])
     dms=mps.brickwork.boundary_dm_evolution(im,dense.unitary_channel(lop),init)
-    F=dense.brickwork.brickwork_F(L+1,[g.reshape((2,2,2,2)).transpose([1,0,3,2]).reshape((4,4)) for g in gates])
-    F=F@np.kron(np.eye(2**L),lop)
+    F=dense.brickwork.heisenberg_F(L+1,Jx,Jy,Jz,hx,hy,hz)
     state=dense.kron([np.eye(2)/2]*(L)+[init])
     summi=dense.kron([np.eye(2)]*(L))
     ddms=[np.einsum("ab,acbd->cd",summi,state.reshape((2**L),2,(2**L),2)).reshape((2,2))]
@@ -56,6 +57,7 @@ def test_boundary_double_dmevo_brickwork(seed_rng):
         ddms.append(np.einsum("ab,acbd->cd",summi,state.reshape((2**L),4,(2**L),4)).reshape((4,4)))
     for d,dd in zip(dms[::2],ddms):
         assert d==pytest.approx(dd)
+@pytest.mark.skip()
 def test_embedded_double_dmevo_brickwork(seed_rng):
     Ll=2
     Lr=2
