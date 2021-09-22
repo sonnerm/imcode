@@ -27,9 +27,9 @@ def gm_integral(Jx, Jy, N_l, t):
     tx = np.tan(Jx)
     ty = np.tan(Jy)
     T_xy = 1 + tx * ty
-
+    print('Number of Floquet (double) layers: ',t)
     #define prefactors that arise in Grassmann Kernels
-    alpha = (tx + ty) / T_xy
+    alpha =(tx + ty) / T_xy
     beta = (ty - tx) / T_xy
     gamma = (1 - tx * ty) / T_xy
 
@@ -38,16 +38,21 @@ def gm_integral(Jx, Jy, N_l, t):
 
     #Matrix that couples the system to the first site of the environment
     R = np.zeros((nbr_eta, nbr_xsi),dtype=np.complex_)
-    for i in range (2 * t):
-        R[2*i:2*i+2, 4*i:4*i+2] = R_quad
+    for i in range (t):#2t
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad)
+    for i in range (t,2*t):#2t
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad)
+    #print('R')
     #print (R)
+   
 
     #Matrix that couples system variables to system variables
-    A_s = np.zeros((nbr_eta, nbr_eta))#,dtype=np.complex_)
+    A_s = np.zeros((nbr_eta, nbr_eta),dtype=np.complex_)
     for i in range (2 * t):
-        A_s[2*i, 2*i+1] = gamma /2
-        A_s[2*i+1, 2*i] = - gamma /2
-        #print (A_s)
+        A_s[2*i, 2*i+1] = gamma
+        A_s[2*i+1, 2*i] = - gamma
+    #print('AS')
+    #print (A_s)
 
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
@@ -61,7 +66,6 @@ def gm_integral(Jx, Jy, N_l, t):
                 A_E[j,j+1] += gamma
             elif tau == 0:
                 i = find_index(x,0,1,t)
-               
                 A_E[i,i+1] += 1#infinite temperature initial state
 
     #for boundary spin on right side, insert identity gate
@@ -71,7 +75,6 @@ def gm_integral(Jx, Jy, N_l, t):
                 i = find_index(x_edge_right,tau,1,t)
                 A_E[i,i+1] += 1
     i = find_index(x_edge_right,0,1,t)
-
     A_E[i,i+1] += 1#infinite temperature initial state at right boundary
 
     #for boundary spin on right side, insert gamma from gate
@@ -91,13 +94,20 @@ def gm_integral(Jx, Jy, N_l, t):
     for i in range(N_l):
         A_E[i * 2 * (N_t - 1),(i+1) * 2 * (N_t - 1) -1] += 1
 
-
     #antisymmetrize
     for i in range(len(A_E[0])):
         for j in range(i,len(A_E[0])):
             A_E[j,i] = - A_E[i,j]
-    #print (A_E)
 
-    B = 2*( A_s + 0.5 * R @ linalg.inv(A_E) @ R.T)
-    #print (B)
+    #solve for certain columns of inverted matrix A_E:
+    A_inv = np.zeros(A_E.shape)
+    
+    for i in range(2 * (N_t - 1)):
+        sol = np.zeros(len(R[0,:]))
+        sol[i] = 1
+        A_inv[:,i] = linalg.solve(A_E,sol)
+  
+    B =  A_s +  R @ A_inv @ R.T
+
     return B
+
