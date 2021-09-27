@@ -4,7 +4,6 @@ from numpy.lib.type_check import real
 from scipy.linalg import expm
 from scipy.linalg import eigvalsh
 from scipy.sparse.linalg import eigsh #diagonalization via Lanczos for initial state
-from scipy.linalg import block_diag
 import  numpy as np
 from scipy import sparse
 from plot_entropy import plot_entropy
@@ -36,13 +35,15 @@ sigma_z = np.array([[1,0],[0,-1]])
 
 #compute initial state (2^(L-1) indices)
 #Hamiltonian of XX model:
-""" 
+
 ham_XX = np.zeros((2**(L-1), 2**(L-1)))
 
 ham_XX_twosite = np.real(np.kron(sigma_x,sigma_x) + np.kron(sigma_y,sigma_y) )
 
 for i in range(0,L-2):
     ham_XX += np.kron(np.kron(np.identity(2**(L-3-i)), ham_XX_twosite), np.identity(2**i)) 
+
+""" 
 #periodic boundary conditions
 ham_XX += np.real( np.kron( np.kron(sigma_x, np.identity(2**(L-3))), sigma_x) + np.kron( np.kron(sigma_y, np.identity(2**(L-3))), sigma_y) )
 
@@ -56,6 +57,9 @@ gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eige
 #density matarix for pure ground state of xy-Hamiltonian
 state = gs @ gs.T.conj()
 """
+#--------------- XX DM -------------------------------
+beta = 1.
+state = expm(-beta * ham_XX) / np.trace(expm(-beta * ham_XX))
 
 #--------------- infinite temperature initial state  (tested) -----------------------------------------------
 
@@ -69,7 +73,7 @@ entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
 Jx = 0.5
 Jy = 0.3
-g =4
+g =0
 
 
 ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
@@ -144,6 +148,9 @@ state = np.trace(state, axis1 = 0, axis2 = 2)
 n_traced += 2
 
 iterator += 1
+
+print(state.shape)
+#print(state.reshape(2,2,2,2,2,2,2,2))
 
 #for comments see above
 c = int(n_traced / 2)
