@@ -10,24 +10,25 @@ from matrix_diag import matrix_diag
 from dress_density_matrix import dress_density_matrix
 from compute_generators import compute_generators
 from ising_gamma import ising_gamma
+from gm_integral import gm_integral
 import math
 
 np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 7
-max_time2 = 8
+max_time1 = 3
+max_time2 = 3
 stepsize1 = 1
-stepsize2 = 10
+stepsize2 = 1
 
-# lattice sites:
+# lattice sites (in the environment):
 nsites = 8
 
 # model parameters:
-Jx = 0#0.5# 0.31 # 0.31
-Jy = 0.7
-g = 0.2
+Jx = 0.5#0.5# 0.31 # 0.31
+Jy = 0.3
+g = 0
 beta = 0  # temperature
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
@@ -65,8 +66,9 @@ for total_time in range(1, max_time1, stepsize1):
 
     n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
-    B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-
+    #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
+    B = gm_integral(Jx,Jy,nsites,nbr_Floquet_layers)
+    
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
     time_cuts = np.arange(1, nbr_Floquet_layers)
@@ -78,13 +80,14 @@ for total_time in range(1, max_time1, stepsize1):
     iterator += 1
 
 
-for total_time in range(max_time1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
+for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
     nbr_Floquet_layers = total_time + 1
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
     n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
-    B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
+    #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
+    B = gm_integral(Jx,Jy,nsites,nbr_Floquet_layers)
 
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
