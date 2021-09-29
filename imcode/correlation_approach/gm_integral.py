@@ -1,9 +1,13 @@
+from numpy.core.numeric import identity
 from scipy import linalg
 import numpy as np
 import sys
-
+import scipy
 from scipy import linalg
 from DM_kernel import compute_Kernel, find_index_dm
+from datetime import datetime
+
+now = datetime.now().time() # time object
 
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -36,7 +40,7 @@ def gm_integral(Jx, Jy, N_l, t):
 
     R_quad =  np.dot(1.j,np.array([[-beta, alpha],[-alpha, beta]]))
     #print (R_quad)
-
+    print('t1')
     #Matrix that couples the system to the first site of the environment
     R = np.zeros((nbr_eta, nbr_xsi),dtype=np.complex_)
     for i in range (t):#2t
@@ -54,7 +58,7 @@ def gm_integral(Jx, Jy, N_l, t):
         A_s[2*i+1, 2*i] = - gamma
     #print('AS')
     #print (A_s)
-
+    print('t2')
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     for x in range (0,N_l - 1):
@@ -67,10 +71,19 @@ def gm_integral(Jx, Jy, N_l, t):
                 A_E[j,j+1] += gamma
 
     #initial state
+    
     #infinite temperature initial state
+    #for x in range (0,N_l):   
+    #    i = find_index(x,0,1,t)
+    #    A_E[i,i+1] += 1
+    
+
+    #e^-betaZ initial state
+    beta = 0.5
     for x in range (0,N_l):   
         i = find_index(x,0,1,t)
-        A_E[i,i+1] += 1
+        A_E[i,i+1] += np.exp(2. * beta)
+    
     """
     #general initial state
     DM_compact = compute_Kernel(N_l)
@@ -85,7 +98,9 @@ def gm_integral(Jx, Jy, N_l, t):
                     l = find_index_dm(y,bar2,N_l)
                     if j>i:
                         A_E[i,j] += DM_compact[k,l]
+  
     """
+
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
     for tau in range (2 * t -1, -2 * t, -1):
@@ -117,13 +132,29 @@ def gm_integral(Jx, Jy, N_l, t):
 
     #solve for certain columns of inverted matrix A_E:
     A_inv = np.zeros(A_E.shape)
+    A_inv_co = np.zeros(A_E.shape)
     
-    for i in range(2 * (N_t - 1)):
-        sol = np.zeros(len(R[0,:]))
-        sol[i] = 1
-        A_inv[:,i] = linalg.solve(A_E,sol)
-  
+    now1 = datetime.now() # time object
+    identity_matrix = np.identity(len(A_E[0]))
+    #for i in range(2 * (N_t - 1)):
+
+    A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
+
+ 
+    now2 = datetime.now() # time object
+    print("nowa =", now2 - now1)
+    A_inv_comp = linalg.inv(A_E)
+    now3 = datetime.now() # time object
+    print("nowb =", now3-now2)
     B =  A_s +  R @ A_inv @ R.T
+    B_comp =  A_s +  R @ A_inv_comp @ R.T
+  
+    abs=0.
+    for i in range(len(B[0])):
+        for j in range(len(B[0])):
+            abs += np.abs(B[i,j] - B_comp[i,j])
+    print('abs',abs)
+
 
     return B
 
