@@ -24,7 +24,7 @@ def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
 
-def gm_integral(Jx, Jy, N_l, t):
+def gm_integral(Jx, Jy,beta, N_l, t):
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
     nbr_eta = N_t
@@ -34,11 +34,11 @@ def gm_integral(Jx, Jy, N_l, t):
     T_xy = 1 + tx * ty
     print('Number of Floquet (double) layers: ',t)
     #define prefactors that arise in Grassmann Kernels
-    alpha =(tx + ty) / T_xy
-    beta = (ty - tx) / T_xy
-    gamma = (1 - tx * ty) / T_xy
+    alpha_val =(tx + ty) / T_xy
+    beta_val = (ty - tx) / T_xy
+    gamma_val = (1 - tx * ty) / T_xy
 
-    R_quad =  np.dot(1.j,np.array([[-beta, alpha],[-alpha, beta]]))
+    R_quad =  np.dot(1.j,np.array([[-beta_val, alpha_val],[-alpha_val, beta_val]]))
     #print (R_quad)
     print('t1')
     #Matrix that couples the system to the first site of the environment
@@ -54,8 +54,8 @@ def gm_integral(Jx, Jy, N_l, t):
     #Matrix that couples system variables to system variables
     A_s = np.zeros((nbr_eta, nbr_eta),dtype=np.complex_)
     for i in range (2 * t):
-        A_s[2*i, 2*i+1] = gamma
-        A_s[2*i+1, 2*i] = - gamma
+        A_s[2*i, 2*i+1] = gamma_val
+        A_s[2*i+1, 2*i] = - gamma_val
     #print('AS')
     #print (A_s)
     print('t2')
@@ -67,8 +67,8 @@ def gm_integral(Jx, Jy, N_l, t):
                 i = find_index(x,tau,1,t)
                 j = i + 2 * (N_t - 1)# equivalent to j = find_index(x + 1,tau,1,t), i.e. i shifted by one to the right in spatial direction
                 A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
-                A_E[i,i+1] += gamma
-                A_E[j,j+1] += gamma
+                A_E[i,i+1] += gamma_val
+                A_E[j,j+1] += gamma_val
 
     #initial state
     
@@ -79,7 +79,7 @@ def gm_integral(Jx, Jy, N_l, t):
     
 
     #e^-betaZ initial state
-    beta = 0.5
+
     for x in range (0,N_l):   
         i = find_index(x,0,1,t)
         A_E[i,i+1] += np.exp(2. * beta)
@@ -113,7 +113,7 @@ def gm_integral(Jx, Jy, N_l, t):
     for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_left+tau) % 2 == 1 and tau != 0:
                 i = find_index(x_edge_left,tau,1,t)
-                A_E[i,i+1] += gamma 
+                A_E[i,i+1] += gamma_val
 
     #measure
     for s in range (N_l):
@@ -132,29 +132,22 @@ def gm_integral(Jx, Jy, N_l, t):
 
     #solve for certain columns of inverted matrix A_E:
     A_inv = np.zeros(A_E.shape)
-    A_inv_co = np.zeros(A_E.shape)
-    
-    now1 = datetime.now() # time object
+   
     identity_matrix = np.identity(len(A_E[0]))
-    #for i in range(2 * (N_t - 1)):
-
+   
     A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
 
- 
-    now2 = datetime.now() # time object
-    print("nowa =", now2 - now1)
-    A_inv_comp = linalg.inv(A_E)
-    now3 = datetime.now() # time object
-    print("nowb =", now3-now2)
     B =  A_s +  R @ A_inv @ R.T
+    
+    """
+    #compare to standard inversion 
     B_comp =  A_s +  R @ A_inv_comp @ R.T
-  
     abs=0.
     for i in range(len(B[0])):
         for j in range(len(B[0])):
             abs += np.abs(B[i,j] - B_comp[i,j])
     print('abs',abs)
-
+    """
 
     return B
 

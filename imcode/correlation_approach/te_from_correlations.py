@@ -17,19 +17,19 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 10
-max_time2 = 11
-stepsize1 = 2
-stepsize2 = 1
+max_time1 = 20
+max_time2 = 30
+stepsize1 = 4
+stepsize2 = 10
 
 # lattice sites (in the environment):
-nsites = 10
+nsites = 80
 
 # model parameters:
-Jx = 0.5#0.5# 0.31 # 0.31
-Jy = 0.3
+Jx = 0.4#0.5# 0.31 # 0.31
+Jy = 0.4
 g = 0
-beta = 0  # temperature
+beta = 40  # temperature
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
 gamma_test_range = 6
@@ -67,8 +67,8 @@ for total_time in range(1, max_time1, stepsize1):
     n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-    N_sites_needed_for_entr = nbr_Floquet_layers + nbr_Floquet_layers%2
-    B = gm_integral(Jx,Jy,N_sites_needed_for_entr,nbr_Floquet_layers)
+    N_sites_needed_for_entr = 2*nbr_Floquet_layers + nbr_Floquet_layers%2
+    B = gm_integral(Jx,Jy,beta, N_sites_needed_for_entr,nbr_Floquet_layers)
    
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
@@ -88,8 +88,8 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
     n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-    N_sites_needed_for_entr = nbr_Floquet_layers + nbr_Floquet_layers%2
-    B = gm_integral(Jx,Jy,N_sites_needed_for_entr,nbr_Floquet_layers)
+    N_sites_needed_for_entr = 2*nbr_Floquet_layers + nbr_Floquet_layers%2
+    B = gm_integral(Jx,Jy,beta,N_sites_needed_for_entr,nbr_Floquet_layers)
     
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
@@ -104,4 +104,4 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
 np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 print(entropy_values)
 
-plot_entropy(entropy_values, iterator, Jx, Jy, g,  nsites, 'Corr_', ising_gamma_times, ising_gamma_values)
+plot_entropy(entropy_values, iterator, Jx, Jy, g,beta,   nsites, 'Corr_', ising_gamma_times, ising_gamma_values)
