@@ -23,8 +23,8 @@ def rdm(vec,sites):
 
 np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
-L = 6# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
-
+L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
+beta = 1.0
 #Pauli matrices
 sigma_x = np.array([[0,1],[1,0]])
 sigma_y = np.array([[0,-1j],[1j,0]])
@@ -41,6 +41,7 @@ ham_XX = np.zeros((2**(L-1), 2**(L-1)))
 ham_XX_twosite = np.real(np.kron(sigma_x,sigma_x) + np.kron(sigma_y,sigma_y) )
 
 for i in range(0,L-2):
+    print(np.kron(np.kron(np.identity(2**(L-3-i)), ham_XX_twosite), np.identity(2**i)) )
     ham_XX += np.kron(np.kron(np.identity(2**(L-3-i)), ham_XX_twosite), np.identity(2**i)) 
 
 """ 
@@ -57,22 +58,54 @@ gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eige
 #density matarix for pure ground state of xy-Hamiltonian
 state = gs @ gs.T.conj()
 """
+
+#--------------- e-beta Z product state DM -------------------------------
+
+one_site = expm(-beta * sigma_z)
+
+state = one_site 
+for i in range (L-2):
+    state = np.kron(one_site, state)
+
 #--------------- XX DM -------------------------------
-beta = 1.
-state = expm(-beta * ham_XX) / np.trace(expm(-beta * ham_XX))
+
+#state = expm(-beta * ham_XX) #/ np.trace(expm(-beta * ham_XX))
+
+#--------------- Bell product state initial DM -------------------------------
+
+Bell = np.zeros((4,4))
+Bell[0,0] = 1.
+Bell[0,3] = beta
+Bell[3,0] = beta
+Bell[3,3] = beta**2
+
+sigma_p = sigma_x + 1j * sigma_y
+sigma_m = sigma_x - 1j * sigma_y
+Bell_comp = np.kron( (np.identity(2)+ sigma_z), (np.identity(2)+ sigma_z)) + beta**2 * np.kron( (np.identity(2)- sigma_z), (np.identity(2)- sigma_z)) + beta * ( np.kron(sigma_p, sigma_p) + np.kron(sigma_m, sigma_m))
+
+print(Bell)
+print(Bell_comp)
+state = Bell
+for i in range (2,L-2,2):
+    print('bell:i', i)
+    state = np.kron(state, Bell)
+if L%2 == 0:
+    state = np.kron(state,np.array([[1,0],[0,0]]))
+
+print('trace', np.trace(state))
 
 #--------------- infinite temperature initial state  (tested) -----------------------------------------------
 
 #density matrix for infinite temperature ground state
-state = np.identity(2**(L-1)) / 2**(L-1)
+#state = np.identity(2**(L-1)) / 2**(L-1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = 0.5
-Jy = 0.3
+Jx = 1.0
+Jy = 1.0
 g =0
 
 
@@ -82,24 +115,37 @@ kick_two_site = g * ( np.kron(sigma_z, np.identity(2)) + np.kron(np.identity(2),
 F_odd = expm(1j * kick_two_site) @ expm(1j * ham_XY)
 F_even = expm(1j * ham_XY)
 
+
+#if number of sites in environment (L-1) is even, the last spin can directly be traced out
+
+if L%2 == 1:
+    #reshape state such that last spin can be traced out
+    trace_shape = (2**(L - 2 ), 2, 2**(L - 2 ), 2)
+    state = np.reshape(state, trace_shape)
+    #trace out the last spin
+    state = np.trace(state, axis1 = 1, axis2 = 3)# trace out last and second to last spin 
+    L -= 1 #effectively shorten the chain by one spin before floquet layer are applied
+    print('updated length to', L ,' (system + environment)')
+
 n_traced = 0#this variable keeps track of the number of spins in the spin chain that have been integrated out 
 
 state = np.reshape(state, (2**(L-1) , 1, 2**(L-1)))#reshape density matrix to bring it into general form with open legs "in the middle"
 
 iterator = 0#this variable counts the number of floquet steps for which the entropy is evaluated. 
 
-for i in range (int(L/2) - 1):#iteratively apply Floquet layer and trace out last two spins until the spin chain has become a pure ancilla spin chain.
+
+for i in range (L//2 - 1):#iteratively apply Floquet layer and trace out last two spins until the spin chain has become a pure ancilla spin chain.
 
     #odd layer
     layer_odd = F_odd
-    for i in range (int((L - n_traced)/2) - 1 ):
+    for j in range (2,L-1-n_traced,2):
         layer_odd = np.kron(layer_odd, F_odd)
+
     #even layer
-    layer_even = np.kron(np.identity(2), F_even)
-    for i in range (int((L - n_traced)/2) - 2):
+    layer_even = np.identity(2)
+    for j in range (1,L-2-n_traced,2):
         layer_even = np.kron(layer_even, F_even)
     layer_even = np.kron(layer_even, np.identity(2))
-  
 
     F_apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
     F = np.reshape(layer_even @ layer_odd, F_apply_shape)
@@ -161,6 +207,6 @@ for cut in range ( c - c%2 , c + 1, 2):
     entropy_values[iterator,int(cut / 2)] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
 print (entropy_values)
 
-plot_entropy(entropy_values, iterator + 1, Jx, Jy, g,  L, 'ED_')
+plot_entropy(entropy_values, iterator + 1, Jx, Jy, g,beta,  L, 'ED_')
 
 print('Successfully terminated..')
