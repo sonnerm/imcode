@@ -17,19 +17,19 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 20
-max_time2 = 30
-stepsize1 = 4
-stepsize2 = 10
+max_time1 = 3
+max_time2 = 3
+stepsize1 = 1
+stepsize2 = 1
 
 # lattice sites (in the environment):
-nsites = 80
+nsites = 102
 
 # model parameters:
-Jx = 0.4#0.5# 0.31 # 0.31
-Jy = 0.4
+Jx = 1.0#0.5# 0.31 # 0.31
+Jy = 1.0
 g = 0
-beta = 40  # temperature
+beta = 1.0  # temperature
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
 gamma_test_range = 6
@@ -51,8 +51,8 @@ ising_gamma_values = np.zeros(gamma_test_range)
 
 
 # find generators and matrices which diagonalize the composite Floquet operator:
-G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
-evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
+#G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
+#evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
 
 #M, M_E, eigenvalues_G_eff, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
 #ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites, gamma_test_range)
@@ -64,10 +64,10 @@ for total_time in range(1, max_time1, stepsize1):
     nbr_Floquet_layers = total_time + 1
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
-    n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+    #n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-    N_sites_needed_for_entr = 2*nbr_Floquet_layers + nbr_Floquet_layers%2
+    N_sites_needed_for_entr = 8#2*nbr_Floquet_layers 
     B = gm_integral(Jx,Jy,beta, N_sites_needed_for_entr,nbr_Floquet_layers)
    
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
@@ -85,10 +85,10 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
     nbr_Floquet_layers = total_time + 1
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
 
-    n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+    #n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-    N_sites_needed_for_entr = 2*nbr_Floquet_layers + nbr_Floquet_layers%2
+    N_sites_needed_for_entr = 8#2*nbr_Floquet_layers 
     B = gm_integral(Jx,Jy,beta,N_sites_needed_for_entr,nbr_Floquet_layers)
     
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
