@@ -58,17 +58,15 @@ def test_boundary_double_dmevo_brickwork(seed_rng):
         assert d==pytest.approx(dd)
 def test_embedded_double_dmevo_brickwork(seed_rng):
     Ll=2
-    Lr=2
+    Lr=4
     t=10
     chi=256
     gates=[np.random.normal(size=(4,4))+1.0j*np.random.normal(size=(4,4))*1.0j for _ in range(Ll+Lr+1)]
     gates=[la.eigh(g+g.T.conj())[1] for g in gates]
-    gates=[g.reshape((2,2,2,2)).transpose([1,0,3,2]).reshape((4,4))@g for g in gates]
-    Sasl=[mps.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in gates[1:Ll:2]]
-    Sbsl=[mps.brickwork.brickwork_Sb(t,dense.unitary_channel(g)) for g in gates[:Ll:2]]
-    Sasr=[mps.brickwork.brickwork_Sa(t,dense.unitary_channel(g.reshape((2,2,2,2)).transpose([1,0,3,2]).reshape((4,4)))) for g in gates[Ll+2::2]]
-    Sbsr=[mps.brickwork.brickwork_Sb(t,dense.unitary_channel(g.reshape((2,2,2,2)).transpose([1,0,3,2]).reshape((4,4)))) for g in gates[Lr+1::2]]
-
+    Sasl=[mps.brickwork.brickwork_Sa(t,dense.unitary_channel(g.reshape((2,2,2,2)).transpose([1,0,3,2]).reshape((4,4)))) for g in gates[1:Ll:2]]
+    Sbsl=[mps.brickwork.brickwork_Sb(t,dense.unitary_channel(g.reshape((2,2,2,2)).transpose([1,0,3,2]).reshape((4,4)))) for g in gates[:Ll:2]]
+    Sasr=[mps.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in gates[-2:-Lr-1:-2]]
+    Sbsr=[mps.brickwork.brickwork_Sb(t,dense.unitary_channel(g)) for g in gates[-1:-Lr-1:-2]]
     iml=list(mps.brickwork.im_rectangle(Sasl,Sbsl,chi_max=chi))[-1]
     imr=list(mps.brickwork.im_rectangle(Sasr,Sbsr,chi_max=chi))[-1]
 
