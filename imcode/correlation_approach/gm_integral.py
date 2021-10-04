@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import scipy
 from scipy import linalg
-from DM_kernel import compute_Kernel, find_index_dm
+from DM_kernel import compute_Kernel_XX, find_index_dm
 from datetime import datetime
 
 now = datetime.now().time() # time object
@@ -59,6 +59,7 @@ def gm_integral(Jx, Jy,beta, N_l, t):
     #print('AS')
     #print (A_s)
     print('t2')
+    
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     for x in range (0,N_l - 1):
@@ -69,7 +70,7 @@ def gm_integral(Jx, Jy,beta, N_l, t):
                 A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
                 A_E[i,i+1] += gamma_val
                 A_E[j,j+1] += gamma_val
-
+ 
     #initial state
     
     #infinite temperature initial state
@@ -77,16 +78,33 @@ def gm_integral(Jx, Jy,beta, N_l, t):
     #    i = find_index(x,0,1,t)
     #    A_E[i,i+1] += 1
     
-
+   
     #e^-betaZ initial state
-
-    for x in range (0,N_l):   
-        i = find_index(x,0,1,t)
-        A_E[i,i+1] += np.exp(2. * beta)
+    #for x in range (0,N_l):   
+    #    i = find_index(x,0,1,t)
+    #    A_E[i,i+1] += np.exp(2. * beta)
+    
     
     """
+    #Bell pair initial state
+    print(beta,'beta')
+    for x in range (0,N_l-1,2):   
+        i = find_index(x,0,1,t)
+        j = i + 2 * (N_t - 1)# equivalent to j = find_index(x + 1,tau,1,t), i.e. i shifted by one to the right in spatial direction
+        print(i,j)
+        A_E[i,j] += beta 
+        A_E[i+1,j+1] -= beta
+    if N_l%2 == 1:#edge spin with unity initial state in case number of sites is odd
+        i = find_index(N_l - 1 ,0,1,t)
+        A_E[i,i+1] += 1
+    """
+
+   
+    
     #general initial state
-    DM_compact = compute_Kernel(N_l)
+    DM_compact = compute_Kernel_XX(beta, N_l)
+    A_test = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
+    A_test0 = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):
@@ -96,10 +114,22 @@ def gm_integral(Jx, Jy,beta, N_l, t):
                     j = find_index(y,(bar2-1),bar2,t)
                     k = find_index_dm(x,bar1,N_l)
                     l = find_index_dm(y,bar2,N_l)
-                    if j>i:
+                    if j>=i:
                         A_E[i,j] += DM_compact[k,l]
-  
-    """
+                        A_test[i,j] += DM_compact[k,l]
+
+    for x in range (0,N_l):   
+        i = find_index(x,0,1,t)
+        A_test0[i,i+1] += 1
+    print('As')
+    A_diff = A_test - A_test0
+    diff = 0
+    for i in range (len(A_diff[0])):
+        for j in range (len(A_diff[0])):
+            diff += np.abs(A_diff[i,j])
+    print('diff', diff)
+    
+   
 
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
@@ -135,9 +165,9 @@ def gm_integral(Jx, Jy,beta, N_l, t):
    
     identity_matrix = np.identity(len(A_E[0]))
    
-    A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
+    A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
 
-    B =  A_s +  R @ A_inv @ R.T
+    B =  A_s +  R @ linalg.inv(A_E) @ R.T
     
     """
     #compare to standard inversion 
