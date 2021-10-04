@@ -7,13 +7,12 @@ import pytest
 def test_boundary_single_dmevo_heisenberg_bw(seed_rng):
     L=4
     t=10
-    chi=64
+    chi=256
     Jx,Jy,Jz=np.random.normal(size=(3,L))
-    Jx,Jy,Jz=([Jx[0]]*L,)*3
     hx,hy,hz=np.random.normal(size=(3,L+1))
-    hx,hy,hz=np.zeros((3,L+1))
+    # hx,hy,hz=[hx[0] for _ in range(L+1)],[hy[0] for _ in range(L+1)],[hz[0] for _ in range(L+1)]
     sagates=[dense.brickwork.heisenberg_gate(jx,jy,jz) for jx,jy,jz in zip(Jx[1::2],Jy[1::2],Jz[1::2])]
-    sbgates=[dense.brickwork.heisenberg_gate(jx,jy,jz,hx,hy,hz,hxe,hye,hze) for jx,jy,jz,hx,hy,hz,hxe,hye,hze in zip(Jx[::2],Jy[::2],Jz[::2],hx[::2],hy[::2],hz[::2],hx[1::2],hy[1::2],hz[1::2])]
+    sbgates=[dense.brickwork.heisenberg_gate(jx,jy,jz,hxe,hye,hze,hx,hy,hz) for jx,jy,jz,hx,hy,hz,hxe,hye,hze in zip(Jx[::2],Jy[::2],Jz[::2],hx[::2],hy[::2],hz[::2],hx[1::2],hy[1::2],hz[1::2])]
     Sas=[mps.brickwork.brickwork_Sa(t,dense.unitary_channel(g)) for g in sagates]
     Sbs=[mps.brickwork.brickwork_Sb(t,dense.unitary_channel(g)) for g in sbgates]
     im=list(mps.brickwork.im_rectangle(Sas,Sbs,chi_max=chi))[-1]
