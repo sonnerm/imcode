@@ -34,9 +34,9 @@ def create_correlation_block(B, ntimes):
 
     #check that eigenvalues coincide in both bases (half of them should be 0 and half of them should be 1 in both cases)
     eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_diag)
-    print(eigenvalues_correlations)
+    #print(eigenvalues_correlations)
     eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_back_rotated)
-    print(eigenvalues_correlations)
+    #print(eigenvalues_correlations)
 
     return corr_block_back_rotated
 
