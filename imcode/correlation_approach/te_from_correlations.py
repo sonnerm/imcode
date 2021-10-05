@@ -17,13 +17,13 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 3
-max_time2 = 3
+max_time1 = 8
+max_time2 = 15
 stepsize1 = 1
 stepsize2 = 1
 
 # lattice sites (in the environment):
-nsites = 102
+nsites = 20
 
 # model parameters:
 Jx = 1.0#0.5# 0.31 # 0.31
@@ -67,7 +67,7 @@ for total_time in range(1, max_time1, stepsize1):
     #n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-    N_sites_needed_for_entr = 8#2*nbr_Floquet_layers 
+    N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
     B = gm_integral(Jx,Jy,beta, N_sites_needed_for_entr,nbr_Floquet_layers)
    
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
@@ -88,7 +88,7 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
     #n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-    N_sites_needed_for_entr = 8#2*nbr_Floquet_layers 
+    N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
     B = gm_integral(Jx,Jy,beta,N_sites_needed_for_entr,nbr_Floquet_layers)
     
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
