@@ -160,9 +160,9 @@ def gm_integral(Jx, Jy,beta, N_l, t):
             A_E[j,i] = - A_E[i,j]
 
     #solve for certain columns of inverted matrix A_E:
-    A_inv = np.zeros(A_E.shape)
+    #A_inv = np.zeros(A_E.shape)
    
-    identity_matrix = np.identity(len(A_E[0]))
+    #identity_matrix = np.identity(len(A_E[0]))
    
     #A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
 
