@@ -85,22 +85,21 @@ def gm_integral(Jx, Jy,beta, N_l, t):
     #    A_E[i,i+1] += np.exp(2. * beta)
     
     
-    """
+    
     #Bell pair initial state
     print(beta,'beta')
     for x in range (0,N_l-1,2):   
         i = find_index(x,0,1,t)
         j = i + 2 * (N_t - 1)# equivalent to j = find_index(x + 1,tau,1,t), i.e. i shifted by one to the right in spatial direction
-        print(i,j)
         A_E[i,j] += beta 
         A_E[i+1,j+1] -= beta
     if N_l%2 == 1:#edge spin with unity initial state in case number of sites is odd
         i = find_index(N_l - 1 ,0,1,t)
         A_E[i,i+1] += 1
-    """
+    
 
    
-    
+    """
     #general initial state
     DM_compact = compute_Kernel_XX(beta, N_l)
     A_test = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
@@ -129,7 +128,7 @@ def gm_integral(Jx, Jy,beta, N_l, t):
             diff += np.abs(A_diff[i,j])
     print('diff', diff)
     
-   
+   """
 
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
@@ -165,7 +164,7 @@ def gm_integral(Jx, Jy,beta, N_l, t):
    
     identity_matrix = np.identity(len(A_E[0]))
    
-    A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
+    #A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
 
     B =  A_s +  R @ linalg.inv(A_E) @ R.T
     
