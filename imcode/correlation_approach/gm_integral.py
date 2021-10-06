@@ -24,7 +24,7 @@ def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
 
-def gm_integral(Jx, Jy,beta, N_l, t):
+def gm_integral(Jx, Jy,g,beta, N_l, t):
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
     nbr_eta = N_t
@@ -58,7 +58,6 @@ def gm_integral(Jx, Jy,beta, N_l, t):
         A_s[2*i+1, 2*i] = - gamma_val
     #print('AS')
     #print (A_s)
-    print('t2')
     
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
@@ -70,22 +69,39 @@ def gm_integral(Jx, Jy,beta, N_l, t):
                 A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
                 A_E[i,i+1] += gamma_val
                 A_E[j,j+1] += gamma_val
- 
+                
+                if x % 2 == 0 :#with local kicks e^{igZ} after even gates
+                    if tau >0:#for tau > 0, , the "bar" grassmanns are multiplied with a factor np.exp(-2.j* g)
+                        A_E[i,j+1] *= np.exp(-2.j* g)
+                        A_E[i,j] *= np.exp(-4.j* g)
+                        A_E[i+1,j] *= np.exp(-2.j* g)
+                        A_E[i,i+1] *= np.exp(-2.j* g)
+                        A_E[j,j+1] *= np.exp(-2.j* g)
+
+                    else:#for tau > 0, , the "non-bar" grassmanns are multiplied with a factor np.exp(+2.j* g)
+                        A_E[i,j+1] *= np.exp(2.j* g)
+                        A_E[i+1,j+1] *= np.exp(4.j* g)
+                        A_E[i+1,j] *= np.exp(2.j* g)
+                        A_E[i,i+1] *= np.exp(2.j* g)
+                        A_E[j,j+1] *= np.exp(2.j* g)
+
+                
     #initial state
     
     #infinite temperature initial state
-    #for x in range (0,N_l):   
-    #    i = find_index(x,0,1,t)
-    #    A_E[i,i+1] += 1
+    for x in range (0,N_l):   
+        i = find_index(x,0,1,t)
+        A_E[i,i+1] += 1
     
-   
+    
     #e^-betaZ initial state
     #for x in range (0,N_l):   
     #    i = find_index(x,0,1,t)
     #    A_E[i,i+1] += np.exp(2. * beta)
+        #A_E[i,i+1] += np.exp(2. * beta*x*0.125)
     
     
-    
+    """
     #Bell pair initial state
     print(beta,'beta')
     for x in range (0,N_l-1,2):   
@@ -97,7 +113,7 @@ def gm_integral(Jx, Jy,beta, N_l, t):
         i = find_index(N_l - 1 ,0,1,t)
         A_E[i,i+1] += 1
     
-
+    """
    
     """
     #general initial state
@@ -127,17 +143,22 @@ def gm_integral(Jx, Jy,beta, N_l, t):
         for j in range (len(A_diff[0])):
             diff += np.abs(A_diff[i,j])
     print('diff', diff)
-    
-   """
+    """
+   
 
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
     for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_right+tau) % 2 == 0 and tau != 0:
                 i = find_index(x_edge_right,tau,1,t)
-                A_E[i,i+1] += 1
+               
+                if N_l%2 == 1:
+                    A_E[i,i+1] += np.exp(-2.j * g* np.sign(tau))
+                else: 
+                    A_E[i,i+1] += 1
+                
     
-    #for boundary spin on right side, insert gamma from gate
+    #for boundary spin on left side, insert gamma from gate
     x_edge_left = 0
     for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_left+tau) % 2 == 1 and tau != 0:
@@ -150,7 +171,7 @@ def gm_integral(Jx, Jy,beta, N_l, t):
             shift = s * 2 * (N_t - 1)
             A_E[2 * i + 1 + shift,2 * i+2 + shift] += 1
 
-    #boundary condition for measure
+    #temporal boundary condition for measure
     for i in range(N_l):
         A_E[i * 2 * (N_t - 1),(i+1) * 2 * (N_t - 1) -1] += 1
 
@@ -158,6 +179,10 @@ def gm_integral(Jx, Jy,beta, N_l, t):
     for i in range(len(A_E[0])):
         for j in range(i,len(A_E[0])):
             A_E[j,i] = - A_E[i,j]
+
+
+    #add local gates
+
 
     #solve for certain columns of inverted matrix A_E:
     #A_inv = np.zeros(A_E.shape)
