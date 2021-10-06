@@ -89,9 +89,9 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     #initial state
     
     #infinite temperature initial state
-    for x in range (0,N_l):   
-        i = find_index(x,0,1,t)
-        A_E[i,i+1] += 1
+    #for x in range (0,N_l):   
+    #    i = find_index(x,0,1,t)
+    #    A_E[i,i+1] += 1
     
     
     #e^-betaZ initial state
@@ -115,11 +115,10 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     
     """
    
-    """
+    
     #general initial state
     DM_compact = compute_Kernel_XX(beta, N_l)
-    A_test = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
-    A_test0 = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
+    
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):
@@ -132,18 +131,7 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
                         A_test[i,j] += DM_compact[k,l]
-
-    for x in range (0,N_l):   
-        i = find_index(x,0,1,t)
-        A_test0[i,i+1] += 1
-    print('As')
-    A_diff = A_test - A_test0
-    diff = 0
-    for i in range (len(A_diff[0])):
-        for j in range (len(A_diff[0])):
-            diff += np.abs(A_diff[i,j])
-    print('diff', diff)
-    """
+    
    
 
     #for boundary spin on right side, insert identity gate
