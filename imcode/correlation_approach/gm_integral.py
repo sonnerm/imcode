@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import scipy
 from scipy import linalg
-from DM_kernel import compute_Kernel_XX, find_index_dm
+from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
 from datetime import datetime
 
 now = datetime.now().time() # time object
@@ -13,12 +13,6 @@ now = datetime.now().time() # time object
 np.set_printoptions(threshold=sys.maxsize)
 np.set_printoptions(linewidth=470)
 
-"""
-l = 2
-t = 2 #nbr of double layer applications
-N_t = 4 * t
-N_l = 2 * l #nbr of spins in initial state
-"""
 
 def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
@@ -39,26 +33,20 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     gamma_val = (1 - tx * ty) / T_xy
 
     R_quad =  np.dot(1.j,np.array([[-beta_val, alpha_val],[-alpha_val, beta_val]]))
-    #print (R_quad)
-    print('t1')
+
     #Matrix that couples the system to the first site of the environment
     R = np.zeros((nbr_eta, nbr_xsi),dtype=np.complex_)
     for i in range (t):#2t
         R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad)
     for i in range (t,2*t):#2t
         R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad)
-    #print('R')
-    #print (R)
-   
-
+ 
     #Matrix that couples system variables to system variables
     A_s = np.zeros((nbr_eta, nbr_eta),dtype=np.complex_)
     for i in range (2 * t):
         A_s[2*i, 2*i+1] = gamma_val
         A_s[2*i+1, 2*i] = - gamma_val
-    #print('AS')
-    #print (A_s)
-    
+ 
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     for x in range (0,N_l - 1):
@@ -78,14 +66,14 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
                         A_E[i,i+1] *= np.exp(-2.j* g)
                         A_E[j,j+1] *= np.exp(-2.j* g)
 
-                    else:#for tau > 0, , the "non-bar" grassmanns are multiplied with a factor np.exp(+2.j* g)
+                    else:#for tau < 0, , the "non-bar" grassmanns are multiplied with a factor np.exp(+2.j* g)
                         A_E[i,j+1] *= np.exp(2.j* g)
                         A_E[i+1,j+1] *= np.exp(4.j* g)
                         A_E[i+1,j] *= np.exp(2.j* g)
                         A_E[i,i+1] *= np.exp(2.j* g)
                         A_E[j,j+1] *= np.exp(2.j* g)
 
-                
+    
     #initial state
     
     #infinite temperature initial state
@@ -95,10 +83,10 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     
     
     #e^-betaZ initial state
-    #for x in range (0,N_l):   
-    #    i = find_index(x,0,1,t)
-    #    A_E[i,i+1] += np.exp(2. * beta)
-        #A_E[i,i+1] += np.exp(2. * beta*x*0.125)
+    for x in range (0,N_l):   
+        i = find_index(x,0,1,t)
+        A_E[i,i+1] += np.exp(2. * beta)
+       #A_E[i,i+1] += np.exp(2. * beta*x*0.125)
     
     
     """
@@ -112,10 +100,10 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     if N_l%2 == 1:#edge spin with unity initial state in case number of sites is odd
         i = find_index(N_l - 1 ,0,1,t)
         A_E[i,i+1] += 1
-    
     """
-   
     
+   
+    """
     #general initial state
     DM_compact = compute_Kernel_XX(beta, N_l)
     
@@ -130,10 +118,8 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
                     l = find_index_dm(y,bar2,N_l)
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
-                        A_test[i,j] += DM_compact[k,l]
-    
-   
-
+                       
+    """
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
     for tau in range (2 * t -1, -2 * t, -1):
