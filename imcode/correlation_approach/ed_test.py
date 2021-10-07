@@ -23,8 +23,8 @@ def rdm(vec,sites):
 
 np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
-L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
-beta = 1.0
+L = 7# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
+beta = 0.0
 #Pauli matrices
 sigma_x = np.array([[0,1],[1,0]])
 sigma_y = np.array([[0,-1j],[1j,0]])
@@ -61,18 +61,19 @@ state = gs @ gs.T.conj()
 
 #--------------- e-beta Z product state DM -------------------------------
 
-one_site = expm(-beta * sigma_z)
 
-state = one_site 
-for i in range (L-2):
-    state = np.kron(one_site, state)
+one_site = expm(-beta * sigma_z )
+state = one_site
+for i in range (1,L-1):
+    state = np.kron(state,one_site)
+
 
 #--------------- XX DM -------------------------------
 
 #state = expm(-beta * ham_XX) #/ np.trace(expm(-beta * ham_XX))
 
 #--------------- Bell product state initial DM -------------------------------
-
+"""
 Bell = np.zeros((4,4))
 Bell[0,0] = 1.
 Bell[0,3] = beta
@@ -92,8 +93,8 @@ for i in range (2,L-2,2):
 if L%2 == 0:
     state = np.kron(state,np.array([[1,0],[0,0]]))
 
-print('trace', np.trace(state))
-
+#print('trace', np.trace(state))
+"""
 #--------------- infinite temperature initial state  (tested) -----------------------------------------------
 
 #density matrix for infinite temperature ground state
@@ -104,16 +105,16 @@ print('trace', np.trace(state))
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = 1.0
-Jy = 1.0
-g =0
+Jx = np.pi/4-0.3
+Jy =  0#np.pi/4+0.3
+g = 0.31#np.pi/4+0.3
 
 
 ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
 kick_two_site = g * ( np.kron(sigma_z, np.identity(2)) + np.kron(np.identity(2), sigma_z)  ) 
 
-F_odd = expm(1j * kick_two_site) @ expm(1j * ham_XY)
-F_even = expm(1j * ham_XY)
+F_odd =  expm(1j * ham_XY)
+F_even = expm(1j * kick_two_site) @ expm(1j * ham_XY)
 
 
 #if number of sites in environment (L-1) is even, the last spin can directly be traced out
@@ -152,7 +153,7 @@ for i in range (L//2 - 1):#iteratively apply Floquet layer and trace out last tw
     
     #apply double layer of gates, F
     state = np.einsum('aibj, jqk, eldk  -> iabqdel', F, state, F.conj()) #this is equivalent to np.einsum('aibj, jqk, kdle  -> iabqdel', F, state, F.T.conj())
- 
+    
     #update number of "non-ancilla"-spins of the original chain that will be traced out after this cycle
     n_traced += 2
 
