@@ -111,8 +111,10 @@ def _process_options(kwargs):
     if "chi_max" in kwargs.keys():
         kwargs.setdefault("trunc_params",{})["chi_max"]=kwargs["chi_max"]
         del kwargs["chi_max"]
-    kwargs["verbose"]=False
-    kwargs["compression_method"]="SVD"
+    if "verbose" not in kwargs.keys():
+        kwargs["verbose"]=False
+    if "compression_method" not in kwargs.keys():
+        kwargs["compression_method"]="SVD"
 class _B_helper():
     def __init__(self,tpmps):
         self.tpmps=tpmps
