@@ -275,6 +275,8 @@ class SimpleMPO(MPO):
             consumes mps, returns mpo applied to mps
         '''
         _process_options(kwargs)
+        if "N_sweeps" in kwargs.keys() and self.L<kwargs["N_sweeps"]:
+            kwargs["compression_method"]="SVD"
         self.tpmpo.IdL[0]=0
         self.tpmpo.IdR[-1]=0 #How is this my job?
         tpmps=mps.tpmps
