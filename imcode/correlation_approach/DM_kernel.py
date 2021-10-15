@@ -77,14 +77,18 @@ def compute_Kernel_XX(beta, N_l):
             corr_block[i,j+ N_l] = - sum12 #correct
             corr_block[i,j] = - sum11
 
+    print('correlations_block')
+    print(corr_block)
     B_inv = linalg.inv(corr_block) + measure
-   
+    print('B_inv')
+    print((B_inv-measure)@ corr_block)
     #adjust signs
     for i in range(N_l):
         for j in range(N_l, 2*N_l):
             B_inv[i,j] = -B_inv[i,j]
             B_inv[j,i] = -B_inv[j,i]
 
+ 
     return B_inv
 
 
