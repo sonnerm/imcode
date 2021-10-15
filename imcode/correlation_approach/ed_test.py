@@ -28,11 +28,12 @@ np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
 L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 beta = 20.0
+del_t = 1.
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = 0.5
-Jy =  0.3#np.pi/4+0.3
-g = 0#np.pi/4+0.3
-delta_t = 1.
+Jx = 0.5 * del_t 
+Jy =  0.3 * del_t #np.pi/4+0.3
+g = 0 * del_t #np.pi/4+0.3
+
 
 #Pauli matrices
 sigma_x = np.array([[0,1],[1,0]])
@@ -84,7 +85,7 @@ for i in range (1,L-2, 2):
     ham_odd += np.kron(np.identity(2**i) , np.kron(ham_XY, np.identity(2**(L-3-i))))
 
 commutator = ham_even @ ham_odd - ham_odd @ ham_even
-Floquet_ham = ham_even + ham_odd + 0.5j * delta_t * commutator
+Floquet_ham = ham_even + ham_odd + 0.5j * commutator
 
 ham = Floquet_ham
 ham = ham - np.identity(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
