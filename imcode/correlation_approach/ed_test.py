@@ -1,10 +1,11 @@
 from math import e
 from os import stat_result
 from numpy.lib.type_check import real
-from scipy.linalg import expm
+from scipy.linalg import expm, eigh
 from scipy.linalg import eigvalsh, eigvals
 from scipy.sparse.linalg import eigsh #diagonalization via Lanczos for initial state
 import  numpy as np
+from scipy import linalg
 import sys
 from scipy import sparse
 from plot_entropy import plot_entropy
@@ -22,16 +23,16 @@ def rdm(vec,sites):
     ret=np.einsum("ij,kj->ik",vec.conj(),vec)
     return ret
 
-np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
 L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 beta = 20.0
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = np.pi/4
-Jy =  0#np.pi/4+0.3
-g = np.pi/4+0.3
-
+Jx = 0.5
+Jy =  0.3#np.pi/4+0.3
+g = 0#np.pi/4+0.3
+delta_t = 1.
 
 #Pauli matrices
 sigma_x = np.array([[0,1],[1,0]])
@@ -45,7 +46,6 @@ kick_two_site = g * ( np.kron(sigma_z, np.identity(2)) + np.kron(np.identity(2),
 F_odd =  expm(1j * ham_XY)
 F_even = expm(1j * kick_two_site) @ expm(1j * ham_XY)
 
-
 #------------------------------------------------------------ Define initial state density matrix--------------------------------------------------------------------
 
 
@@ -55,28 +55,45 @@ F_even = expm(1j * kick_two_site) @ expm(1j * ham_XY)
 
 #--------------- XX DM -------------------------------
 #Hamiltonian of XX model:
-
+"""
 ham_XX = np.zeros((2**(L-1), 2**(L-1)))
 ham_XX_twosite = np.real(np.kron(sigma_x,sigma_x) + np.kron(sigma_y,sigma_y) )
 
 for i in range(0,L-2):
     ham_XX += np.kron(np.kron(np.identity(2**(L-3-i)), ham_XX_twosite), np.identity(2**i)) 
 
-state = expm(-beta * ham_XX) #/ np.trace(expm(-beta * ham_XX))
+#periodic boundary conditions
+#ham_XX +=  np.kron( np.kron(sigma_x, np.identity(2**(L-3))), sigma_x) + np.kron( np.kron(sigma_y, np.identity(2**(L-3))), sigma_y) 
 
+
+state = expm(-beta * ham_XX) #/ np.trace(expm(-beta * ham_XX))
+"""
 #_____________________________________________________
 #Hamiltonian Ground State
+#XY-Hamiltonian (effective Floquet)
+#dimension of initial state
+dim_Hilbert = 2**(L-1)
+ham_even = np.zeros((dim_Hilbert,dim_Hilbert),dtype=np.complex_)
+ham_odd = np.zeros((dim_Hilbert,dim_Hilbert),dtype=np.complex_)
 
-#periodic boundary conditions
-#ham_XX += np.real( np.kron( np.kron(sigma_x, np.identity(2**(L-3))), sigma_x) + np.kron( np.kron(sigma_y, np.identity(2**(L-3))), sigma_y) )
+for i in range (0,L-2, 2):
+    print('print even')
+    ham_even += np.kron(np.identity(2**i) , np.kron(ham_XY, np.identity(2**(L-3-i))))
+for i in range (1,L-2, 2):
+    print('print odd')
+    ham_odd += np.kron(np.identity(2**i) , np.kron(ham_XY, np.identity(2**(L-3-i))))
 
-#ham = ham_XX - np.identity(len(ham_XX)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
-#eigvals = eigvals(-1.j*linalg.logm(F[0,:,0,:]))
-#print(eigvals)
-#gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
+commutator = ham_even @ ham_odd - ham_odd @ ham_even
+Floquet_ham = ham_even + ham_odd + 0.5j * delta_t * commutator
+
+ham = Floquet_ham
+ham = ham - np.identity(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
+
+gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
+print(gs_energy)
 
 #density matrix for pure ground state of xy-Hamiltonian
-#state = gs @ gs.T.conj()
+state = gs @ gs.T.conj()
 
 
 #--------------- e-beta Z product state DM -------------------------------
