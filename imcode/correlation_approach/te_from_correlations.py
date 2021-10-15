@@ -26,11 +26,12 @@ stepsize2 = 1
 nsites = 8
 
 # model parameters:
-Jx =0.5#0.5# 0.31 # 0.31
-Jy = 0.3#np.pi/4+0.3#np.pi/4
-g =0#np.pi/4+0.3
-beta = 2.0  # temperature
 del_t = 1.
+Jx =0.5 * del_t #0.5# 0.31 # 0.31
+Jy = 0.3 * del_t#np.pi/4+0.3#np.pi/4
+g =0 * del_t #np.pi/4+0.3
+beta = 2.0  # temperature
+
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
 gamma_test_range = 6
@@ -69,7 +70,7 @@ for total_time in range(1, max_time1, stepsize1):
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
-    B = gm_integral(Jx,Jy,g,beta, N_sites_needed_for_entr,nbr_Floquet_layers,del_t)
+    B = gm_integral(Jx,Jy,g,beta, N_sites_needed_for_entr,nbr_Floquet_layers)
    
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
@@ -91,7 +92,7 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
-    B = gm_integral(Jx,Jy,g,beta,N_sites_needed_for_entr,nbr_Floquet_layers,del_t)
+    B = gm_integral(Jx,Jy,g,beta,N_sites_needed_for_entr,nbr_Floquet_layers)
     
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 

@@ -23,7 +23,7 @@ def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
 
-def gm_integral(Jx, Jy,g,beta, N_l, t, del_t=1):
+def gm_integral(Jx, Jy,g,beta, N_l, t):
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
     nbr_eta = N_t
@@ -111,7 +111,7 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, del_t=1):
     
     #general initial state
     #DM_compact = compute_Kernel_XX(beta, N_l)
-    DM_compact = compute_BCS_Kernel(Jx,Jy,g,N_l,del_t)
+    DM_compact = compute_BCS_Kernel(Jx,Jy,g,N_l)
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):

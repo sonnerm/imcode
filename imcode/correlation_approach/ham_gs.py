@@ -15,12 +15,12 @@ from scipy import linalg
 np.set_printoptions(threshold=sys.maxsize, precision=2, suppress=True)
 np.set_printoptions(linewidth=470)
 
-def create_Floquet_ham(Jx, Jy, g, L, del_t):
+def create_Floquet_ham(Jx, Jy, g, L):
     # Floquet Hamiltonian of xy-Model:
     Jp = Jx + Jy
     Jm = Jy - Jx
     Delta = Jp**2 - Jm**2
-    alpha = 0.5j*del_t * Delta
+    alpha = 0.5j* Delta
     H = np.zeros((2*L, 2*L), dtype=np.complex_)
     
     for i in range(L-1):
@@ -58,10 +58,10 @@ def create_Floquet_ham(Jx, Jy, g, L, del_t):
 
     return H
 
-def compute_BCS_Kernel(Jx, Jy, g, L, del_t):
+def compute_BCS_Kernel(Jx, Jy, g, L):
 
 #check for right ordering of eigenvectors in matrix M
-    eigvals_ord, eigvecs_ord= linalg.eigh(create_Floquet_ham(Jx,Jx,g,L, del_t))
+    eigvals_ord, eigvecs_ord= linalg.eigh(create_Floquet_ham(Jx,Jx,g,L))
     #print('eigvecs_ord')
     #print(eigvecs_ord)
     ordering = []
@@ -71,7 +71,7 @@ def compute_BCS_Kernel(Jx, Jy, g, L, del_t):
     #print('ordering')
     #print(ordering)
     #create Floquet Hamiltonian of interest
-    H = create_Floquet_ham(Jx,Jy,g,L, del_t)
+    H = create_Floquet_ham(Jx,Jy,g,L)
     eigvals, eigvecs = linalg.eigh(H)
     M = np.zeros((2*L,2*L), dtype=np.complex_)
     for i in range(L):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
