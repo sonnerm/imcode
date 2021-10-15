@@ -17,8 +17,8 @@ np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 10
-max_time2 = 20
+max_time1 = 4
+max_time2 = 4
 stepsize1 = 1
 stepsize2 = 1
 
@@ -26,10 +26,11 @@ stepsize2 = 1
 nsites = 8
 
 # model parameters:
-Jx = np.pi/4#0.5# 0.31 # 0.31
-Jy = 0#np.pi/4
-g = 0.31
-beta = 1.0  # temperature
+Jx =0.5#0.5# 0.31 # 0.31
+Jy = 0.3#np.pi/4+0.3#np.pi/4
+g =0#np.pi/4+0.3
+beta = 2.0  # temperature
+del_t = 1.
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
 gamma_test_range = 6
@@ -68,7 +69,7 @@ for total_time in range(1, max_time1, stepsize1):
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
-    B = gm_integral(Jx,Jy,g,beta, N_sites_needed_for_entr,nbr_Floquet_layers)
+    B = gm_integral(Jx,Jy,g,beta, N_sites_needed_for_entr,nbr_Floquet_layers,del_t)
    
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
@@ -90,7 +91,7 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
-    B = gm_integral(Jx,Jy,g,beta,N_sites_needed_for_entr,nbr_Floquet_layers)
+    B = gm_integral(Jx,Jy,g,beta,N_sites_needed_for_entr,nbr_Floquet_layers,del_t)
     
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
 
@@ -105,4 +106,4 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
 np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 print(entropy_values)
 
-plot_entropy(entropy_values, iterator, Jx, Jy, g,beta,   nsites, 'TP_Corr_', ising_gamma_times, ising_gamma_values)
+plot_entropy(entropy_values, iterator, Jx, Jy, g,beta,   nsites, 'ES_Corr_', ising_gamma_times, ising_gamma_values)

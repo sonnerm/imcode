@@ -1,14 +1,19 @@
 from numpy.core.numeric import identity
 from scipy import linalg
 import numpy as np
+import matplotlib.pyplot as plt
 import sys
 import scipy
 from scipy import linalg
 from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
 from datetime import datetime
+from ham_gs import compute_BCS_Kernel
+from scipy.optimize import curve_fit
 
 now = datetime.now().time() # time object
 
+def func(x, a):
+  return a * 1./x
 
 np.set_printoptions(threshold=sys.maxsize)
 np.set_printoptions(linewidth=470)
@@ -18,7 +23,7 @@ def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
 
-def gm_integral(Jx, Jy,g,beta, N_l, t):
+def gm_integral(Jx, Jy,g,beta, N_l, t, del_t=1):
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
     nbr_eta = N_t
@@ -83,9 +88,9 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     
     
     #e^-betaZ initial state
-    for x in range (0,N_l):   
-        i = find_index(x,0,1,t)
-        A_E[i,i+1] += np.exp(2. * beta)
+    #for x in range (0,N_l):   
+    #    A_E[i,i+1] += np.exp(2. * beta)
+    #    i = find_index(x,0,1,t)
        #A_E[i,i+1] += np.exp(2. * beta*x*0.125)
     
     
@@ -103,10 +108,10 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     """
     
    
-    """
-    #general initial state
-    DM_compact = compute_Kernel_XX(beta, N_l)
     
+    #general initial state
+    #DM_compact = compute_Kernel_XX(beta, N_l)
+    DM_compact = compute_BCS_Kernel(Jx,Jy,g,N_l,del_t)
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):
@@ -119,7 +124,7 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
                        
-    """
+    
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
     for tau in range (2 * t -1, -2 * t, -1):
@@ -164,9 +169,31 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     #identity_matrix = np.identity(len(A_E[0]))
    
     #A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
-
+    
     B =  A_s +  R @ linalg.inv(A_E) @ R.T
     
+
+    """
+    A_inv = linalg.inv(A_E)
+    sites = []
+    spatial = []
+    for i in range (1,N_l,2):
+        origin = find_index(0,0,0,t)
+        j = find_index(i,0,1,t)
+        if (A_inv[origin,j] != 0):
+            sites.append(i)
+            spatial.append(abs(A_inv[origin,j]))
+
+    fig, ax = plt.subplots()
+
+    ax.plot( sites, spatial,'.', label=r'$\beta=0.0$')
+    #ax.plot( sites, 1/sites,'.', label=r'$\beta=0.0$')
+    print(spatial)
+    popt, pcov = curve_fit(func, sites[3:], spatial[3:])
+    print(popt)
+    ax.plot(sites, func(sites, *popt), 'r-')
+    plt.show()
+    """
     """
     #compare to standard inversion 
     B_comp =  A_s +  R @ A_inv_comp @ R.T
@@ -176,6 +203,6 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
             abs += np.abs(B[i,j] - B_comp[i,j])
     print('abs',abs)
     """
-
+    
     return B
 
