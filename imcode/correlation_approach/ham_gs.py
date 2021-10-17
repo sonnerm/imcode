@@ -36,14 +36,14 @@ def create_Floquet_ham(Jx, Jy, g, L):
             H[i,i+2] += alpha/2 * (-1)**i
             H[i+L+2,i+L] += -alpha/2 * (-1)**i
 
-    
+    """
     #periodic boundary conditions
     H[L-1,0] += Jp/2 * 1.e-6
     H[L,2*L-1] += -Jp/2* 1.e-6
 
     H[L-1,L] += -Jm/2* 1.e-6
     H[0,2*L-1] += Jm/2* 1.e-6
-    
+    """
 
     H += H.T.conj() #add hermitian conjugate
     seed(1)
@@ -61,6 +61,7 @@ def create_Floquet_ham(Jx, Jy, g, L):
 def compute_BCS_Kernel(Jx, Jy, g, L):
 
 #check for right ordering of eigenvectors in matrix M
+    """
     eigvals_ord, eigvecs_ord= linalg.eigh(create_Floquet_ham(Jx,Jx,g,L))
     #print('eigvecs_ord')
     #print(eigvecs_ord)
@@ -70,6 +71,8 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
             ordering.append(i)
     #print('ordering')
     #print(ordering)
+    """
+
     #create Floquet Hamiltonian of interest
     H = create_Floquet_ham(Jx,Jy,g,L)
     eigvals, eigvecs = linalg.eigh(H)
