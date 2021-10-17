@@ -36,14 +36,14 @@ def create_Floquet_ham(Jx, Jy, g, L):
             H[i,i+2] += alpha/2 * (-1)**i
             H[i+L+2,i+L] += -alpha/2 * (-1)**i
 
-    """
+    
     #periodic boundary conditions
-    H[L-1,0] += Jp/2
-    H[L,2*L-1] += -Jp/2
+    H[L-1,0] += Jp/2 * 1.e-6
+    H[L,2*L-1] += -Jp/2* 1.e-6
 
-    H[L-1,L] += -Jm/2
-    H[0,2*L-1] += Jm/2
-    """
+    H[L-1,L] += -Jm/2* 1.e-6
+    H[0,2*L-1] += Jm/2* 1.e-6
+    
 
     H += H.T.conj() #add hermitian conjugate
     seed(1)
@@ -73,16 +73,25 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
     #create Floquet Hamiltonian of interest
     H = create_Floquet_ham(Jx,Jy,g,L)
     eigvals, eigvecs = linalg.eigh(H)
+    """
     M = np.zeros((2*L,2*L), dtype=np.complex_)
     for i in range(L):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
         M[:, i] = eigvecs[:, ordering[i]]
         M[0:L,i+L] = M[L:2*L, i].conj()
         M[L:2*L,i+L] = M[0:L, i].conj()
+    """
+    argsort = np.argsort(- np.real(eigvals))
+    M = np.zeros((eigvecs.shape), dtype=np.complex_)
+   
+    for i in range(L):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
+        M[:, i] = eigvecs[:, argsort[i]]
+        M[:, 2 * L - 1 - i] = eigvecs[:, argsort[i + L]]
+
 
     #check that matrix is diagonalized by M
     diag = M.T.conj() @ H @ M
-    #print('Diagonal')
-    #print(diag)
+    print('Diagonal')
+    print(diag)
 
 
     U = M[0:L,0:L]
@@ -102,8 +111,8 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
     print('antisym_check')
     print(antisym_check)
 
-    #print('Z')
-    #print(Z)
+    print('Z')
+    print(Z)
     
     DM_compact = 0.5* np.bmat([[Z.T.conj(),np.zeros((L,L))],[np.zeros((L,L)),Z]])
     #print('DM_compact')
