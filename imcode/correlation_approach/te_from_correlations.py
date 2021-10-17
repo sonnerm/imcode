@@ -13,22 +13,22 @@ from ising_gamma import ising_gamma
 from gm_integral import gm_integral
 import math
 
-np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 4
-max_time2 = 4
+max_time1 = 2
+max_time2 = 10
 stepsize1 = 1
-stepsize2 = 1
+stepsize2 = 3
 
 # lattice sites (in the environment):
-nsites = 8
+nsites = 10
 
 # model parameters:
-del_t = 1.
-Jx =0.5 * del_t #0.5# 0.31 # 0.31
-Jy = 0.3 * del_t#np.pi/4+0.3#np.pi/4
+del_t = 1
+Jx =np.pi/4 * del_t #0.5# 0.31 # 0.31
+Jy = np.pi/4 * del_t#np.pi/4+0.3#np.pi/4
 g =0 * del_t #np.pi/4+0.3
 beta = 2.0  # temperature
 
@@ -107,4 +107,4 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
 np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 print(entropy_values)
 
-plot_entropy(entropy_values, iterator, Jx, Jy, g,beta,   nsites, 'ES_Corr_', ising_gamma_times, ising_gamma_values)
+plot_entropy(entropy_values, iterator, Jx, Jy, g,beta, del_t,  nsites, 'ES_Corr_', ising_gamma_times, ising_gamma_values)
