@@ -13,22 +13,22 @@ from ising_gamma import ising_gamma
 from gm_integral import gm_integral
 import math
 
-np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=3, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
 max_time1 = 2
-max_time2 = 10
+max_time2 = 2
 stepsize1 = 1
-stepsize2 = 3
+stepsize2 = 1
 
 # lattice sites (in the environment):
-nsites = 10
+nsites =6
 
 # model parameters:
-del_t = 1
-Jx =np.pi/4 * del_t #0.5# 0.31 # 0.31
-Jy = np.pi/4 * del_t#np.pi/4+0.3#np.pi/4
+del_t = 0.1
+Jx =0.5 * del_t #0.5# 0.31 # 0.31
+Jy = 0.3 * del_t#np.pi/4+0.3#np.pi/4
 g =0 * del_t #np.pi/4+0.3
 beta = 2.0  # temperature
 
@@ -104,7 +104,7 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
         entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
     iterator += 1
 
-np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
 print(entropy_values)
 
-plot_entropy(entropy_values, iterator, Jx, Jy, g,beta, del_t,  nsites, 'ES_Corr_', ising_gamma_times, ising_gamma_values)
+plot_entropy(entropy_values, iterator, del_t * Jx, del_t * Jy, del_t * g, del_t, beta, nsites, 'ES_Corr_', ising_gamma_times, ising_gamma_values)
