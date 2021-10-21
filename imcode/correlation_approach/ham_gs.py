@@ -20,7 +20,8 @@ def create_Floquet_ham(Jx, Jy, g, L):
     Jp = Jx + Jy
     Jm = Jy - Jx
     Delta = Jp**2 - Jm**2
-    alpha = 0.5j* Delta
+    alpha_XY = 0.5j* Delta 
+    alpha_Ising = 1.j* Jm * g
     H = np.zeros((2*L, 2*L), dtype=np.complex_)
     
     for i in range(L-1):
@@ -31,24 +32,36 @@ def create_Floquet_ham(Jx, Jy, g, L):
         H[i, i+L+1] += -Jm/2
         H[i+1, i+L] += Jm/2
 
+        H[i,i] += - g 
+        H[i+L,i+L] += g 
+
         #commutator (first order in del_t)
+
+        #for KIC case
+        H[i, i+L+1] += alpha_Ising 
+        H[i+1, i+L] += - alpha_Ising 
+
+        #for XY case
         if i < (L - 2):
-            H[i,i+2] += alpha/2 * (-1)**i
-            H[i+L+2,i+L] += -alpha/2 * (-1)**i
+            H[i,i+2] += alpha_XY/2 * (-1)**i
+            H[i+L+2,i+L] += -alpha_XY/2 * (-1)**i
 
-    """
-    #periodic boundary conditions
-    H[L-1,0] += Jp/2 * 1.e-6
-    H[L,2*L-1] += -Jp/2* 1.e-6
+    #add last term that is not contained in above for loop
+    H[L-1, L-1] += - g
+    H[2*L - 1, 2*L - 1] += g
 
-    H[L-1,L] += -Jm/2* 1.e-6
-    H[0,2*L-1] += Jm/2* 1.e-6
-    """
+    mag = 1.e-6
+    #(anti-) periodic boundary conditions (last factor switches between periodc and antiperiodic boundary conditions depending on length of chain)
+    H[L-1,0] += mag* (-1)**(L+1)
+    H[L,2*L-1] +=- mag* (-1)**(L+1)
+
+    H[L-1,L] += - mag* (-1)**(L+1)
+    H[0,2*L-1] += mag* (-1)**(L+1)
+    
 
     H += H.T.conj() #add hermitian conjugate
     seed(1)
     stabilizer = np.zeros((2*L,2*L))
-    mag = 1.e-6
     for i in range(L):
         stabilizer[i,i] = (random()-0.5) * mag
         stabilizer[i+L,i+L] = - stabilizer[i,i]
@@ -90,7 +103,7 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
         M[:, i] = eigvecs[:, argsort[i]]
         M[:, 2 * L - 1 - i] = eigvecs[:, argsort[i + L]]
 
-
+    #print(M)
     #check that matrix is diagonalized by M
     diag = M.T.conj() @ H @ M
     #print('Diagonal')
