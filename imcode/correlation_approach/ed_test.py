@@ -23,15 +23,15 @@ def rdm(vec,sites):
     ret=np.einsum("ij,kj->ik",vec.conj(),vec)
     return ret
 
-np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
 np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
 L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 beta = 20.0
-del_t = 1.
+del_t = 0.1
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = 0.5 * del_t 
-Jy =  0.3 * del_t #np.pi/4+0.3
+Jx = (0.5 - 1.e-10)  * del_t 
+Jy =  0.5 * del_t #np.pi/4+0.3
 g = 0 * del_t #np.pi/4+0.3
 
 
@@ -76,21 +76,25 @@ state = expm(-beta * ham_XX) #/ np.trace(expm(-beta * ham_XX))
 dim_Hilbert = 2**(L-1)
 ham_even = np.zeros((dim_Hilbert,dim_Hilbert),dtype=np.complex_)
 ham_odd = np.zeros((dim_Hilbert,dim_Hilbert),dtype=np.complex_)
+ham_Ising_kick = np.zeros((dim_Hilbert,dim_Hilbert),dtype=np.complex_)
 
 for i in range (0,L-2, 2):
-    print('print even')
     ham_even += np.kron(np.identity(2**i) , np.kron(ham_XY, np.identity(2**(L-3-i))))
 for i in range (1,L-2, 2):
-    print('print odd')
     ham_odd += np.kron(np.identity(2**i) , np.kron(ham_XY, np.identity(2**(L-3-i))))
+for i in range(L-1):
+    ham_Ising_kick += g * np.kron(np.identity(2**i) ,  np.kron( sigma_z, np.identity(2**(L-2-i))))
 
-commutator = ham_even @ ham_odd - ham_odd @ ham_even
-Floquet_ham = ham_even + ham_odd + 0.5j * commutator
+commutator_XY = ham_even @ ham_odd - ham_odd @ ham_even
+commutator_Ising = ham_Ising_kick @ (ham_even + ham_odd) - (ham_even + ham_odd) @ ham_Ising_kick
+Floquet_ham = ham_even + ham_odd + ham_Ising_kick + 0.5j * commutator_XY + 0.5j * commutator_Ising
+
 
 ham = Floquet_ham
 ham = ham - np.identity(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
 
 gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
+print('ground state energy')
 print(gs_energy)
 
 #density matrix for pure ground state of xy-Hamiltonian
@@ -99,12 +103,12 @@ state = gs @ gs.T.conj()
 
 #--------------- e-beta Z product state DM -------------------------------
 
-"""
-one_site = expm(-beta * sigma_z )
-state = one_site
-for i in range (1,L-1):
-    state = np.kron(state,one_site)
-"""
+
+#one_site = expm(-beta * sigma_z )
+#state = one_site
+#for i in range (1,L-1):
+#    state = np.kron(state,one_site)
+
 #--------------- Bell product state initial DM -------------------------------
 """
 Bell = np.zeros((4,4))
@@ -136,7 +140,7 @@ if L%2 == 0:
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-print(state)
+#print(state)
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 
@@ -231,6 +235,6 @@ for cut in range ( c - c%2 , c + 1, 2):
     entropy_values[iterator,int(cut / 2)] = - np.sum(entr_eigvals * np.log(np.clip(entr_eigvals, 1e-30, 1.0))) 
 print (entropy_values)
 
-plot_entropy(entropy_values, iterator + 1, Jx, Jy, g,beta,  L, 'ED_')
+plot_entropy(entropy_values, iterator + 1, del_t * Jx, del_t * Jy, del_t * g, del_t, beta,  L, 'ED_')
 
 print('Successfully terminated..')
