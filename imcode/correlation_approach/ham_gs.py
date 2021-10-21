@@ -119,16 +119,18 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
     Z = - linalg.inv(U.T.conj()) @ V.T.conj()
 
     antisym_check = 0
-
+    sum = 0
     for i in range (len(Z[0])):
         for j in range (len(Z[0])):
-            antisym_check += abs(Z[i,j] + Z[j,i]) / abs(Z[i,j])
+            antisym_check += abs(Z[i,j] + Z[j,i]) 
+            sum += 2 * abs(Z[i,j]) + abs(Z[j,i])
 
+    antisym_check *= 1/sum
     print('antisym_check')
     print(antisym_check)
 
-    #print('Z')
-    #print(Z)
+    print('Z')
+    print(Z)
     
     DM_compact = 0.5* np.bmat([[Z.T.conj(),np.zeros((L,L))],[np.zeros((L,L)),Z]])
     #print('DM_compact')
