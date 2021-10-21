@@ -122,7 +122,7 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
 
     for i in range (len(Z[0])):
         for j in range (len(Z[0])):
-            antisym_check += abs(Z[i,j] + Z[j,i])
+            antisym_check += abs(Z[i,j] + Z[j,i]) / abs(Z[i,j])
 
     print('antisym_check')
     print(antisym_check)
