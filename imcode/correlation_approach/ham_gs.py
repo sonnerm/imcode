@@ -129,8 +129,8 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
     print('antisym_check')
     print(antisym_check)
 
-    print('Z')
-    print(Z)
+    #print('Z')
+    #print(Z)
     
     DM_compact = 0.5* np.bmat([[Z.T.conj(),np.zeros((L,L))],[np.zeros((L,L)),Z]])
     #print('DM_compact')
