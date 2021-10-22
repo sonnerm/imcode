@@ -1,6 +1,7 @@
 from evolution_matrix import evolution_matrix
 from compute_generators import compute_generators
 import numpy as np
+import h5py
 from create_correlation_block import create_correlation_block
 from entropy import entropy
 from IM_exponent import IM_exponent
@@ -13,24 +14,23 @@ from ising_gamma import ising_gamma
 from gm_integral import gm_integral
 import math
 
-np.set_printoptions(linewidth=np.nan, precision=3, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 2
-max_time2 = 2
+max_time1 = 10
+max_time2 = 10
 stepsize1 = 1
-stepsize2 = 1
+stepsize2 = 2
 
 # lattice sites (in the environment):
-nsites =6
-
+nsites = 30
 # model parameters:
-del_t = 0.1
-Jx =0.5 * del_t #0.5# 0.31 # 0.31
-Jy = 0.3 * del_t#np.pi/4+0.3#np.pi/4
-g =0 * del_t #np.pi/4+0.3
-beta = 2.0  # temperature
+del_t = 1
+Jx =1 * del_t #0.5# 0.31 # 0.31
+Jy =2* del_t#np.pi/4+0.3#np.pi/4
+g =0. * del_t #np.pi/4+0.3
+beta = 1.0  # temperature
 
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
@@ -43,15 +43,24 @@ rho_0_exponent = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
 N_t = np.identity(2 * nsites, dtype=np.complex_)
 
 
+#set location for data storage
+mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach/'
+work_path = '/Users/julianthoenniss/Documents/PhD/data/'
+fiteo1_path = '/home/thoennis/data/correlation_approach/'
+
+filename = work_path + 'ent_entropy_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
+
 
 
 # initialize arrays in which entropy values and corresponding time-cuts are stored
-entropy_values = np.zeros((int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2))  # entropies
+#entropy_values = np.zeros((int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2))  # entropies
 times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))  # time cuts
 ising_gamma_times = np.zeros(gamma_test_range)
 ising_gamma_values = np.zeros(gamma_test_range)
 
-
+with h5py.File(filename + ".hdf5", 'w') as f:
+    dset = f.create_dataset('temp_entr', (int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2),dtype=np.float_)
+    print(dset)
 # find generators and matrices which diagonalize the composite Floquet operator:
 #G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
 #evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
@@ -71,15 +80,15 @@ for total_time in range(1, max_time1, stepsize1):
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
     B = gm_integral(Jx,Jy,g,beta, N_sites_needed_for_entr,nbr_Floquet_layers)
-   
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
-
     time_cuts = np.arange(1, nbr_Floquet_layers)
-
-    entropy_values[iterator, 0] = nbr_Floquet_layers
-
+    #entropy_values[iterator, 0] = nbr_Floquet_layers
     for cut in time_cuts:
-        entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
+        #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
+        with h5py.File(filename + '.hdf5', 'a') as f:
+            entr_data = f['temp_entr']
+            entr_data[iterator,0] = nbr_Floquet_layers
+            entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut))
     iterator += 1
 
 
@@ -93,18 +102,21 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
     B = gm_integral(Jx,Jy,g,beta,N_sites_needed_for_entr,nbr_Floquet_layers)
-    
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
-
     time_cuts = np.arange(1, nbr_Floquet_layers)
-
-    entropy_values[iterator, 0] = nbr_Floquet_layers
+    #entropy_values[iterator, 0] = nbr_Floquet_layers
 
     for cut in time_cuts:
-        entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
+        #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
+        with h5py.File(filename + '.hdf5', 'a') as f:
+            entr_data = f['temp_entr']
+            entr_data[iterator,0] = nbr_Floquet_layers
+            entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut))
     iterator += 1
 
-np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
-print(entropy_values)
 
-plot_entropy(entropy_values, iterator, del_t * Jx, del_t * Jy, del_t * g, del_t, beta, nsites, 'ES_Corr_', ising_gamma_times, ising_gamma_values)
+with h5py.File(filename + '.hdf5', 'r') as f:
+   entr_data = f['temp_entr']
+   print(entr_data[:])
+
+#plot_entropy(entropy_values, iterator, Jx/del_t, Jy/del_t, g/del_t, del_t, beta, nsites, filename, ising_gamma_times, ising_gamma_values)
