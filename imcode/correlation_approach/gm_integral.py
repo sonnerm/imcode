@@ -3,6 +3,7 @@ from scipy import linalg
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import h5py
 import scipy
 from scipy import linalg
 from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
@@ -23,7 +24,7 @@ def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
 
-def gm_integral(Jx, Jy,g,beta, N_l, t):
+def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
     nbr_eta = N_t
@@ -82,9 +83,9 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
     #initial state
     
     #infinite temperature initial state
-    #for x in range (0,N_l):   
-    #    i = find_index(x,0,1,t)
-    #    A_E[i,i+1] += 1
+    for x in range (0,N_l):   
+        i = find_index(x,0,1,t)
+        A_E[i,i+1] += 1
     
     
     #e^-betaZ initial state
@@ -107,8 +108,8 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
         A_E[i,i+1] += 1
     """
     
-   
     
+    """
     #general initial state
     #DM_compact = compute_Kernel_XX(beta, N_l)
     DM_compact = compute_BCS_Kernel(Jx,Jy,g,N_l)
@@ -123,7 +124,7 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
                     l = find_index_dm(y,bar2,N_l)
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
-                       
+    """               
     
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
@@ -162,40 +163,25 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
 
     #add local gates
 
-
     #solve for certain columns of inverted matrix A_E:
-    #A_inv = np.zeros(A_E.shape)
-   
-    #identity_matrix = np.identity(len(A_E[0]))
-   
-    #A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
-    
-    B =  A_s +  R @ linalg.inv(A_E) @ R.T
-    
+    identity_matrix = np.identity(len(A_E[0]))
 
-    """
-    A_inv = linalg.inv(A_E)
-    sites = []
-    spatial = []
-    for i in range (1,N_l,2):
-        origin = find_index(0,0,0,t)
-        j = find_index(i,0,1,t)
-        if (A_inv[origin,j] != 0):
-            sites.append(i)
-            spatial.append(abs(A_inv[origin,j]))
+    A_inv = np.zeros(A_E.shape,dtype=np.complex_)
+    A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
+  
+    print(R)
+    B =  A_s +  R @ A_inv @ R.T
+  
+    #write A_inv and B to file
+    with h5py.File(filename + '.hdf5', 'a') as f:
+        IM_data = f['IM_exponent']
+        bulk_corr_data = f['bulk_corr']
+        IM_data[iterator,:len(B[1]),:len(B[0])] = B[:,:]
+        bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
 
-    fig, ax = plt.subplots()
-
-    ax.plot( sites, spatial,'.', label=r'$\beta=0.0$')
-    #ax.plot( sites, 1/sites,'.', label=r'$\beta=0.0$')
-    print(spatial)
-    popt, pcov = curve_fit(func, sites[3:], spatial[3:])
-    print(popt)
-    ax.plot(sites, func(sites, *popt), 'r-')
-    plt.show()
-    """
     """
     #compare to standard inversion 
+    A_inv_comp = linalg.inv(A_E)
     B_comp =  A_s +  R @ A_inv_comp @ R.T
     abs=0.
     for i in range(len(B[0])):
@@ -203,6 +189,5 @@ def gm_integral(Jx, Jy,g,beta, N_l, t):
             abs += np.abs(B[i,j] - B_comp[i,j])
     print('abs',abs)
     """
-    
     return B
 
