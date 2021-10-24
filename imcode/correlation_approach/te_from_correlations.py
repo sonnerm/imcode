@@ -54,13 +54,14 @@ filename = work_path + 'ent_entropy_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t
 
 # initialize arrays in which entropy values and corresponding time-cuts are stored
 #entropy_values = np.zeros((int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2))  # entropies
-times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))  # time cuts
+#times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))  # time cuts
 ising_gamma_times = np.zeros(gamma_test_range)
 ising_gamma_values = np.zeros(gamma_test_range)
 
 with h5py.File(filename + ".hdf5", 'w') as f:
     dset = f.create_dataset('temp_entr', (int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2),dtype=np.float_)
-    print(dset)
+    dset = f.create_dataset('entangl_spectr', (int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2, 8*(max_time2 + stepsize2)),dtype=np.float_)
+
 # find generators and matrices which diagonalize the composite Floquet operator:
 #G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
 #evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
@@ -88,7 +89,7 @@ for total_time in range(1, max_time1, stepsize1):
         with h5py.File(filename + '.hdf5', 'a') as f:
             entr_data = f['temp_entr']
             entr_data[iterator,0] = nbr_Floquet_layers
-            entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut))
+            entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
     iterator += 1
 
 
@@ -111,7 +112,7 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
         with h5py.File(filename + '.hdf5', 'a') as f:
             entr_data = f['temp_entr']
             entr_data[iterator,0] = nbr_Floquet_layers
-            entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut))
+            entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
     iterator += 1
 
 
