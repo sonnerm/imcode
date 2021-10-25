@@ -185,17 +185,19 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
     identity_matrix = np.identity(len(A_E[0]))
 
     A_inv = np.zeros(A_E.shape,dtype=np.complex_)
-    A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
+    A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
   
     B =  A_s +  R @ A_inv @ R.T
   
     #write A_inv and B to file
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
+        edge_corr_data = f['edge_corr']
         #bulk_corr_data = f['bulk_corr']
         IM_data[iterator,:len(B[1]),:len(B[0])] = B[:,:]
         #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
-
+        edge_corr_data[iterator,0:2 * (N_t - 1),0:2 * (N_t - 1)] = A_inv[0:2 * (N_t - 1),0:2 * (N_t - 1)]
+    
     """
     #compare to standard inversion 
     A_inv_comp = linalg.inv(A_E)
