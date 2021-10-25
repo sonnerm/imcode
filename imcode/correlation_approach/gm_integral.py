@@ -192,9 +192,9 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
     #write A_inv and B to file
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
-        bulk_corr_data = f['bulk_corr']
+        #bulk_corr_data = f['bulk_corr']
         IM_data[iterator,:len(B[1]),:len(B[0])] = B[:,:]
-        bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
+        #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
 
     """
     #compare to standard inversion 
