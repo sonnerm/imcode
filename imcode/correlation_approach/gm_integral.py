@@ -25,33 +25,54 @@ def find_index(x, tau, bar, t):
 
 
 def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
+
+    #boundary couplings
+    Jx_boundary = Jx
+    Jy_boundary = Jy
+
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
     nbr_eta = N_t
-    #Define coupling parameters
+
+
+    #Define coupling parametersfor bulk
     tx = np.tan(Jx)
     ty = np.tan(Jy)
     T_xy = 1 + tx * ty
+
+
+    #Define coupling parameters for boundary gate
+    tx_boundary = np.tan(Jx_boundary)
+    ty_boundary = np.tan(Jy_boundary)
+    T_xy_boundary = 1 + tx_boundary * ty_boundary
+
     print('Number of Floquet (double) layers: ',t)
-    #define prefactors that arise in Grassmann Kernels
+    #define prefactors that arise in Grassmann Kernels in bulk
     alpha_val =(tx + ty) / T_xy
     beta_val = (ty - tx) / T_xy
     gamma_val = (1 - tx * ty) / T_xy
 
+    #define prefactors that arise in Grassmann Kernels at boundary
+    alpha_val_boundary =(tx_boundary + ty_boundary) / T_xy_boundary
+    beta_val_boundary = (ty_boundary - tx_boundary) / T_xy_boundary
+    gamma_val_boundary = (1 - tx_boundary * ty_boundary) / T_xy_boundary
+
     R_quad =  np.dot(1.j,np.array([[-beta_val, alpha_val],[-alpha_val, beta_val]]))
+
+    R_quad_boundary =  np.dot(1.j,np.array([[-beta_val_boundary, alpha_val_boundary],[-alpha_val_boundary, beta_val_boundary]]))
 
     #Matrix that couples the system to the first site of the environment
     R = np.zeros((nbr_eta, nbr_xsi),dtype=np.complex_)
     for i in range (t):#2t
-        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad)
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad_boundary)
     for i in range (t,2*t):#2t
-        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad)
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad_boundary)
  
     #Matrix that couples system variables to system variables
     A_s = np.zeros((nbr_eta, nbr_eta),dtype=np.complex_)
     for i in range (2 * t):
-        A_s[2*i, 2*i+1] = gamma_val
-        A_s[2*i+1, 2*i] = - gamma_val
+        A_s[2*i, 2*i+1] = gamma_val_boundary
+        A_s[2*i+1, 2*i] = - gamma_val_boundary
  
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
@@ -143,7 +164,7 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
     for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_left+tau) % 2 == 1 and tau != 0:
                 i = find_index(x_edge_left,tau,1,t)
-                A_E[i,i+1] += gamma_val
+                A_E[i,i+1] += gamma_val_boundary
 
     #measure
     for s in range (N_l):
@@ -160,16 +181,12 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
         for j in range(i,len(A_E[0])):
             A_E[j,i] = - A_E[i,j]
 
-
-    #add local gates
-
     #solve for certain columns of inverted matrix A_E:
     identity_matrix = np.identity(len(A_E[0]))
 
     A_inv = np.zeros(A_E.shape,dtype=np.complex_)
     A_inv[:,0:4 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:4 * (N_t - 1)])
   
-    print(R)
     B =  A_s +  R @ A_inv @ R.T
   
     #write A_inv and B to file
