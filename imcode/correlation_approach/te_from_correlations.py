@@ -19,12 +19,12 @@ np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 # define fixed parameters:
 # step sizes for total times t
 max_time1 = 10
-max_time2 = 30
+max_time2 = 80
 stepsize1 = 1
 stepsize2 = 2
 
 # lattice sites (in the environment):
-nsites = 30
+nsites = 80
 # model parameters:
 del_t = 1
 Jx =0.31 * del_t #0.5# 0.31 # 0.31
@@ -62,8 +62,7 @@ with h5py.File(filename + ".hdf5", 'w') as f:
     dset = f.create_dataset('temp_entr', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2),dtype=np.float_)
     dset = f.create_dataset('entangl_spectr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2, 8*(max_time2 + stepsize2)),dtype=np.float_)
     dset = f.create_dataset('IM_exponent', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 4 * (max_time2 + stepsize2), 4 * (max_time2 + stepsize2)),dtype=np.complex_)
-    dset = f.create_dataset('bulk_corr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1) *nsites, 2 * (4*(max_time2 + stepsize2) - 1) *nsites),dtype=np.complex_)
-
+    #dset = f.create_dataset('bulk_corr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1) *nsites, 2 * (4*(max_time2 + stepsize2) - 1) *nsites),dtype=np.complex_)
 
 # find generators and matrices which diagonalize the composite Floquet operator:
 #G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
