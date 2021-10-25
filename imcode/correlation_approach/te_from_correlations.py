@@ -19,7 +19,7 @@ np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 # define fixed parameters:
 # step sizes for total times t
 max_time1 = 10
-max_time2 = 10
+max_time2 = 30
 stepsize1 = 1
 stepsize2 = 2
 
@@ -27,9 +27,9 @@ stepsize2 = 2
 nsites = 30
 # model parameters:
 del_t = 1
-Jx =1 * del_t #0.5# 0.31 # 0.31
-Jy =2* del_t#np.pi/4+0.3#np.pi/4
-g =0. * del_t #np.pi/4+0.3
+Jx =0.31 * del_t #0.5# 0.31 # 0.31
+Jy =0.4* del_t#np.pi/4+0.3#np.pi/4
+g =0* del_t #np.pi/4+0.3
 beta = 1.0  # temperature
 
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
@@ -48,7 +48,7 @@ mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approa
 work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 
-filename = work_path + 'ent_entropy_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
+filename = work_path + 'bound_Lohschmidt_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
 
 
 
@@ -59,8 +59,11 @@ ising_gamma_times = np.zeros(gamma_test_range)
 ising_gamma_values = np.zeros(gamma_test_range)
 
 with h5py.File(filename + ".hdf5", 'w') as f:
-    dset = f.create_dataset('temp_entr', (int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2),dtype=np.float_)
-    dset = f.create_dataset('entangl_spectr', (int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2, 8*(max_time2 + stepsize2)),dtype=np.float_)
+    dset = f.create_dataset('temp_entr', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2),dtype=np.float_)
+    dset = f.create_dataset('entangl_spectr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2, 8*(max_time2 + stepsize2)),dtype=np.float_)
+    dset = f.create_dataset('IM_exponent', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 4 * (max_time2 + stepsize2), 4 * (max_time2 + stepsize2)),dtype=np.complex_)
+    dset = f.create_dataset('bulk_corr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1) *nsites, 2 * (4*(max_time2 + stepsize2) - 1) *nsites),dtype=np.complex_)
+
 
 # find generators and matrices which diagonalize the composite Floquet operator:
 #G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
@@ -80,7 +83,7 @@ for total_time in range(1, max_time1, stepsize1):
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
-    B = gm_integral(Jx,Jy,g,beta, N_sites_needed_for_entr,nbr_Floquet_layers)
+    B = gm_integral(Jx,Jy,g,beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
     time_cuts = np.arange(1, nbr_Floquet_layers)
     #entropy_values[iterator, 0] = nbr_Floquet_layers
@@ -92,8 +95,8 @@ for total_time in range(1, max_time1, stepsize1):
             entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
     iterator += 1
 
-
-for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
+final_iter_one = iterator - 1
+for total_time in range(final_iter_one + stepsize2, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
 #for total_time in range(1, max_time1, stepsize1):
     nbr_Floquet_layers = total_time + 1
     correlation_block = np.identity(8 * total_time, dtype=np.complex_)
@@ -102,7 +105,7 @@ for total_time in range(max_time1-1, max_time2 + stepsize2, stepsize2):  # 90, n
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
-    B = gm_integral(Jx,Jy,g,beta,N_sites_needed_for_entr,nbr_Floquet_layers)
+    B = gm_integral(Jx,Jy,g,beta,N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
     time_cuts = np.arange(1, nbr_Floquet_layers)
     #entropy_values[iterator, 0] = nbr_Floquet_layers
