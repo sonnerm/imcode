@@ -24,7 +24,7 @@ def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
 
-def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
+def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
 
     #boundary couplings
     Jx_boundary = Jx
@@ -104,9 +104,9 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
     #initial state
     
     #infinite temperature initial state
-    for x in range (0,N_l):   
-        i = find_index(x,0,1,t)
-        A_E[i,i+1] += 1
+    #for x in range (0,N_l):   
+        #A_E[i,i+1] += 1
+    ##    i = find_index(x,0,1,t)
     
     
     #e^-betaZ initial state
@@ -130,10 +130,10 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
     """
     
     
-    """
+    
     #general initial state
     #DM_compact = compute_Kernel_XX(beta, N_l)
-    DM_compact = compute_BCS_Kernel(Jx,Jy,g,N_l)
+    DM_compact = compute_BCS_Kernel(Jx,Jy,g,mu_initial_state, N_l, filename)
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):
@@ -145,7 +145,7 @@ def gm_integral(Jx, Jy,g,beta, N_l, t, filename, iterator):
                     l = find_index_dm(y,bar2,N_l)
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
-    """               
+     
     
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 

@@ -2,6 +2,7 @@ from numpy import dtype
 from numpy.matrixlib import bmat
 from scipy import linalg
 import numpy as np
+import h5py
 import matplotlib.pyplot as plt
 import sys
 from scipy.linalg.decomp import eig
@@ -15,13 +16,14 @@ from scipy import linalg
 np.set_printoptions(threshold=sys.maxsize, precision=2, suppress=True)
 np.set_printoptions(linewidth=470)
 
-def create_Floquet_ham(Jx, Jy, g, L):
+def create_Floquet_ham(Jx, Jy, g,mu, L):
     # Floquet Hamiltonian of xy-Model:
     Jp = Jx + Jy
     Jm = Jy - Jx
     Delta = Jp**2 - Jm**2
     alpha_XY = 0.5j* Delta 
     alpha_Ising = 1.j* Jm * g
+
     H = np.zeros((2*L, 2*L), dtype=np.complex_)
     
     for i in range(L-1):
@@ -35,8 +37,11 @@ def create_Floquet_ham(Jx, Jy, g, L):
         H[i,i] += - g 
         H[i+L,i+L] += g 
 
-        #commutator (first order in del_t)
+        H[i,i] += mu / 2
+        H[i+L,i+L] += - mu / 2
 
+        #commutator (first order in del_t)
+        
         #for KIC case
         H[i, i+L+1] += alpha_Ising 
         H[i+1, i+L] += - alpha_Ising 
@@ -45,12 +50,12 @@ def create_Floquet_ham(Jx, Jy, g, L):
         if i < (L - 2):
             H[i,i+2] += alpha_XY/2 * (-1)**i
             H[i+L+2,i+L] += -alpha_XY/2 * (-1)**i
-
+  
     #add last term that is not contained in above for loop
     H[L-1, L-1] += - g
     H[2*L - 1, 2*L - 1] += g
 
-    mag = 1.e-6
+    mag = 1.e-8
     #(anti-) periodic boundary conditions (last factor switches between periodc and antiperiodic boundary conditions depending on length of chain)
     H[L-1,0] += mag* (-1)**(L+1)
     H[L,2*L-1] +=- mag* (-1)**(L+1)
@@ -71,7 +76,7 @@ def create_Floquet_ham(Jx, Jy, g, L):
 
     return H
 
-def compute_BCS_Kernel(Jx, Jy, g, L):
+def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
 
 #check for right ordering of eigenvectors in matrix M
     """
@@ -87,7 +92,7 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
     """
 
     #create Floquet Hamiltonian of interest
-    H = create_Floquet_ham(Jx,Jy,g,L)
+    H = create_Floquet_ham(Jx,Jy,g,mu,L)
     eigvals, eigvecs = linalg.eigh(H)
     """
     M = np.zeros((2*L,2*L), dtype=np.complex_)
@@ -131,6 +136,10 @@ def compute_BCS_Kernel(Jx, Jy, g, L):
 
     #print('Z')
     #print(Z)
+
+    with h5py.File(filename + ".hdf5", 'a') as f:
+        init_BCS_data = f['init_BCS_state']
+        init_BCS_data[:,:] = Z[:,:]
     
     DM_compact = 0.5* np.bmat([[Z.T.conj(),np.zeros((L,L))],[np.zeros((L,L)),Z]])
     #print('DM_compact')
