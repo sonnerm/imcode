@@ -26,13 +26,18 @@ def rdm(vec,sites):
 np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
 np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
-L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
+L = 6# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 beta = 20.0
-del_t = 0.1
+del_t = 1.0
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = (0.5 - 1.e-10)  * del_t 
+Jx = 0.3 * del_t 
 Jy =  0.5 * del_t #np.pi/4+0.3
 g = 0 * del_t #np.pi/4+0.3
+
+
+Jx_odd_boundary = 0. * del_t 
+Jy_odd_boundary =  0. * del_t #np.pi/4+0.3
+Jz_odd_boundary = 1. #np.pi/4+0.3
 
 
 #Pauli matrices
@@ -42,9 +47,12 @@ sigma_z = np.array([[1,0],[0,-1]])
 
 #build two-site Floquet operators
 ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
+ham_XY_boundary = Jx_odd_boundary * np.kron(sigma_x, sigma_x) + Jy_odd_boundary * np.kron(sigma_y, sigma_y)
 kick_two_site = g * ( np.kron(sigma_z, np.identity(2)) + np.kron(np.identity(2), sigma_z)  ) 
+ham_ZZ_two_site_boundary = Jz_odd_boundary * np.kron(sigma_z, sigma_z)  
 
 F_odd =  expm(1j * ham_XY)
+F_odd_boundary =  expm(1j * ham_ZZ_two_site_boundary) @ expm(1j * ham_XY_boundary) 
 F_even = expm(1j * kick_two_site) @ expm(1j * ham_XY)
 
 #------------------------------------------------------------ Define initial state density matrix--------------------------------------------------------------------
@@ -98,7 +106,7 @@ print('ground state energy')
 print(gs_energy)
 
 #density matrix for pure ground state of xy-Hamiltonian
-state = gs @ gs.T.conj()
+state = gs @ gs.T.conj() 
 
 
 #--------------- e-beta Z product state DM -------------------------------
@@ -135,8 +143,7 @@ if L%2 == 0:
 #--------------- infinite temperature initial state  (tested) -----------------------------------------------
 
 #density matrix for infinite temperature ground state
-#state = np.identity(2**(L-1)) / 2**(L-1)
-
+state = np.identity(2**(L-1)) / 2**(L-1)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -165,7 +172,7 @@ iterator = 0#this variable counts the number of floquet steps for which the entr
 for i in range (L//2 - 1):#iteratively apply Floquet layer and trace out last two spins until the spin chain has become a pure ancilla spin chain.
 
     #odd layer
-    layer_odd = F_odd
+    layer_odd = F_odd_boundary
     for j in range (2,L-1-n_traced,2):
         layer_odd = np.kron(layer_odd, F_odd)
 
@@ -180,7 +187,7 @@ for i in range (L//2 - 1):#iteratively apply Floquet layer and trace out last tw
     
     #apply double layer of gates, F
     state = np.einsum('aibj, jqk, eldk  -> iabqdel', F, state, F.conj()) #this is equivalent to np.einsum('aibj, jqk, kdle  -> iabqdel', F, state, F.T.conj())
-    
+
     #update number of "non-ancilla"-spins of the original chain that will be traced out after this cycle
     n_traced += 2
 
@@ -193,8 +200,6 @@ for i in range (L//2 - 1):#iteratively apply Floquet layer and trace out last tw
   
     #trace out the two last spins
     state = np.trace(state, axis1 = 1, axis2 = 4)# trace out last and second to last spin 
-
-
     #compute intermediate temporal entanglement entropy
     if n_traced > 2:#compute temp. ent. entropy only if there is more than one Floquet layer, otherwise it is trivial
         iterator += 1
@@ -211,7 +216,7 @@ for i in range (L//2 - 1):#iteratively apply Floquet layer and trace out last tw
 F_apply_shape = (2, 2**(L-1 - n_traced), 2, 2**(L-1 - n_traced))#shape needed for layer to multiply it to state
 
 #apply last gate
-state = np.einsum('aibj, jqk, eldk  -> iabqdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.conj(), F_apply_shape))#this is equivalent to np.einsum('aibj, jqk, kdle  -> iabqdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
+state = np.einsum('aibj, jqk, eldk  -> iabqdel', np.reshape(F_odd_boundary, F_apply_shape), state, np.reshape(F_odd_boundary.conj(), F_apply_shape))#this is equivalent to np.einsum('aibj, jqk, kdle  -> iabqdel', np.reshape(F_odd, F_apply_shape), state, np.reshape(F_odd.T.conj(), F_apply_shape))
 
 #reshape such that last "non-ancilla" - spin can be traced out. After this step, only open legs in temporal direction remain.
 state = np.reshape(state,(2, 2**(2 * L),2))
@@ -222,10 +227,49 @@ state = np.trace(state, axis1 = 0, axis2 = 2)
 n_traced += 2
 
 iterator += 1
-
 print(state.shape)
-#print(state.reshape(2,2,2,2,2,2,2,2))
+state = np.reshape(state,np.repeat(2,2*(L-L%2)))
+print(state.shape)
 
+print('IM_val')
+print(state[0,0,0,0,0,0,1,1,1,1,0,0])
+
+
+"""
+state_direct = np.identity(2**(L-1)) / 2**(L-1)
+delta_blip = 1
+g_boundary = np.array((L+1)//2*[1] + delta_blip * [-1] + ((L+1)//2-delta_blip)*[1])     #np.zeros(2*t)
+g_boundary = np.array([1,1,1,-1,-1,1])
+print(g_boundary)
+print((L+1)//2)
+
+F_total_fw =  np.identity(2**(L-1))
+F_total_bw =  np.identity(2**(L-1))
+
+layer_even_direct = 1
+for j in range (1,L-2,2):
+    print('e')
+    layer_even_direct = np.kron(layer_even_direct, F_even)
+layer_even_direct = np.kron(layer_even_direct, np.identity(2))
+print(layer_even_direct.shape)
+for tau in range ((L+1)//2):
+    print('time')
+    F_odd_boundary_direct_fw = expm(1.j * g_boundary[tau] * sigma_z)
+    F_odd_boundary_direct_bw = expm(1.j * g_boundary[tau + (L+1)//2] * sigma_z)
+    print(g_boundary[tau],g_boundary[tau + (L+1)//2])
+    layer_odd_direct_fw  = F_odd_boundary_direct_fw
+    layer_odd_direct_bw  = F_odd_boundary_direct_bw.T.conj()
+    for j in range (2,L-1,2):
+        print('o')
+        layer_odd_direct_fw = np.kron(layer_odd_direct_fw, F_odd)
+        layer_odd_direct_bw = np.kron(layer_odd_direct_bw, F_odd.T.conj())
+    print(layer_odd_direct_fw.shape)
+
+    state_direct = layer_even_direct @ layer_odd_direct_fw @ state_direct @ layer_odd_direct_bw @ layer_even_direct.T.conj()
+
+print(np.trace(state_direct))   
+
+"""
 #for comments see above
 c = int(n_traced / 2)
 for cut in range ( c - c%2 , c + 1, 2):
