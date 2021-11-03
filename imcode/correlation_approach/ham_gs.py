@@ -6,6 +6,7 @@ import h5py
 import matplotlib.pyplot as plt
 import sys
 from scipy.linalg.decomp import eig
+from scipy.linalg import det
 from scipy.sparse.linalg import eigsh
 import scipy
 # generate random floating point values
@@ -110,7 +111,7 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
 
     #print(M)
     #check that matrix is diagonalized by M
-    diag = M.T.conj() @ H @ M
+    #diag = M.T.conj() @ H @ M
     #print('Diagonal')
     #print(diag)
 
@@ -144,5 +145,6 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     DM_compact = 0.5* np.bmat([[Z.T.conj(),np.zeros((L,L))],[np.zeros((L,L)),Z]])
     #print('DM_compact')
     #print(DM_compact)
+    normalization = 1 / abs(det(U)) #this normalizes the DM (the state has the squareroot of this as normalization)
 
-    return 2*DM_compact
+    return 2*DM_compact, normalization
