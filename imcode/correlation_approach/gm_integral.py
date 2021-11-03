@@ -30,7 +30,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     #boundary couplings
     Jx_boundary = 0
     Jy_boundary = 0
-    delta_blip = 3
+    delta_blip = t
     g_boundary = np.array(t*[1] + delta_blip * [-1] + (t-delta_blip)*[1])     #np.zeros(2*t)
     
 
@@ -215,9 +215,9 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
         edge_corr_data = f['edge_corr']
-        bulk_corr_data = f['bulk_corr']
+        #bulk_corr_data = f['bulk_corr']
         IM_data[iterator,:len(B[1]),:len(B[0])] = B[:,:]
-        bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
+        #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
         edge_corr_data[iterator,0:2 * (N_t - 1),0:2 * (N_t - 1)] = A_inv[0:2 * (N_t - 1),0:2 * (N_t - 1)]
        
     

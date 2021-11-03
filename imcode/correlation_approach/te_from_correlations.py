@@ -18,20 +18,20 @@ np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 10
-max_time2 = 16
+max_time1 = 3
+max_time2 = 3
 stepsize1 = 1
-stepsize2 = 6
+stepsize2 = 1
 
 # lattice sites (in the environment):
-nsites = 100
+nsites = 8
 # model parameters:
 del_t = 1.0
 Jx =0.3 * del_t #0.5# 0.31 # 0.31
 Jy =0.5* del_t#np.pi/4+0.3#np.pi/4
 g =0* del_t #np.pi/4+0.3
 mu_initial_state = 0
-beta = 5.0  # temperature
+beta = 0.4  # temperature
 
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
