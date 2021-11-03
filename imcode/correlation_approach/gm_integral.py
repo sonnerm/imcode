@@ -8,6 +8,7 @@ import scipy
 from scipy import linalg
 from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
 from datetime import datetime
+from scipy.linalg import det
 from ham_gs import compute_BCS_Kernel
 from scipy.optimize import curve_fit
 
@@ -25,10 +26,13 @@ def find_index(x, tau, bar, t):
 
 
 def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
-
+  
     #boundary couplings
-    Jx_boundary = Jx
-    Jy_boundary = Jy
+    Jx_boundary = 0
+    Jy_boundary = 0
+    delta_blip = 3
+    g_boundary = np.array(t*[1] + delta_blip * [-1] + (t-delta_blip)*[1])     #np.zeros(2*t)
+    
 
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
@@ -58,63 +62,25 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     gamma_val_boundary = (1 - tx_boundary * ty_boundary) / T_xy_boundary
 
     R_quad =  np.dot(1.j,np.array([[-beta_val, alpha_val],[-alpha_val, beta_val]]))
-
     R_quad_boundary =  np.dot(1.j,np.array([[-beta_val_boundary, alpha_val_boundary],[-alpha_val_boundary, beta_val_boundary]]))
 
-    #Matrix that couples the system to the first site of the environment
-    R = np.zeros((nbr_eta, nbr_xsi),dtype=np.complex_)
-    for i in range (t):#2t
-        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad_boundary)
-    for i in range (t,2*t):#2t
-        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad_boundary)
- 
-    #Matrix that couples system variables to system variables
-    A_s = np.zeros((nbr_eta, nbr_eta),dtype=np.complex_)
-    for i in range (2 * t):
-        A_s[2*i, 2*i+1] = gamma_val_boundary
-        A_s[2*i+1, 2*i] = - gamma_val_boundary
- 
+    
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
-    for x in range (0,N_l - 1):
-        for tau in range (2 * t -1, -2 * t, -1):
-            if (x+tau) % 2 == 0 and tau != 0:
-                i = find_index(x,tau,1,t)
-                j = i + 2 * (N_t - 1)# equivalent to j = find_index(x + 1,tau,1,t), i.e. i shifted by one to the right in spatial direction
-                A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
-                A_E[i,i+1] += gamma_val
-                A_E[j,j+1] += gamma_val
-                
-                if x % 2 == 0 :#with local kicks e^{igZ} after even gates
-                    if tau >0:#for tau > 0, , the "bar" grassmanns are multiplied with a factor np.exp(-2.j* g)
-                        A_E[i,j+1] *= np.exp(-2.j* g)
-                        A_E[i,j] *= np.exp(-4.j* g)
-                        A_E[i+1,j] *= np.exp(-2.j* g)
-                        A_E[i,i+1] *= np.exp(-2.j* g)
-                        A_E[j,j+1] *= np.exp(-2.j* g)
+    #INITIAL STATE 
 
-                    else:#for tau < 0, , the "non-bar" grassmanns are multiplied with a factor np.exp(+2.j* g)
-                        A_E[i,j+1] *= np.exp(2.j* g)
-                        A_E[i+1,j+1] *= np.exp(4.j* g)
-                        A_E[i+1,j] *= np.exp(2.j* g)
-                        A_E[i,i+1] *= np.exp(2.j* g)
-                        A_E[j,j+1] *= np.exp(2.j* g)
-
-    
-    #initial state
-    
-    #infinite temperature initial state
-    #for x in range (0,N_l):   
-        #A_E[i,i+1] += 1
-    ##    i = find_index(x,0,1,t)
-    
-    
     #e^-betaZ initial state
     #for x in range (0,N_l):   
-    #    A_E[i,i+1] += np.exp(2. * beta)
     #    i = find_index(x,0,1,t)
-       #A_E[i,i+1] += np.exp(2. * beta*x*0.125)
-    
+    #    A_E[i,i+1] += np.exp(2. * beta)
+    #normalization_state = (1 + np.exp(2*beta) )**(N_l)
+  
+    #infinite temperature initial state
+    #for x in range (0,N_l):   
+    #    i = find_index(x,0,1,t)
+    #    A_E[i,i+1] += 1
+    #normalization_state = 2**N_l #this is the norm such that when divided by this, the unitary circuit gives 1 without eternal legs
+        
     
     """
     #Bell pair initial state
@@ -133,7 +99,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     
     #general initial state
     #DM_compact = compute_Kernel_XX(beta, N_l)
-    DM_compact = compute_BCS_Kernel(Jx,Jy,g,mu_initial_state, N_l, filename)
+    DM_compact , normalization_state = compute_BCS_Kernel(Jx,Jy,g,mu_initial_state, N_l, filename)
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):
@@ -145,7 +111,40 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
                     l = find_index_dm(y,bar2,N_l)
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
-     
+    
+
+    gate_counter = 0
+    
+
+    #write in matrix A_E that couples only environment variables
+    for x in range (0,N_l - 1):
+        for tau in range (2 * t -1, -2 * t, -1):
+
+            if (x+tau) % 2 == 0 and tau != 0:
+                i = find_index(x,tau,1,t)
+                j = i + 2 * (N_t - 1)# equivalent to j = find_index(x + 1,tau,1,t), i.e. i shifted by one to the right in spatial direction
+                A_E[i:i+2, j:j+2] = np.dot(np.sign(tau),R_quad)#if tau is negative, sign of coupling is switched
+                A_E[i,i+1] += gamma_val
+                A_E[j,j+1] += gamma_val
+                gate_counter += 1
+                
+                if x % 2 == 0 :#with local kicks e^{igZ} after even gates
+                    if tau >0:#for tau > 0, the "bar" grassmanns are multiplied with a factor np.exp(-2.j* g)
+                        A_E[i,j+1] *= np.exp(-2.j* g)
+                        A_E[i,j] *= np.exp(-4.j* g)
+                        A_E[i+1,j] *= np.exp(-2.j* g)
+                        A_E[i,i+1] *= np.exp(-2.j* g) 
+                        A_E[j,j+1] *= np.exp(-2.j* g)
+
+                    else:#for tau < 0, the "non-bar" grassmanns are multiplied with a factor np.exp(+2.j* g)
+                        A_E[i,j+1] *= np.exp(2.j* g)
+                        A_E[i+1,j+1] *= np.exp(4.j* g)
+                        A_E[i+1,j] *= np.exp(2.j* g)
+                        A_E[i,i+1] *= np.exp(2.j* g)
+                        A_E[j,j+1] *= np.exp(2.j* g)
+
+
+    
     
     #for boundary spin on right side, insert identity gate
     x_edge_right = N_l - 1 
@@ -161,11 +160,13 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     
     #for boundary spin on left side, insert gamma from gate
     x_edge_left = 0
+    bound_iter = 0
     for tau in range (2 * t -1, -2 * t, -1):
             if (x_edge_left+tau) % 2 == 1 and tau != 0:
                 i = find_index(x_edge_left,tau,1,t)
-                A_E[i,i+1] += gamma_val_boundary
-
+                A_E[i,i+1] += gamma_val_boundary * np.exp(-2.j* g_boundary[bound_iter]*np.sign(tau))
+                bound_iter += 1
+      
     #measure
     for s in range (N_l):
         for i in range (N_t - 2):
@@ -181,6 +182,27 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
         for j in range(i,len(A_E[0])):
             A_E[j,i] = - A_E[i,j]
 
+
+    #Matrix that couples the system to the first site of the environment
+    R = np.zeros((nbr_eta, nbr_xsi),dtype=np.complex_)
+    for i in range (t):#2t
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad_boundary)
+    for i in range (t,2*t):#2t
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad_boundary)
+ 
+    #Matrix that couples system variables to system variables
+    A_s = np.zeros((nbr_eta, nbr_eta),dtype=np.complex_)
+    for i in range (2 * t):
+        A_s[2*i, 2*i+1] = gamma_val_boundary
+        A_s[2*i+1, 2*i] = - gamma_val_boundary
+ 
+
+    normalization_circuit = (np.cos(Jx)*np.cos(Jy) * (1 + np.tan(Jx)*np.tan(Jy)) )**(- gate_counter) #this is the norm such that when divided by this, the unitary circuit gives 1 without eternal legs
+    print('N_circ',normalization_circuit)
+    print('N_state',normalization_state)
+    N = normalization_state * normalization_circuit
+    print('IM_value:',np.sqrt(abs(det(A_E)))/N )
+    
     #solve for certain columns of inverted matrix A_E:
     identity_matrix = np.identity(len(A_E[0]))
 
@@ -188,15 +210,16 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
   
     B =  A_s +  R @ A_inv @ R.T
-  
+
     #write A_inv and B to file
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
         edge_corr_data = f['edge_corr']
-        #bulk_corr_data = f['bulk_corr']
+        bulk_corr_data = f['bulk_corr']
         IM_data[iterator,:len(B[1]),:len(B[0])] = B[:,:]
-        #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
+        bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
         edge_corr_data[iterator,0:2 * (N_t - 1),0:2 * (N_t - 1)] = A_inv[0:2 * (N_t - 1),0:2 * (N_t - 1)]
+       
     
     """
     #compare to standard inversion 
