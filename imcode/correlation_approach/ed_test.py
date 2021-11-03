@@ -26,8 +26,8 @@ def rdm(vec,sites):
 np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
 np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
-L = 6# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
-beta = 20.0
+L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
+beta = 0.4
 del_t = 1.0
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
 Jx = 0.3 * del_t 
@@ -107,6 +107,7 @@ print(gs_energy)
 
 #density matrix for pure ground state of xy-Hamiltonian
 state = gs @ gs.T.conj() 
+state *= 1 / np.trace(state)
 
 
 #--------------- e-beta Z product state DM -------------------------------
@@ -143,11 +144,11 @@ if L%2 == 0:
 #--------------- infinite temperature initial state  (tested) -----------------------------------------------
 
 #density matrix for infinite temperature ground state
-state = np.identity(2**(L-1)) / 2**(L-1)
+#state = np.identity(2**(L-1)) 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
+print('N_state', np.trace(state))
+state *= 1./ np.trace(state)
 
-
-#print(state)
 entropy_values = np.zeros((L // 2 + 2, L//2 + 2))  # entropies
 
 
@@ -232,7 +233,7 @@ state = np.reshape(state,np.repeat(2,2*(L-L%2)))
 print(state.shape)
 
 print('IM_val')
-print(state[0,0,0,0,0,0,1,1,1,1,0,0])
+print(state[0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0])
 
 
 """
