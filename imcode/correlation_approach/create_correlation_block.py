@@ -2,7 +2,6 @@ from rotation_matrix_for_schur import rotation_matrix_for_schur
 import numpy as np
 from scipy import linalg
 np.set_printoptions(suppress=False, linewidth=np.nan)
-from rotation_matrix_for_schur import rotation_matrix_for_schur
 
 def create_correlation_block(B, ntimes):
     dim_B = 4 * ntimes
