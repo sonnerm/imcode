@@ -139,6 +139,16 @@ class SimpleMPS(MPS):
         self.L=tpmps.L
     def bond_entropy(self):
         return self.tpmps.entanglement_entropy()
+    def __mul__(self,other):
+        other=other.contract()
+        nBs=[]
+        assert self.L == other.L
+        for i in range(self.L):
+            sB=self.get_B(i)
+            oB=other.get_B(i)
+            nB=np.einsum("ijk,mnk->imjnk",sB,oB).reshape(sB.shape[0]*oB.shape[0],sB.shape[1]*oB.shape[1],sB.shape[2])
+            nBs.append(nB)
+        return MPS.from_matrices(nBs,norm=self.tpmps.norm*other.tpmps.norm)
 
     def save_to_hdf5(self,hdf5obj,name=None):
         if name is not None:
