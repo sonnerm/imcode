@@ -5,6 +5,8 @@ from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
 from datetime import datetime
 from scipy.linalg import det
 from ham_gs import compute_BCS_Kernel
+import multiprocessing as mp
+from joblib import Parallel, delayed
 
 now = datetime.now().time() # time object
 
@@ -63,11 +65,11 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     #INITIAL STATE 
     #infinite temperature initial state
-    for x in range (0,N_l):   
-        i = find_index(x,0,1,t)
-        A_E[i,i+1] += 1
-    normalization_state = 1#this is  2**N_l / 2**N_l, where the factor 1/ 2**N_l is just a convenient, artifially introduced renormalization so numbers dont become too large..it is precisely cancelled by factor in determinant when IM-matrix element is computed. Real norm of this state is 2**N_l
-    det_factor_state = 0.5
+    #for x in range (0,N_l):   
+    #    i = find_index(x,0,1,t)
+    #    A_E[i,i+1] += 1
+    #normalization_state = 1#this is  2**N_l / 2**N_l, where the factor 1/ 2**N_l is just a convenient, artifially introduced renormalization so numbers dont become too large..it is precisely cancelled by factor in determinant when IM-matrix element is computed. Real norm of this state is 2**N_l
+    #det_factor_state = 0.5
 
     #e^-betaZ initial state
     #for x in range (0,N_l):   
@@ -89,7 +91,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
         A_E[i,i+1] += 1
     """
     
-    """
+ 
     
     #general initial state
     #DM_compact = compute_Kernel_XX(beta, N_l)
@@ -107,7 +109,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
     
-    """
+ 
     gate_counter = 0
     
 
@@ -205,7 +207,12 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     identity_matrix = np.identity(len(A_E[0]))
 
     A_inv = np.zeros(A_E.shape,dtype=np.complex_)
-    A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
+
+    num_cores = mp.cpu_count()
+    
+    A_inv[:,0:2 * (N_t - 1)] = np.array(Parallel(n_jobs=num_cores)(delayed(np.linalg.solve)(A_E, identity_matrix[:,i]) for i in range(2 * (N_t - 1)) )).T
+  
+    #A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
   
     B =  A_s +  R @ A_inv @ R.T
 
