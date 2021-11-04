@@ -48,8 +48,9 @@ N_t = np.identity(2 * nsites, dtype=np.complex_)
 mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach/'
 work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
+baobab_path = '$HOME/scratch/Lohschmidt/'
 
-filename = work_path + 'IT_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
+filename = baobab_path + 'IT_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
 
 
 
