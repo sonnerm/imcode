@@ -206,13 +206,15 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     #solve for certain columns of inverted matrix A_E:
     identity_matrix = np.identity(len(A_E[0]))
 
+    now = datetime.now()
+    print(now)
     A_inv = np.zeros(A_E.shape,dtype=np.complex_)
 
-    num_cores = mp.cpu_count()
-    
-    A_inv[:,0:2 * (N_t - 1)] = np.array(Parallel(n_jobs=num_cores)(delayed(np.linalg.solve)(A_E, identity_matrix[:,i]) for i in range(2 * (N_t - 1)) )).T
+    #num_cores = mp.cpu_count()
+    #if __name__ == "__main__":
+    #    A_inv[:,0:2 * (N_t - 1)] = np.array(Parallel(n_jobs=num_cores)(delayed(np.linalg.solve)(A_E, identity_matrix[:,i]) for i in range(2 * (N_t - 1)) )).T
   
-    #A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
+    A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)])
   
     B =  A_s +  R @ A_inv @ R.T
 
