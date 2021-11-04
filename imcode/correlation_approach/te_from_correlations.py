@@ -18,13 +18,13 @@ np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 3
-max_time2 = 3
+max_time1 = 10
+max_time2 = 20
 stepsize1 = 1
-stepsize2 = 1
+stepsize2 = 2
 
 # lattice sites (in the environment):
-nsites = 8
+nsites = 52
 # model parameters:
 del_t = 1.0
 Jx =0.3 * del_t #0.5# 0.31 # 0.31
@@ -49,7 +49,7 @@ mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approa
 work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 
-filename = work_path + 'FS_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
+filename = work_path + 'IT_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
 
 
 
@@ -66,6 +66,7 @@ with h5py.File(filename + ".hdf5", 'w') as f:
     dset_edge_corr = f.create_dataset('edge_corr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1), 2 * (4*(max_time2 + stepsize2) - 1) ),dtype=np.complex_)
     #dset = f.create_dataset('bulk_corr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1) *nsites, 2 * (4*(max_time2 + stepsize2) - 1) *nsites),dtype=np.complex_)
     dset_init_BCS_state = f.create_dataset('init_BCS_state', (nsites, nsites),dtype=np.complex_)
+    dset_const_blip = f.create_dataset('const_blip', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1,),dtype=np.float_)
 # find generators and matrices which diagonalize the composite Floquet operator:
 #G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
 #evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
