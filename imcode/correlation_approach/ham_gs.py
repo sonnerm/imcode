@@ -145,6 +145,7 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     DM_compact = 0.5* np.bmat([[Z.T.conj(),np.zeros((L,L))],[np.zeros((L,L)),Z]])
     #print('DM_compact')
     #print(DM_compact)
+    U =  4 * U #this is just a convenient, qn artifially introduced renormalization so numbers dont become too large..it is precisely cancelled by factor in determinant when IM-matrix element is computed. Real norm of this state is without this factor
     normalization = 1 / abs(det(U)) #this normalizes the DM (the state has the squareroot of this as normalization)
 
     return 2*DM_compact, normalization

@@ -26,7 +26,7 @@ def find_index(x, tau, bar, t):
 
 
 def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
-  
+
     #boundary couplings
     Jx_boundary = 0
     Jy_boundary = 0
@@ -68,19 +68,19 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     #Matrix that couples only environment variables xsi
     A_E = np.zeros((nbr_xsi, nbr_xsi),dtype=np.complex_)
     #INITIAL STATE 
+    #infinite temperature initial state
+    #for x in range (0,N_l):   
+    #    i = find_index(x,0,1,t)
+    #    A_E[i,i+1] += 1
+    #normalization_state = 1#this is  2**N_l / 2**N_l, where the factor 1/ 2**N_l is just a convenient, artifially introduced renormalization so numbers dont become too large..it is precisely cancelled by factor in determinant when IM-matrix element is computed. Real norm of this state is 2**N_l
+    #det_factor_state = 0.5
 
     #e^-betaZ initial state
     #for x in range (0,N_l):   
     #    i = find_index(x,0,1,t)
     #    A_E[i,i+1] += np.exp(2. * beta)
-    #normalization_state = (1 + np.exp(2*beta) )**(N_l)
+    #normalization_state = ((1. + np.exp(2.*beta) ) / 4)**(N_l)
   
-    #infinite temperature initial state
-    #for x in range (0,N_l):   
-    #    i = find_index(x,0,1,t)
-    #    A_E[i,i+1] += 1
-    #normalization_state = 2**N_l #this is the norm such that when divided by this, the unitary circuit gives 1 without eternal legs
-        
     
     """
     #Bell pair initial state
@@ -100,6 +100,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     #general initial state
     #DM_compact = compute_Kernel_XX(beta, N_l)
     DM_compact , normalization_state = compute_BCS_Kernel(Jx,Jy,g,mu_initial_state, N_l, filename)
+    det_factor_state = 0.25
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):
@@ -196,12 +197,15 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
         A_s[2*i, 2*i+1] = gamma_val_boundary
         A_s[2*i+1, 2*i] = - gamma_val_boundary
  
-
-    normalization_circuit = (np.cos(Jx)*np.cos(Jy) * (1 + np.tan(Jx)*np.tan(Jy)) )**(- gate_counter) #this is the norm such that when divided by this, the unitary circuit gives 1 without eternal legs
+    norm_gate = 1. / (np.cos(Jx)*np.cos(Jy) * (1 + np.tan(Jx)*np.tan(Jy)))
+    normalization_circuit = norm_gate**(gate_counter % N_t) #this is the norm such that when divided by this, the unitary circuit gives 1 without eternal legs
+    det_factor_circ = norm_gate**(- (gate_counter - gate_counter%N_t) / N_t)
     print('N_circ',normalization_circuit)
     print('N_state',normalization_state)
     N = normalization_state * normalization_circuit
-    print('IM_value:',np.sqrt(abs(det(A_E)))/N )
+    IM_value = np.sqrt(abs(det( pow(det_factor_state**2, N_l  / nbr_xsi) * pow(det_factor_circ**2, 1. * N_t / nbr_xsi)  * A_E)))/N 
+    print('IM_value:',IM_value )
+
     
     #solve for certain columns of inverted matrix A_E:
     identity_matrix = np.identity(len(A_E[0]))
@@ -216,9 +220,11 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
         IM_data = f['IM_exponent']
         edge_corr_data = f['edge_corr']
         #bulk_corr_data = f['bulk_corr']
+        const_blip_data = f['const_blip']
         IM_data[iterator,:len(B[1]),:len(B[0])] = B[:,:]
         #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
         edge_corr_data[iterator,0:2 * (N_t - 1),0:2 * (N_t - 1)] = A_inv[0:2 * (N_t - 1),0:2 * (N_t - 1)]
+        const_blip_data[iterator] = IM_value
        
     
     """
