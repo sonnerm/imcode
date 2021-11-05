@@ -35,11 +35,8 @@ def create_Floquet_ham(Jx, Jy, g,mu, L):
         H[i, i+L+1] += -Jm/2
         H[i+1, i+L] += Jm/2
 
-        H[i,i] += - g 
-        H[i+L,i+L] += g 
-
-        H[i,i] += mu / 2
-        H[i+L,i+L] += - mu / 2
+        H[i,i] += - (g + mu/2) 
+        H[i+L,i+L] += (g + mu/2) 
 
         #commutator (first order in del_t)
         
@@ -51,10 +48,10 @@ def create_Floquet_ham(Jx, Jy, g,mu, L):
         if i < (L - 2):
             H[i,i+2] += alpha_XY/2 * (-1)**i
             H[i+L+2,i+L] += -alpha_XY/2 * (-1)**i
-  
+        
     #add last term that is not contained in above for loop
-    H[L-1, L-1] += - g
-    H[2*L - 1, 2*L - 1] += g
+    H[L-1, L-1] += - (g + mu/2) 
+    H[2*L - 1, 2*L - 1] += (g + mu/2) 
 
     mag = 1.e-8
     #(anti-) periodic boundary conditions (last factor switches between periodc and antiperiodic boundary conditions depending on length of chain)
@@ -64,7 +61,7 @@ def create_Floquet_ham(Jx, Jy, g,mu, L):
     H[L-1,L] += - mag* (-1)**(L+1)
     H[0,2*L-1] += mag* (-1)**(L+1)
     
-
+    mag = 1.e-6
     H += H.T.conj() #add hermitian conjugate
     seed(1)
     stabilizer = np.zeros((2*L,2*L))
@@ -74,7 +71,7 @@ def create_Floquet_ham(Jx, Jy, g,mu, L):
     H += stabilizer
     #print('H')
     #print(H)
-
+    
     return H
 
 def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
@@ -95,6 +92,7 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #create Floquet Hamiltonian of interest
     H = create_Floquet_ham(Jx,Jy,g,mu,L)
     eigvals, eigvecs = linalg.eigh(H)
+    #print('eigenvalues:',eigvals)
     """
     M = np.zeros((2*L,2*L), dtype=np.complex_)
     for i in range(L):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
