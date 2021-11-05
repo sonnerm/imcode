@@ -119,7 +119,7 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_
         B[4 * tau + 3, 4 * tau + 1] += 1
 
     anti_sym_check(B)
-    print('B\n')
-    print(B)# this matrix is twice the exponent of the influence matrix.
+    #print('B\n')
+    #print(B)# this matrix is twice the exponent of the influence matrix.
 
     return B
