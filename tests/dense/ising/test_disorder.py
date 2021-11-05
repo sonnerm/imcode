@@ -15,9 +15,10 @@ def test_dense_hr_rweights(seed_rng):
 
 def test_dense_Jr_rweights(seed_rng):
     t=3
-    samples=10
+    tmax=10
+    samples=20
     Js=np.random.normal(size=samples)#+1.0j*np.random.normal(size=samples)
-    ks=[0]+sum((list(x) for x in zip(range(1,t+1),range(-1,-t-1,-1))),[])
+    ks=[0]+sum((list(x) for x in zip(range(1,tmax+1),range(-1,-tmax-1,-1))),[])
     weights=[np.mean([np.exp(2.0j*j*k) for j in Js]) for k in ks]
     dJr=dense.ising.Jr_operator(t,weights)
     dcm=np.zeros_like(dJr)

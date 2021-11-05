@@ -4,6 +4,7 @@ import functools
 def hr_operator(t,weights=None):
     if weights is None:
         weights=[1.0]+[0.0,0.0]*t
+    weights=weights[:2*t+1]
     Ms=[_hr_inc(i) for i in range(1,t//2+1+t%2)]
     Ms[-1]=np.einsum("abcd,be->aecd",Ms[-1],_dis_center(t//2+t%2,t//2,weights))
     Ms+=[_hr_dec(i) for i in range(t//2,0,-1)]
@@ -39,6 +40,7 @@ def _dis_center(i,j,weights):
 def Jr_operator(t,weights=None):
     if weights is None:
         weights=[1.0]+[0.0,0.0]*t
+    weights=weights[:2*t+1]
     Ms=[_Jr_inc(i) for i in range(1,t//2+1+t%2)]
     Ms[-1]=np.einsum("abcd,be->aecd",Ms[-1],_dis_center(t//2+t%2,t//2,weights))
     Ms+=[_Jr_dec(i) for i in range(t//2,0,-1)]

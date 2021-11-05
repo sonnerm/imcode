@@ -44,8 +44,8 @@ def test_mps_Jr_even_rweights(seed_rng):
 
 
 def test_mps_Jr_odd_rweights(seed_rng):
-    t=3
-    weights=np.random.normal(size=(2*t+1,))+1.0j*np.random.normal(size=(2*t+1,))
+    t=5
+    weights=np.random.normal(size=(4*t+1,))+1.0j*np.random.normal(size=(4*t+1,))
     dJr=dense.ising.Jr_operator(t,weights)
     mJr=mps.ising.Jr_operator(t,weights)
     assert mJr.to_dense()==pytest.approx(dJr)
