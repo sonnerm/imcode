@@ -2,3 +2,7 @@
 __pycache__
 build
 dist
+*.hdf5
+*.DS_Store
+*.png
+*.ipynb

@@ -37,3 +37,20 @@ def im_triangle(Ts):
             im=outer([im,imit])
         im=T@im
         yield im
+def im_direct(Fs, init=None):
+    state = init.reshape(init.shape[0], 1, init.shape[1])#reshape density matrix to bring it into general form with open legs "in the middle"
+    for F in Fs:
+        F_apply_shape = (2, F.shape[0]//2, 2, F.shape[1]//2)#shape needed for layer to multiply it to state
+        F = F.reshape(F_apply_shape)
+        #apply F
+        state = np.einsum('aibj, jqk, kdle  -> aqdil', F, state, F.T.conj())
+
+        #reshape state such that last spin can be traced out
+        trace_shape = (dim_open_legs_per_branch**2, 2**(L - 1 - n_traced), 4)#replace by einsum
+        state = np.reshape(state, trace_shape)
+        #trace out the two last spins
+        yield np.einsum('abb', state)
+
+
+
+

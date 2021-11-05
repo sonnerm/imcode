@@ -51,3 +51,31 @@ def test_im_triangle_het(seed_rng):
     for im,t in zip(ims,range(1,t+1)):
         Tsr=[dense.ising.ising_T(t,J,g,h,i) for J,g,h,i in zip(Js[:t],gs[:t],hs[:t],inits[:t])]
         assert im ==pytest.approx(list(dense.ising.im_rectangle(Tsr))[-1])
+
+def test_im_direct_hom(seed_rng):#homogeneous
+    J,g,h=np.random.normal(size=3)
+    t=5
+    init=np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2))
+    init=init.T.conj()@init
+    init/=np.trace(init)
+    Ts=[dense.ising.ising_T(t,J,g,h,init) for t in range(1, t+1)]
+    Fs=[dense.ising.ising_F(L,J,g,h) for L in range(t+1, 1, -1)]
+
+    #compate to im_diag (not for heterog. systems)
+    ims=[im for im in dense.ising.im_direct(Fs, dense.kron([init] * (t)))]
+    for im,T in zip(ims,Ts):
+        assert im ==pytest.approx(dense.ising.im_diag(T))
+
+def test_im_direct_het(seed_rng):#heterogeneous
+    t=5
+    Js,gs,hs=np.random.normal(size=(3,t))#random parameters
+    inits=[np.random.normal(size=(2,2))+1.0j*np.random.normal(size=(2,2)) for i in range(t)]#individual density matrices for every spin (unentangled)
+    inits=[i.T.conj()@i for i in inits]#make sure its a valid DM
+    inits=[i/np.trace(i) for i in inits]
+    Fs=[dense.ising.ising_F(L,Js[:L-1],gs[:L],hs[:L]) for L in range(t+1, 0, -1)]#compute dual transfer matrices
+    ims=[im for im in dense.ising.im_direct(Fs, dense.kron(inits))]#dense.kron is tensor product of initial DMs
+
+    #compate to im_rectangle
+    for im,t in zip(ims,range(1,t+1)):
+        Tsr=[dense.ising.ising_T(t,J,g,h,i) for J,g,h,i in zip(Js[:t],gs[:t],hs[:t],inits[:t])]
+        assert im ==pytest.approx(list(dense.ising.im_rectangle(Tsr))[-1])
