@@ -58,3 +58,21 @@ def test_contract_order(seed_rng):
     assert M.copy()@(F@(F@M.copy()).contract())==pytest.approx(dres)
     assert M.copy()@((F@F).contract()@M.copy())==pytest.approx(dres)
     # assert (M.copy()@F).contract()@(F@M.copy()).contract()==pytest.approx(dres)
+def test_mul(seed_rng):
+    L=5
+    dim=4
+    chi_mps=32
+    Bs1=[np.random.normal(size=(chi_mps,chi_mps,dim))+1.0j*np.random.normal(size=(chi_mps,chi_mps,dim)) for _ in range(L)]
+    Bs1[0]=Bs1[0][0,:,:][None,:,:]
+    Bs1[-1]=Bs1[-1][:,0,:][:,None,:]
+    mps1=mps.MPS.from_matrices(Bs1)
+    Bs1c=[mps1.get_B(i) for i in range(L)]
+    mps1c=mps.MPS.from_matrices(Bs1c,norm=mps1.tpmps.norm)
+    assert mps1.to_dense()==pytest.approx(mps1c.to_dense())
+    Bs2=[np.random.normal(size=(chi_mps,chi_mps,dim))+1.0j*np.random.normal(size=(chi_mps,chi_mps,dim)) for _ in range(L)]
+
+    Bs2[0]=Bs2[0][0,:,:][None,:,:]
+    Bs2[-1]=Bs2[-1][:,0,:][:,None,:]
+    mps2=mps.MPS.from_matrices(Bs2)
+    mpsmul=mps1*mps2
+    assert mpsmul.to_dense() == pytest.approx(mps1.to_dense()*mps2.to_dense())

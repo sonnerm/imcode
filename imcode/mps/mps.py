@@ -111,8 +111,10 @@ def _process_options(kwargs):
     if "chi_max" in kwargs.keys():
         kwargs.setdefault("trunc_params",{})["chi_max"]=kwargs["chi_max"]
         del kwargs["chi_max"]
-    kwargs["verbose"]=False
-    kwargs["compression_method"]="SVD"
+    if "verbose" not in kwargs.keys():
+        kwargs["verbose"]=False
+    if "compression_method" not in kwargs.keys():
+        kwargs["compression_method"]="SVD"
 class _B_helper():
     def __init__(self,tpmps):
         self.tpmps=tpmps
@@ -137,6 +139,16 @@ class SimpleMPS(MPS):
         self.L=tpmps.L
     def bond_entropy(self):
         return self.tpmps.entanglement_entropy()
+    def __mul__(self,other):
+        other=other.contract()
+        nBs=[]
+        assert self.L == other.L
+        for i in range(self.L):
+            sB=self.get_B(i)
+            oB=other.get_B(i)
+            nB=np.einsum("ijk,mnk->imjnk",sB,oB).reshape(sB.shape[0]*oB.shape[0],sB.shape[1]*oB.shape[1],sB.shape[2])
+            nBs.append(nB)
+        return MPS.from_matrices(nBs,norm=self.tpmps.norm*other.tpmps.norm)
 
     def save_to_hdf5(self,hdf5obj,name=None):
         if name is not None:
@@ -273,6 +285,8 @@ class SimpleMPO(MPO):
             consumes mps, returns mpo applied to mps
         '''
         _process_options(kwargs)
+        if "N_sweeps" in kwargs.keys() and self.L<kwargs["N_sweeps"]:
+            kwargs["compression_method"]="SVD"
         self.tpmpo.IdL[0]=0
         self.tpmpo.IdR[-1]=0 #How is this my job?
         tpmps=mps.tpmps

@@ -23,11 +23,11 @@ def test_im_diamond_hom(seed_rng):
 
 def test_im_diamond_het(seed_rng):
     t=5
-    Js,gs,hs=np.random.normal(size=(3,t))
-    Ts=[dense.ising.ising_T(t,J,g,h) for t,J,g,h in zip(range(1,t+1),Js,gs,hs)]
-    ims=[im for im in dense.ising.im_triangle(Ts)]
-    for im,t in zip(ims,range(1,t+1)):
-        Tsr=[dense.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:t],gs[:t],hs[:t])]
+    Js,gs,hs=np.random.normal(size=(3,t//2))
+    Ts=[dense.ising.ising_T(t,J,g,h) for t,J,g,h in zip(range(1,6,2),Js,gs,hs)]
+    ims=[im for im in dense.ising.im_diamond(Ts)]
+    for im,t in zip(ims,range(1,t+1,2)):
+        Tsr=[dense.ising.ising_T(t,J,g,h) for J,g,h in zip(Js[:t//2+1],gs[:t//2+1],hs[:t//2+1])]
         assert im ==pytest.approx(list(dense.ising.im_rectangle(Tsr))[-1])
 def test_im_triangle_hom(seed_rng):
     J,g,h=np.random.normal(size=3)
