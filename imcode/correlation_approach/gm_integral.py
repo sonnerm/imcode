@@ -6,6 +6,7 @@ from datetime import datetime
 from scipy.linalg import det
 from ham_gs import compute_BCS_Kernel
 import multiprocessing as mp
+from scipy import linalg
 from joblib import Parallel, delayed
 
 now = datetime.now().time() # time object
@@ -28,7 +29,6 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     Jy_boundary = 0
     delta_blip = t
     g_boundary = np.array(t*[1] + delta_blip * [-1] + (t-delta_blip)*[1])     #np.zeros(2*t)
-    
 
     N_t = 4 * t 
     nbr_xsi = N_l * 2 * (N_t - 1) #factor 2 since there are two types of grassmanns (with and without bar). This is true if the last and first layers are erased
@@ -70,14 +70,14 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     #    A_E[i,i+1] += 1
     #normalization_state = 1#this is  2**N_l / 2**N_l, where the factor 1/ 2**N_l is just a convenient, artifially introduced renormalization so numbers dont become too large..it is precisely cancelled by factor in determinant when IM-matrix element is computed. Real norm of this state is 2**N_l
     #det_factor_state = 0.5
-
+    """
     #e^-betaZ initial state
-    #for x in range (0,N_l):   
-    #    i = find_index(x,0,1,t)
-    #    A_E[i,i+1] += np.exp(2. * beta)
-    #normalization_state = ((1. + np.exp(2.*beta) ) / 4)**(N_l)
-  
-    
+    for x in range (0,N_l):   
+        i = find_index(x,0,1,t)
+        A_E[i,i+1] += np.exp(2. * beta)
+    normalization_state = ((1. + np.exp(2.*beta) ) / 4)**(N_l)
+    det_factor_state = 1
+    """
     """
     #Bell pair initial state
     print(beta,'beta')
@@ -91,7 +91,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
         A_E[i,i+1] += 1
     """
     
- 
+    
     
     #general initial state
     #DM_compact = compute_Kernel_XX(beta, N_l)
@@ -109,7 +109,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
                     if j>=i:
                         A_E[i,j] += DM_compact[k,l]
     
- 
+    
     gate_counter = 0
     
 
@@ -174,10 +174,20 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     for i in range(N_l):
         A_E[i * 2 * (N_t - 1),(i+1) * 2 * (N_t - 1) -1] += 1
 
+    A_E_norm = A_E.copy()
+     
+    bound_iter = 0
+    for tau in range (2 * t -1, -2 * t, -1):
+            if (x_edge_left+tau) % 2 == 1 and tau != 0:
+                i = find_index(x_edge_left,tau,1,t)
+                A_E_norm[i,i+1] = A_E_norm[i,i+1] *  np.exp(2.j* (g_boundary[bound_iter] - abs(g_boundary[bound_iter])) * np.sign(tau))
+                bound_iter += 1
+    
     #antisymmetrize
     for i in range(len(A_E[0])):
         for j in range(i,len(A_E[0])):
             A_E[j,i] = - A_E[i,j]
+            A_E_norm[j,i] = - A_E_norm[i,j]
 
 
     #Matrix that couples the system to the first site of the environment
@@ -196,11 +206,20 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     norm_gate = 1. / (np.cos(Jx)*np.cos(Jy) * (1 + np.tan(Jx)*np.tan(Jy)))
     normalization_circuit = norm_gate**(gate_counter % N_t) #this is the norm such that when divided by this, the unitary circuit gives 1 without eternal legs
     det_factor_circ = norm_gate**(- (gate_counter - gate_counter%N_t) / N_t)
+    print('norm_gate', norm_gate)
+    print('det_fact_circ', det_factor_circ)
     print('N_circ',normalization_circuit)
     print('N_state',normalization_state)
     N = normalization_state * normalization_circuit
+    
+   
+    A_E_norm_inv = linalg.inv(A_E_norm)
+    #A_E = np.identity(len(A_E[0]))
     IM_value = np.sqrt(abs(det( pow(det_factor_state**2, N_l  / nbr_xsi) * pow(det_factor_circ**2, 1. * N_t / nbr_xsi)  * A_E)))/N 
+    IM_value2 = np.sqrt(abs(det( A_E @ A_E_norm_inv  )))
     print('IM_value:',IM_value )
+
+    print('IM_value2:',IM_value2 )
 
     
     #solve for certain columns of inverted matrix A_E:
