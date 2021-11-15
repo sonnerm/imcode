@@ -225,7 +225,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     """
     
     #solve for certain columns of inverted matrix A_E:
-    identity_matrix = np.identity(A_E.shape[0])
+    identity_matrix = sps.identity(A_E.shape[0])
     
     A_inv = sps.dok_matrix(A_E.shape,dtype=np.complex_)
 
@@ -233,6 +233,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     A_E_sparse = sps.csr_matrix(A_E)
     R_sparse = sps.csr_matrix(R)
     A_s_sparse = sps.csr_matrix(A_s)
+    ID_sparse = sps.csr_matrix(identity_matrix)
 
 
     A_E_sparse += -A_E_sparse.T
@@ -244,7 +245,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
   
     now = datetime.now()
     print('Start inversion', now)
-    A_inv[:,0:2 * (N_t - 1)] = scipy.sparse.linalg.spsolve(A_E_sparse,identity_matrix[:,0:2 * (N_t - 1)]) #A_E is automatically converted to CSR or SCS by this function
+    A_inv[:,0:2 * (N_t - 1)] = scipy.sparse.linalg.spsolve(A_E_sparse,ID_sparse[:,0:2 * (N_t - 1)]) #A_E is automatically converted to CSR or SCS by this function
     #A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)]) 
     now = datetime.now()
     print('Finish inversion', now)
@@ -262,7 +263,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
         const_blip_data = f['const_blip']
         IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
         #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
-        edge_corr_data[iterator,0:2 * (N_t - 1),0:2 * (N_t - 1)] = A_inv.toarray()[0:2 * (N_t - 1),0:2 * (N_t - 1)]
+        #edge_corr_data[iterator,0:2 * (N_t - 1),0:2 * (N_t - 1)] = A_inv.toarray()[0:2 * (N_t - 1),0:2 * (N_t - 1)]
         #const_blip_data[iterator] = IM_value
        
     
