@@ -18,7 +18,7 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
         for j in range (dim_B):
             if abs(i-j) != 1 or i+j+1%4 == 0:
                 B_schur_check[i,j] = 0
-    #print ('schur-test', linalg.norm(R @ B_schur_check @ R.T - B))
+    print ('schur-test', linalg.norm(R @ B_schur_check @ R.T - B))
 
     eigenvalues_hermitian_matrix = np.zeros(int(dim_B/2), dtype=np.complex_)    
     for i in range(0,int(dim_B/2)):
@@ -42,5 +42,5 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
         eigenvalues_real[i] = B_schur[2 * i,2 * i + 1]#define eigenvalues from Schur form of matrix such that the order is in correspondence with the order of the eigenvectors in R.
     #print ('eigenvalues (real): ',eigenvalues_real)
 
-
+ 
     return R,  eigenvalues_real #return rotation matrix R and schur form of B, as well as eigenvalues which are all real with the rotation matrix R
