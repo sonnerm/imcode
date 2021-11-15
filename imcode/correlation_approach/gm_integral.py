@@ -102,6 +102,8 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     DM_compact , normalization_state = compute_BCS_Kernel(Jx,Jy,g,mu_initial_state, N_l, filename)
     det_factor_state = 0.25
  
+    now = datetime.now()
+    print('Start writing', now)
     #integrate into bigger matrix for gm_integral code:
     for x in range (0,N_l):
         for y in range (x,N_l):
@@ -174,6 +176,8 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     for i in range(N_l):
         A_E[i * 2 * (N_t - 1),(i+1) * 2 * (N_t - 1) -1] += 1
    
+    now = datetime.now()
+    print('End writing', now)
     """
     A_E_norm = A_E.copy()
     
@@ -225,11 +229,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     
     A_inv = sps.dok_matrix(A_E.shape,dtype=np.complex_)
 
-    #num_cores = mp.cpu_count()
-    #if __name__ == "__main__":
-    #    A_inv[:,0:2 * (N_t - 1)] = np.array(Parallel(n_jobs=num_cores)(delayed(np.linalg.solve)(A_E, identity_matrix[:,i]) for i in range(2 * (N_t - 1)) )).T
    
-  
     A_E_sparse = sps.csr_matrix(A_E)
     R_sparse = sps.csr_matrix(R)
     A_s_sparse = sps.csr_matrix(A_s)
@@ -237,15 +237,22 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
 
     A_E_sparse += -A_E_sparse.T
 
-
+    #num_cores = mp.cpu_count()
+    #if __name__ == "__main__":
+    #    A_inv[:,0:2 * (N_t - 1)] = (Parallel(n_jobs=num_cores)(delayed(scipy.sparse.linalg.spsolve)(A_E_sparse, identity_matrix[:,i]) for i in range(2 * (N_t - 1)) )).toarray().T
+   
+  
+    now = datetime.now()
+    print('Start inversion', now)
     A_inv[:,0:2 * (N_t - 1)] = scipy.sparse.linalg.spsolve(A_E_sparse,identity_matrix[:,0:2 * (N_t - 1)]) #A_E is automatically converted to CSR or SCS by this function
     #A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)]) 
-
+    now = datetime.now()
+    print('Finish inversion', now)
 
     A_inv_sparse = sps.csr_matrix(A_inv)
 
     B =  (A_s_sparse  +  R_sparse  @ A_inv_sparse @ R_sparse.T).toarray()
-    now = datetime.now()
+    
  
     #write A_inv and B to file
     with h5py.File(filename + '.hdf5', 'a') as f:
