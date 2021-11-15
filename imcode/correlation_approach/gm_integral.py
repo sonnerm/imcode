@@ -230,10 +230,10 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     A_inv = sps.dok_matrix(A_E.shape,dtype=np.complex_)
 
    
-    A_E_sparse = sps.csr_matrix(A_E)
+    A_E_sparse = sps.csc_matrix(A_E)
     R_sparse = sps.csr_matrix(R)
     A_s_sparse = sps.csr_matrix(A_s)
-    ID_sparse = sps.csr_matrix(identity_matrix)
+    ID_sparse = sps.csc_matrix(identity_matrix)
 
 
     A_E_sparse += -A_E_sparse.T
