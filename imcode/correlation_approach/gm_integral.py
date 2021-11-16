@@ -20,6 +20,19 @@ def func(x, a):
 np.set_printoptions(threshold=sys.maxsize)
 np.set_printoptions(linewidth=470)
 
+def isSparse(array,m, n) :
+     
+    counter = 0
+  
+    # Count number of zeros
+    # in the matrix
+    for i in range(0,m) :
+        for j in range(0,n) :
+            if (array[i][j] == 0) :
+                counter = counter + 1
+  
+    return (counter >
+            ((m * n) // 2))
 
 def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
@@ -228,7 +241,6 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     identity_matrix = sps.identity(A_E.shape[0])
     
     A_inv = sps.dok_matrix(A_E.shape,dtype=np.complex_)
-
    
     A_E_sparse = sps.csc_matrix(A_E)
     R_sparse = sps.csr_matrix(R)
@@ -246,7 +258,10 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     now = datetime.now()
     print('Start inversion', now)
     A_inv[:,0:2 * (N_t - 1)] = scipy.sparse.linalg.spsolve(A_E_sparse,ID_sparse[:,0:2 * (N_t - 1)]) #A_E is automatically converted to CSR or SCS by this function
-    #A_inv[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E,identity_matrix[:,0:2 * (N_t - 1)]) 
+    
+    
+
+
     now = datetime.now()
     print('Finish inversion', now)
 
@@ -254,6 +269,31 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
 
     B =  (A_s_sparse  +  R_sparse  @ A_inv_sparse @ R_sparse.T).toarray()
     
+    """
+    #compare to result without sparse matrices
+    identity_matrix_comp = np.identity(A_E.shape[0])
+    A_inv_comp = np.zeros(A_E.shape,dtype=np.complex_)
+    A_E_comp = A_E.toarray()
+    A_E_comp += - A_E_comp.T
+    A_inv_comp[:,0:2 * (N_t - 1)] = np.linalg.solve(A_E_comp,identity_matrix_comp[:,0:2 * (N_t - 1)]) 
+    A_inv_compare = A_inv_comp - A_inv.toarray()
+
+    counter = 0
+    for i in range(A_inv.shape[0]):
+        for j in range(A_inv.shape[1]):
+            counter += abs(A_inv_compare[i,j])
+    print('compare A_E_inv', counter)
+    
+    B_comp = A_s.toarray() + R.toarray()  @ A_inv_comp @ R.toarray().T
+    counter = 0
+    B_comp -= B
+    for i in range(B_comp.shape[0]):
+        for j in range(B_comp.shape[1]):
+            counter += abs(B_comp[i,j])
+    print('compare B', counter)
+    """
+
+
  
     #write A_inv and B to file
     with h5py.File(filename + '.hdf5', 'a') as f:
