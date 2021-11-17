@@ -242,32 +242,29 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     
     A_inv = sps.dok_matrix(A_E.shape,dtype=np.complex_)
    
-    A_E_sparse = sps.csc_matrix(A_E)
-    R_sparse = sps.csr_matrix(R)
-    A_s_sparse = sps.csr_matrix(A_s)
-    ID_sparse = sps.csc_matrix(identity_matrix)
+  
+    A_E = A_E.tocsc()
+    R = R.tocsr()
+    A_s = A_s.tocsc()
+    identity_matrix = identity_matrix.tocsc()
 
-
-    A_E_sparse += -A_E_sparse.T
+    A_E += - A_E.T
 
     #num_cores = mp.cpu_count()
     #if __name__ == "__main__":
     #    A_inv[:,0:2 * (N_t - 1)] = (Parallel(n_jobs=num_cores)(delayed(scipy.sparse.linalg.spsolve)(A_E_sparse, identity_matrix[:,i]) for i in range(2 * (N_t - 1)) )).toarray().T
    
-  
     now = datetime.now()
     print('Start inversion', now)
-    A_inv[:,0:2 * (N_t - 1)] = scipy.sparse.linalg.spsolve(A_E_sparse,ID_sparse[:,0:2 * (N_t - 1)]) #A_E is automatically converted to CSR or SCS by this function
+    A_inv[:,0:2 * (N_t - 1)] = scipy.sparse.linalg.spsolve(A_E,identity_matrix[:,0:2 * (N_t - 1)]) #A_E is automatically converted to CSR or SCS by this function
     
     
-
-
     now = datetime.now()
     print('Finish inversion', now)
 
     A_inv_sparse = sps.csr_matrix(A_inv)
 
-    B =  (A_s_sparse  +  R_sparse  @ A_inv_sparse @ R_sparse.T).toarray()
+    B =  (A_s  +  R  @ A_inv_sparse @ R.T).toarray()
     
     """
     #compare to result without sparse matrices
@@ -283,7 +280,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
         for j in range(A_inv.shape[1]):
             counter += abs(A_inv_compare[i,j])
     print('compare A_E_inv', counter)
-    
+
     B_comp = A_s.toarray() + R.toarray()  @ A_inv_comp @ R.toarray().T
     counter = 0
     B_comp -= B
