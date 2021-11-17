@@ -14,20 +14,22 @@ from ising_gamma import ising_gamma
 from gm_integral import gm_integral
 import math
 
-np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
+
+
+np.set_printoptions(linewidth=np.nan, precision=10, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 10
-max_time2 = 20
+max_time1 = 2
+max_time2 = 6
 stepsize1 = 1
-stepsize2 = 2
+stepsize2 = 1
 
 # lattice sites (in the environment):
-nsites = 52
+nsites = 8
 # model parameters:
 del_t = 1.0
-Jx =0.3 * del_t #0.5# 0.31 # 0.31
+Jx =(0.3) * del_t #0.5# 0.31 # 0.31
 Jy =0.5* del_t#np.pi/4+0.3#np.pi/4
 g =0* del_t #np.pi/4+0.3
 mu_initial_state = 0
@@ -50,9 +52,9 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 baobab_path = '$HOME/scratch/Lohschmidt/'
 
-filename = baobab_path + 'IT_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
+filename = work_path + 'IT_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta) + '_L=' + str(nsites) 
 
-
+print('filename:', filename)
 
 # initialize arrays in which entropy values and corresponding time-cuts are stored
 #entropy_values = np.zeros((int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2))  # entropies
@@ -77,11 +79,11 @@ with h5py.File(filename + ".hdf5", 'w') as f:
 
 iterator = 1
 # total_time = 0 means one floquet-layer
+
 for total_time in range(1, max_time1, stepsize1):
 
     nbr_Floquet_layers = total_time + 1
-    correlation_block = np.identity(8 * total_time, dtype=np.complex_)
-
+    
     #n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
@@ -102,8 +104,7 @@ final_iter_one = iterator - 1
 for total_time in range(final_iter_one + stepsize2, max_time2 + stepsize2, stepsize2):  # 90, nsites = 200,
 #for total_time in range(1, max_time1, stepsize1):
     nbr_Floquet_layers = total_time + 1
-    correlation_block = np.identity(8 * total_time, dtype=np.complex_)
-
+   
     #n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
@@ -124,7 +125,7 @@ for total_time in range(final_iter_one + stepsize2, max_time2 + stepsize2, steps
 
 with h5py.File(filename + '.hdf5', 'r') as f:
    entr_data = f['temp_entr']
-   np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
+   np.set_printoptions(linewidth=np.nan, precision=10, suppress=True)
    print(entr_data[:])
 
 #plot_entropy(entropy_values, iterator, Jx/del_t, Jy/del_t, g/del_t, del_t, beta, nsites, filename, ising_gamma_times, ising_gamma_values)
