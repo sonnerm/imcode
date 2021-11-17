@@ -1,5 +1,7 @@
 import numpy as np
 import sys
+
+from scipy.sparse.csr import csr_matrix
 import h5py
 from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
 from datetime import datetime
@@ -11,6 +13,7 @@ import scipy.sparse
 import scipy.sparse.linalg
 import scipy.sparse as sps
 from joblib import Parallel, delayed
+#from memory_profiler import profile
 
 now = datetime.now().time() # time object
 
@@ -37,7 +40,7 @@ def isSparse(array,m, n) :
 def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
-
+#@profile
 def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
 
     #boundary couplings
@@ -204,12 +207,12 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     
 
     #Matrix that couples the system to the first site of the environment
-    R = sps.dok_matrix((nbr_eta, nbr_xsi),dtype=np.complex_)
+    R = sps.dok_matrix((nbr_eta, 2 * (N_t - 1)),dtype=np.complex_)#store only the part of the matrix that has non-zero entries (in principle it is of size (nbr_eta, nbr_xsi))
     for i in range (t):#2t
         R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad_boundary)
     for i in range (t,2*t):#2t
         R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad_boundary)
- 
+
     #Matrix that couples system variables to system variables
     A_s = sps.dok_matrix((nbr_eta, nbr_eta),dtype=np.complex_)
     for i in range (2 * t):
@@ -236,13 +239,10 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
 
     #print('IM_value2:',IM_value2 )
     """
-    
-    #solve for certain columns of inverted matrix A_E:
+
+    print('size(A_E)', sys.getsizeof(A_E)/ (1024 * 1024))
     identity_matrix = sps.identity(A_E.shape[0])
     
-    A_inv = sps.dok_matrix(A_E.shape,dtype=np.complex_)
-   
-  
     A_E = A_E.tocsc()
     R = R.tocsr()
     A_s = A_s.tocsc()
@@ -256,16 +256,17 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
    
     now = datetime.now()
     print('Start inversion', now)
-    A_inv[:,0:2 * (N_t - 1)] = scipy.sparse.linalg.spsolve(A_E,identity_matrix[:,0:2 * (N_t - 1)]) #A_E is automatically converted to CSR or SCS by this function
-    
-    
+
+    #solve for certain columns of inverted matrix A_E:
+    A_inv = scipy.sparse.linalg.spsolve(A_E,identity_matrix[:,0:2 * (N_t - 1)]) #compute only the part of A_inv that is needed
+    print('size(A_inv)', sys.getsizeof(A_inv)/ (1024 * 1024))
+
     now = datetime.now()
     print('Finish inversion', now)
 
-    A_inv_sparse = sps.csr_matrix(A_inv)
+    B =  (A_s  +  R  @ A_inv[:2 * (N_t - 1),:] @ R.T).toarray()
+    print('size(B)', sys.getsizeof(B)/ (1024 * 1024))
 
-    B =  (A_s  +  R  @ A_inv_sparse @ R.T).toarray()
-    
     """
     #compare to result without sparse matrices
     identity_matrix_comp = np.identity(A_E.shape[0])
