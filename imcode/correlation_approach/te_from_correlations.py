@@ -11,6 +11,7 @@ from matrix_diag import matrix_diag
 from dress_density_matrix import dress_density_matrix
 from compute_generators import compute_generators
 from ising_gamma import ising_gamma
+import sys
 from gm_integral import gm_integral
 import math
 
@@ -26,14 +27,25 @@ stepsize1 = 1
 stepsize2 = 1
 
 # lattice sites (in the environment):
-nsites = 8
+nsites = int(sys.argv[1])
 # model parameters:
-del_t = 1.0
-Jx =(0.3) * del_t #0.5# 0.31 # 0.31
-Jy =0.5* del_t#np.pi/4+0.3#np.pi/4
-g =0* del_t #np.pi/4+0.3
+del_t = float(sys.argv[2])
+Jx = float(sys.argv[3]) * del_t #0.5# 0.31 # 0.31
+Jy =float(sys.argv[4])* del_t#np.pi/4+0.3#np.pi/4
+g =float(sys.argv[5])* del_t #np.pi/4+0.3
+beta = float(sys.argv[6])#0.4  # temperature
 mu_initial_state = 0
-beta = 0.4  # temperature
+if len(sys.argv) > 7:
+    mu_initial_state = float(sys.argv[7])
+
+print('nsites', nsites)
+print('del_t', del_t)
+print('Jx', Jx)
+print('Jy', Jy)
+print('g', g)
+print('beta', beta)
+print('mu_init_state', mu_initial_state)
+
 
 beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 alpha_0_square = (np.cos(2 * Jx) + np.cos(2 * Jy)) / 2.
