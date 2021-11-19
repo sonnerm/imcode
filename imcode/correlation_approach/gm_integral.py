@@ -117,7 +117,7 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     #DM_compact = compute_Kernel_XX(beta, N_l)
     DM_compact , normalization_state = compute_BCS_Kernel(Jx,Jy,g,mu_initial_state, N_l, filename)
     det_factor_state = 0.25
- 
+    
     now = datetime.now()
     print('Start writing', now)
     #integrate into bigger matrix for gm_integral code:
@@ -241,7 +241,10 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
     """
 
     print('size(A_E)', sys.getsizeof(A_E)/ (1024 * 1024))
-    identity_matrix = sps.identity(A_E.shape[0])
+
+    identity_matrix = sps.dok_matrix((A_E.shape[1],2 * (N_t - 1)))
+    for i in range (2 * (N_t - 1)):
+        identity_matrix[i,i] = 1
     
     A_E = A_E.tocsc()
     R = R.tocsr()
@@ -250,16 +253,18 @@ def gm_integral(Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
 
     A_E += - A_E.T
 
+
     #num_cores = mp.cpu_count()
     #if __name__ == "__main__":
     #    A_inv[:,0:2 * (N_t - 1)] = (Parallel(n_jobs=num_cores)(delayed(scipy.sparse.linalg.spsolve)(A_E_sparse, identity_matrix[:,i]) for i in range(2 * (N_t - 1)) )).toarray().T
    
     now = datetime.now()
     print('Start inversion', now)
-
+    
     #solve for certain columns of inverted matrix A_E:
-    A_inv = scipy.sparse.linalg.spsolve(A_E,identity_matrix[:,0:2 * (N_t - 1)]) #compute only the part of A_inv that is needed
-    print('size(A_inv)', sys.getsizeof(A_inv)/ (1024 * 1024))
+    A_inv = scipy.sparse.linalg.spsolve(A_E,identity_matrix) #compute only the part of A_inv that is needed
+
+    print('size(A_inv)', sys.getsizeof(A_inv)/ (1024 * 1024), type(A_inv))
 
     now = datetime.now()
     print('Finish inversion', now)
