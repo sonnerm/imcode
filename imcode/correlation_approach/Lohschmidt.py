@@ -3,6 +3,7 @@ import sys
 
 from scipy.sparse.csr import csr_matrix
 from create_environment_exponent import create_environment_exponent
+from ed_test import Jx_odd_boundary
 import h5py
 from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
 from datetime import datetime
@@ -44,9 +45,11 @@ def find_index(x, tau, bar, t):
 #@profile
 def Lohschmidt(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
 
-    g_boundary = np.array(t*[1] + t * [-1])   
+    Jx_boundary = 0
+    Jy_boundary = 0
+    g_boundary = np.array(t*[1] + t * [-1])   #constant blip of duration t
 
-    A_E = create_environment_exponent(init_state,Jx,Jy,g,0,0,g_boundary,0,0,N_l,t,filename)
+    A_E = create_environment_exponent(init_state,Jx,Jy,g,Jx_boundary,Jy_boundary,g_boundary,mu_initial_state,beta,N_l,t,filename)
     A_E_norm = A_E.copy().todok()
     
     x_edge_left = 0
