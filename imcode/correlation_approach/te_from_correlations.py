@@ -24,8 +24,8 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 40
-max_time2 = 400
+max_time1 = 10
+max_time2 = 100
 stepsize1 = 1
 stepsize2 = 10
 init_state = 2 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
@@ -74,9 +74,9 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-filename = baobab_path + 'NAME_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) 
+filename = baobab_path + 'Lohschmidt/Lohschmidt(gap=0)_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) 
 if mode == 'L':
-   filename += + '_g_boundary_mag=' + str(g_boundary_mag)
+   filename += '_g_boundary_mag=' + str(g_boundary_mag)
 
 print('filename:', filename)
 
