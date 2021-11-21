@@ -24,11 +24,11 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 6
-max_time2 = 6
+max_time1 = 10
+max_time2 = 20
 stepsize1 = 1
-stepsize2 = 1
-init_state = 2
+stepsize2 = 2
+init_state = 2 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
 
 time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
@@ -118,8 +118,14 @@ for nbr_Floquet_layers in time_array[iterator:]:
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
 
+    #store array with times in entropy-dataset, regardless of whether entropy is acutally computed (also used for Lohschmidt)
+    with h5py.File(filename + '.hdf5', 'a') as f:
+        entr_data = f['temp_entr']
+        entr_data[iterator,0] = nbr_Floquet_layers#write array with times
+
 
     #Lohschmidt(init_state, Jx, Jy,g,mu_initial_state, beta, nsites, nbr_Floquet_layers, filename, iterator)
+
 
     
     B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
@@ -132,10 +138,11 @@ for nbr_Floquet_layers in time_array[iterator:]:
         for cut in time_cuts:
         #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename)
             entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
-        
-        entr_data[iterator,0] = nbr_Floquet_layers#write array with times
+    
     print('Finished writing data at iteration', iterator)
     
+
+
     iterator += 1
 
 
