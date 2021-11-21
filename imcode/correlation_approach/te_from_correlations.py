@@ -1,3 +1,4 @@
+from Lohschmidt import Lohschmidt
 from evolution_matrix import evolution_matrix
 from compute_generators import compute_generators
 import numpy as np
@@ -10,6 +11,7 @@ from plot_entropy import plot_entropy
 from matrix_diag import matrix_diag
 from dress_density_matrix import dress_density_matrix
 from compute_generators import compute_generators
+from Lohschmidt import Lohschmidt
 from ising_gamma import ising_gamma
 import sys
 from gm_integral import gm_integral
@@ -22,10 +24,11 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 4
-max_time2 = 40
+max_time1 = 6
+max_time2 = 6
 stepsize1 = 1
-stepsize2 = 4
+stepsize2 = 1
+init_state = 2
 
 time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
@@ -114,7 +117,12 @@ for nbr_Floquet_layers in time_array[iterator:]:
     
     #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
-    B = gm_integral(Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
+
+
+    #Lohschmidt(init_state, Jx, Jy,g,mu_initial_state, beta, nsites, nbr_Floquet_layers, filename, iterator)
+
+    
+    B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
     correlation_block = create_correlation_block(B, nbr_Floquet_layers)
     time_cuts = np.arange(1, nbr_Floquet_layers)
     #entropy_values[iterator, 0] = nbr_Floquet_layers
@@ -122,11 +130,12 @@ for nbr_Floquet_layers in time_array[iterator:]:
     with h5py.File(filename + '.hdf5', 'a') as f:
         entr_data = f['temp_entr']
         for cut in time_cuts:
-        #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut)
+        #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename)
             entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
         
         entr_data[iterator,0] = nbr_Floquet_layers#write array with times
     print('Finished writing data at iteration', iterator)
+    
     iterator += 1
 
 
