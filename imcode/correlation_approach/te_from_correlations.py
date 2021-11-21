@@ -33,18 +33,19 @@ init_state = 2 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp
 time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
 
-write_mode = sys.argv[1] #if the argument is 'w', overwrite file if it exists, otherwise append if it exists
+mode =  sys.argv[1] # 'E': compute temporal entanglement entropy, 'L': compute Lohschmidt echo
+write_mode = sys.argv[2] #if the argument is 'w', overwrite file if it exists, otherwise append if it exists
 # lattice sites (in the environment):
-nsites = int(sys.argv[2])
+nsites = int(sys.argv[3])
 # model parameters:
-del_t = float(sys.argv[3])
-Jx = float(sys.argv[4]) * del_t #0.5# 0.31 # 0.31
-Jy =float(sys.argv[5])* del_t#np.pi/4+0.3#np.pi/4
-g =float(sys.argv[6])* del_t #np.pi/4+0.3
-beta = float(sys.argv[7])#0.4  # temperature
-mu_initial_state = 0
-if len(sys.argv) > 8:
-    mu_initial_state = float(sys.argv[8])
+del_t = float(sys.argv[4])
+Jx = float(sys.argv[5]) * del_t #0.5# 0.31 # 0.31
+Jy =float(sys.argv[6])* del_t#np.pi/4+0.3#np.pi/4
+g =float(sys.argv[7])* del_t #np.pi/4+0.3
+beta = float(sys.argv[8])#0.4  # temperature
+mu_initial_state = float(sys.argv[9])
+if mode == 'L':
+    g_boundary_mag = float(sys.argv[10])
 
 print('nsites', nsites)
 print('del_t', del_t)
@@ -53,6 +54,8 @@ print('Jy', Jy)
 print('g', g)
 print('beta', beta)
 print('mu_init_state', mu_initial_state)
+if mode == 'L':
+    print('g_boundary_mag', g_boundary_mag)
 
 #beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
 
@@ -78,8 +81,6 @@ print('filename:', filename)
 # initialize arrays in which entropy values and corresponding time-cuts are stored
 #entropy_values = np.zeros((int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2))  # entropies
 #times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))  # time cuts
-
-
 
 
 if os.path.isfile(filename+".hdf5") and write_mode != 'w':
@@ -123,25 +124,26 @@ for nbr_Floquet_layers in time_array[iterator:]:
         entr_data = f['temp_entr']
         entr_data[iterator,0] = nbr_Floquet_layers#write array with times
 
-
-    #Lohschmidt(init_state, Jx, Jy,g,mu_initial_state, beta, nsites, nbr_Floquet_layers, filename, iterator)
-
-
-    
-    B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
-    correlation_block = create_correlation_block(B, nbr_Floquet_layers)
-    time_cuts = np.arange(1, nbr_Floquet_layers)
-    #entropy_values[iterator, 0] = nbr_Floquet_layers
-    print('Starting to writw data at iteration', iterator)
-    with h5py.File(filename + '.hdf5', 'a') as f:
-        entr_data = f['temp_entr']
-        for cut in time_cuts:
-        #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename)
-            entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
-    
-    print('Finished writing data at iteration', iterator)
+    if mode == 'E':
+        B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
+        correlation_block = create_correlation_block(B, nbr_Floquet_layers)
+        time_cuts = np.arange(1, nbr_Floquet_layers)
+        #entropy_values[iterator, 0] = nbr_Floquet_layers
+        print('Starting to writw data at iteration', iterator)
+        with h5py.File(filename + '.hdf5', 'a') as f:
+            entr_data = f['temp_entr']
+            for cut in time_cuts:
+            #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename)
+                entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
+        
+        print('Finished writing data at iteration', iterator)
     
 
+    if mode == 'L':
+        Lohschmidt(init_state, Jx, Jy,g,beta, mu_initial_state,g_boundary_mag, nsites, nbr_Floquet_layers, filename, iterator)
+
+    else:
+        print('No valid operation mode specified.')
 
     iterator += 1
 

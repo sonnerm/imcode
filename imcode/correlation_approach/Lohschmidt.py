@@ -42,11 +42,11 @@ def find_index(x, tau, bar, t):
     return int(2 * (4*t - 1) * x + 2 * (2*t-1 -tau)-1 + bar)
 
 #@profile
-def Lohschmidt(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
+def Lohschmidt(init_state, Jx, Jy,g,beta,mu_initial_state, g_boundary_mag, N_l, t, filename, iterator):
 
     Jx_boundary = 0
     Jy_boundary = 0
-    g_boundary = np.array(t*[1] + t * [-1])   #constant blip of duration t
+    g_boundary = g_boundary_mag * np.array(t*[1] + t * [-1])   #constant blip of duration t
 
     A_E = create_environment_exponent(init_state,Jx,Jy,g,Jx_boundary,Jy_boundary,g_boundary,mu_initial_state,beta,N_l,t,filename)
     A_E_norm = A_E.copy().todok()
