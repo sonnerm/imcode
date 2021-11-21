@@ -126,8 +126,9 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     sum = 0
     for i in range (len(Z[0])):
         for j in range (len(Z[0])):
+        
             antisym_check += abs(Z[i,j] + Z[j,i]) 
-            sum += 2 * abs(Z[i,j]) + abs(Z[j,i])
+            sum +=  abs(Z[i,j]) + abs(Z[j,i])
 
     antisym_check *= 1/sum
     print('antisym_check')
@@ -144,6 +145,6 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #print('DM_compact')
     #print(DM_compact)
     U =  4 * U #this is just a convenient, qn artifially introduced renormalization so numbers dont become too large..it is precisely cancelled by factor in determinant when IM-matrix element is computed. Real norm of this state is without this factor
-    normalization = 1 / abs(det(U)) #this normalizes the DM (the state has the squareroot of this as normalization)
+    normalization = 1#1 / abs(det(U)) #this normalizes the DM (the state has the squareroot of this as normalization) (the value 1 is just set here because in the new code, the normalization is not used and it leads to problems when Jx = Jy)
 
     return 2*DM_compact, normalization
