@@ -3,7 +3,6 @@ import sys
 
 from scipy.sparse.csr import csr_matrix
 from create_environment_exponent import create_environment_exponent
-from ed_test import Jx_odd_boundary
 import h5py
 from DM_kernel import compute_Kernel_XX,compute_gate_Kernel, find_index_dm
 from datetime import datetime
