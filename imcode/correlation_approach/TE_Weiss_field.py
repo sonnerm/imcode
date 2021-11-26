@@ -50,10 +50,10 @@ baobab_path = '/home/users/t/thoennis/scratch/'
 filename = work_path + 'TE_from_weiss'
 
 
-Weiss_data_file = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/Weiss_tt.dat'
+Weiss_data_file = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/Weiss_tau.dat'
 #Weiss_data_file = '/home/thoennis/DMFT_data/Weiss_tt.dat'
 
-ntimes = 512
+
 # Read the data.
 with open(Weiss_data_file, 'r') as fh:
     lines = fh.readlines()
@@ -64,10 +64,11 @@ clean = [line.strip().replace('\t', '').split() for line in lines]
 # Feed the data into a DataFrame.
 data = pd.DataFrame(clean[:], columns=clean[0]).to_numpy()
 
+ntimes = len(data[:,1]) // 2 
 B = np.zeros((ntimes,ntimes))
 
-for i in range(ntimes):
-    B[i,:] = data[i*ntimes + i:(i+1)*ntimes +i,2]
+for i in range(0,ntimes):
+    B[i,:] = data[range(ntimes-1 + i , -1+ i, -1),1]
 
 B = inv(B)#invert to obtain Weiss field
 with h5py.File(filename + ".hdf5", 'w') as f:
