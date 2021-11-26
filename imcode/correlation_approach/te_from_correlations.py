@@ -24,11 +24,11 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 10
-max_time2 = 100
+max_time1 = 6
+max_time2 = 6
 stepsize1 = 1
-stepsize2 = 10
-init_state = 2 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
+stepsize2 = 1
+init_state = 3 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
 
 time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
@@ -47,6 +47,8 @@ mu_initial_state = float(sys.argv[9])
 if mode == 'L':
     g_boundary_mag = float(sys.argv[10])
 
+print('mode', mode)
+print('write_mode', write_mode)
 print('nsites', nsites)
 print('del_t', del_t)
 print('Jx', Jx)
@@ -74,7 +76,7 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-filename = baobab_path + 'Lohschmidt/Lohschmidt(gap=0)_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) 
+filename = work_path + 'Lohschmidt(gap=0)_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) 
 if mode == 'L':
    filename += '_g_boundary_mag=' + str(g_boundary_mag)
 
@@ -135,13 +137,14 @@ for nbr_Floquet_layers in time_array[iterator:]:
         with h5py.File(filename + '.hdf5', 'a') as f:
             entr_data = f['temp_entr']
             for cut in time_cuts:
+                print('calculating entropy at time cut:', cut)
             #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename)
                 entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
         
         print('Finished writing data at iteration', iterator)
     
 
-    if mode == 'L':
+    elif mode == 'L':
         Lohschmidt(init_state, Jx, Jy,g,beta, mu_initial_state,g_boundary_mag, nsites, nbr_Floquet_layers, filename, iterator)
 
     else:

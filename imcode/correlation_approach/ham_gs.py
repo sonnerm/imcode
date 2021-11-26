@@ -12,12 +12,13 @@ import scipy
 # generate random floating point values
 from random import seed
 from random import random
+from compute_generators import compute_generators
 from scipy import linalg
 
 np.set_printoptions(threshold=sys.maxsize, precision=2, suppress=True)
 np.set_printoptions(linewidth=470)
 
-def create_Floquet_ham(Jx, Jy, g,mu, L):
+def create_Magnus_Floquet_ham(Jx, Jy, g,L,mu=0):#creates first order Magnus Hamiltonan WITHOUT chemical potential
     # Floquet Hamiltonian of xy-Model:
     Jp = Jx + Jy
     Jm = Jy - Jx
@@ -74,6 +75,12 @@ def create_Floquet_ham(Jx, Jy, g,mu, L):
     
     return H
 
+def create_exact_Floquet_ham(Jx, Jy, g, L):#creates exact Hamiltonan WITHOUT chemical potential
+    # Floquet Hamiltonian of xy-Model:
+    G_XY_even, G_XY_odd, G_g ,G_1= compute_generators(L,Jx,Jy,g)
+    H = -1.j * linalg.logm(linalg.expm(1.j * G_g) @ linalg.expm(1.j * G_XY_even) @ linalg.expm(1.j * G_XY_odd))
+    
+    return H
 def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
 
 #check for right ordering of eigenvectors in matrix M
@@ -90,9 +97,16 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     """
 
     #create Floquet Hamiltonian of interest
-    H = create_Floquet_ham(Jx,Jy,g,mu,L)
-    eigvals, eigvecs = linalg.eigh(H)
-    #print('eigenvalues:',eigvals)
+    #Magnus expansion
+    #H_eff = create_Magnus_Floquet_ham(Jx,Jy,g,L,mu)
+
+    #exact effective Hamiltonian
+    H_eff = create_exact_Floquet_ham(Jx,Jy,g,L)
+    print('H_eff')
+    print(H_eff)
+
+    eigvals, eigvecs = linalg.eigh(H_eff)
+    print('eigenvalues of eff. Hamiltonian:',eigvals)
     """
     M = np.zeros((2*L,2*L), dtype=np.complex_)
     for i in range(L):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
