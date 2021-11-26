@@ -47,10 +47,14 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/DMFT_data/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-filename = work_path + 'TE_from_weiss'
+Weiss_data_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/'
+Weiss_file = 'Weiss_tau.dat'
+
+Weiss_data_file = Weiss_data_path + Weiss_file
+
+filename = work_path + 'TE_from_' + Weiss_file
 
 
-Weiss_data_file = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/Weiss_tau.dat'
 #Weiss_data_file = '/home/thoennis/DMFT_data/Weiss_tt.dat'
 
 
