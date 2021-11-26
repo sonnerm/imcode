@@ -37,16 +37,21 @@ np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
 
 
+
+
+
+
 #set location for data storage
 mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach/'
 work_path = '/Users/julianthoenniss/Documents/PhD/data/'
-fiteo1_path = '/home/thoennis/data/correlation_approach/'
+fiteo1_path = '/home/thoennis/DMFT_data/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
 filename = work_path + 'TE_from_weiss'
 
 
 Weiss_data_file = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/Weiss_tt.dat'
+#Weiss_data_file = '/home/thoennis/DMFT_data/Weiss_tt.dat'
 
 ntimes = 512
 # Read the data.
