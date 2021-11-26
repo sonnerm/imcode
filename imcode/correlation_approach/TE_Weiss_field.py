@@ -37,18 +37,16 @@ np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
 
 
-
-
-
-
 #set location for data storage
 mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach/'
 work_path = '/Users/julianthoenniss/Documents/PhD/data/'
-fiteo1_path = '/home/thoennis/DMFT_data/'
+fiteo1_path = '/home/thoennis/DMFT_data/weiss_fields_vs_lmats/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
 Weiss_data_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/'
-Weiss_file = 'Weiss_tau.dat'
+#Weiss_data_path = '/home/thoennis/DMFT_data/weiss_fields_vs_lmats/'
+
+Weiss_file = 'Weiss_tau'
 
 Weiss_data_file = Weiss_data_path + Weiss_file
 
@@ -59,35 +57,40 @@ filename = work_path + 'TE_from_' + Weiss_file
 
 
 # Read the data.
-with open(Weiss_data_file, 'r') as fh:
+with open(Weiss_data_file + '.dat', 'r') as fh:
     lines = fh.readlines()
 
 # Remove newlines, tabs, and split each string separated by spaces.
 clean = [line.strip().replace('\t', '').split() for line in lines]
 
 # Feed the data into a DataFrame.
-data = pd.DataFrame(clean[:], columns=clean[0]).to_numpy()
+data = pd.DataFrame(clean[:], columns=clean[0]).astype(float).to_numpy()
 
 ntimes = len(data[:,1]) // 2 
+
+print('ntimes', ntimes)
 B = np.zeros((ntimes,ntimes))
 
 for i in range(0,ntimes):
-    B[i,:] = data[range(ntimes-1 + i , -1+ i, -1),1]
+    B[i,:] = np.concatenate( (np.dot(-1,(data[range(ntimes-1 - i  , ntimes-1 ),1])) , data[range(ntimes-1 , i - 1, -1),1] ), axis=None) #data[range(ntimes-1 + i , -1+ i, -1),1]
+            
 
 B = inv(B)#invert to obtain Weiss field
+
 with h5py.File(filename + ".hdf5", 'w') as f:
     dset_temp_entr = f.create_dataset('temp_entr', (1,ntimes),dtype=np.float_)
     dset_entangl_specrt = f.create_dataset('entangl_spectr', (1,2 * ntimes,2 * ntimes),dtype=np.float_)
     dset_IM_exponent = f.create_dataset('IM_exponent', (ntimes,ntimes),dtype=np.float_)
+
+with h5py.File(filename + '.hdf5', 'a') as f:
+    Weiss_data = f['IM_exponent']
+    Weiss_data[:,:] = B[:,:]
 
 correlation_block = create_correlation_block(B, ntimes)
 time_cuts = np.arange(1, 80)
 
 with h5py.File(filename + '.hdf5', 'a') as f:
     entr_data = f['temp_entr']
-    Weiss_data = f['IM_exponent']
-
-    Weiss_data[:,:] = B[:,:]
     
     for cut in time_cuts:
         print('calculating entropy at time cut:', cut)
