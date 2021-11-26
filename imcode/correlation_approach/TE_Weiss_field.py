@@ -14,6 +14,7 @@ from compute_generators import compute_generators
 from Lohschmidt import Lohschmidt
 from ising_gamma import ising_gamma
 import sys
+from numpy.linalg import inv
 import pandas as pd
 from gm_integral import gm_integral
 import os
@@ -45,7 +46,7 @@ baobab_path = '/home/users/t/thoennis/scratch/'
 filename = work_path + 'TE_from_weiss'
 
 
-Weiss_data_file = '/Users/julianthoenniss/Downloads/weiss_field_test/Weiss_tt.dat'
+Weiss_data_file = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/Weiss_tt.dat'
 
 ntimes = 512
 # Read the data.
@@ -63,14 +64,14 @@ B = np.zeros((ntimes,ntimes))
 for i in range(ntimes):
     B[i,:] = data[i*ntimes + i:(i+1)*ntimes +i,2]
 
-
+B = inv(B)#invert to obtain Weiss field
 with h5py.File(filename + ".hdf5", 'w') as f:
     dset_temp_entr = f.create_dataset('temp_entr', (1,ntimes),dtype=np.float_)
     dset_entangl_specrt = f.create_dataset('entangl_spectr', (1,2 * ntimes,2 * ntimes),dtype=np.float_)
     dset_IM_exponent = f.create_dataset('IM_exponent', (ntimes,ntimes),dtype=np.float_)
 
 correlation_block = create_correlation_block(B, ntimes)
-time_cuts = np.arange(1, 50)
+time_cuts = np.arange(1, 80)
 
 with h5py.File(filename + '.hdf5', 'a') as f:
     entr_data = f['temp_entr']
