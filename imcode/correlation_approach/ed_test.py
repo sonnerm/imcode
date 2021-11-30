@@ -28,10 +28,10 @@ np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
 L = 5# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 beta = 0.0
-del_t = 0.1
+del_t = 2.
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
 Jx = 0.3 * del_t 
-Jy =  0.5 * del_t #np.pi/4+0.3
+Jy =  0.4 * del_t #np.pi/4+0.3
 g = 0. * del_t #np.pi/4+0.3
 
 
@@ -96,18 +96,18 @@ for i in range(L-1):
 
 
 #first order Magnus Hamiltonian
-#commutator_XY = ham_even @ ham_odd - ham_odd @ ham_even
-#commutator_Ising = ham_Ising_kick @ (ham_even + ham_odd) - (ham_even + ham_odd) @ ham_Ising_kick
-#Floquet_ham = ham_even + ham_odd + ham_Ising_kick + 0.5j * commutator_XY + 0.5j * commutator_Ising
+commutator_XY = ham_even @ ham_odd - ham_odd @ ham_even
+commutator_Ising = ham_Ising_kick @ (ham_even + ham_odd) - (ham_even + ham_odd) @ ham_Ising_kick
+Floquet_ham = ham_even + ham_odd + ham_Ising_kick + 0.5j * commutator_XY + 0.5j * commutator_Ising
 #print(Floquet_ham)
 #exact effective Hamiltonian
-Floquet_ham = -1.j * linalg.logm(linalg.expm(1.j * ham_Ising_kick)  @ linalg.expm(1.j * ham_even) @ linalg.expm(1.j * ham_odd))
+#Floquet_ham = -1.j * linalg.logm(linalg.expm(1.j * ham_Ising_kick)  @ linalg.expm(1.j * ham_even) @ linalg.expm(1.j * ham_odd))
 #print(Floquet_ham.shape)
 #print(Floquet_ham)
 ham = Floquet_ham
 ham = ham - np.identity(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
 
-gs_energy, gs = eigsh(ham, 10) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
+gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
 print('ground state energy')
 print(gs_energy)
 
