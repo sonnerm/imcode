@@ -15,7 +15,7 @@ from random import random
 from compute_generators import compute_generators
 from scipy import linalg
 
-np.set_printoptions(threshold=sys.maxsize, precision=2, suppress=True)
+np.set_printoptions(threshold=sys.maxsize, precision=6, suppress=True)
 np.set_printoptions(linewidth=470)
 
 def create_Magnus_Floquet_ham(Jx, Jy, g,L,mu=0):#creates first order Magnus Hamiltonan WITHOUT chemical potential
@@ -75,12 +75,14 @@ def create_Magnus_Floquet_ham(Jx, Jy, g,L,mu=0):#creates first order Magnus Hami
     
     return H
 
-def create_exact_Floquet_ham(Jx, Jy, g, L):#creates exact Hamiltonan WITHOUT chemical potential
-    # Floquet Hamiltonian of xy-Model:
-    G_XY_even, G_XY_odd, G_g ,G_1= compute_generators(L,Jx,Jy,g)
-    H = -1.j * linalg.logm(linalg.expm(1.j * G_g) @ linalg.expm(1.j * G_XY_even) @ linalg.expm(1.j * G_XY_odd))
-    
+def create_exact_Floquet_ham(Jx, Jy, g, L, mu = 0):#creates exact Hamiltonan WITHOUT chemical potential
+   
+    G_even, G_odd, G_kick,G1 = compute_generators(L,Jx,Jy,g,0)
+
+    H =  -1.j * linalg.logm(linalg.expm(.5j * G_kick) @ linalg.expm(.5j * G_even)  @ linalg.expm(.5j * G_odd))
     return H
+
+
 def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
 
 #check for right ordering of eigenvectors in matrix M
@@ -95,15 +97,18 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #print('ordering')
     #print(ordering)
     """
-
+    np.set_printoptions(threshold=sys.maxsize, precision=6, suppress=True)
     #create Floquet Hamiltonian of interest
-    #Magnus expansion
-    #H_eff = create_Magnus_Floquet_ham(Jx,Jy,g,L,mu)
-
     #exact effective Hamiltonian
     H_eff = create_exact_Floquet_ham(Jx,Jy,g,L)
     print('H_eff')
     print(H_eff)
+
+    #Magnus expansion
+    H_eff_mag = create_Magnus_Floquet_ham(Jx,Jy,g,L,mu)
+    #print('H_eff')
+    #print(H_eff-H_eff_mag)
+    
 
     eigvals, eigvecs = linalg.eigh(H_eff)
     print('eigenvalues of eff. Hamiltonian:',eigvals)
@@ -135,7 +140,7 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #print(U)
     #print(V)
     Z = - linalg.inv(U.T.conj()) @ V.T.conj()
-
+    
     antisym_check = 0
     sum = 0
     for i in range (len(Z[0])):
