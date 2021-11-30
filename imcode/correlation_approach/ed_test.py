@@ -23,21 +23,21 @@ def rdm(vec,sites):
     ret=np.einsum("ij,kj->ik",vec.conj(),vec)
     return ret
 
-np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=14, suppress=True)
 np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
-L = 9# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
-beta = 0.4
-del_t = 1.0
+L = 5# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
+beta = 0.0
+del_t = 0.1
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
 Jx = 0.3 * del_t 
 Jy =  0.5 * del_t #np.pi/4+0.3
-g = 0 * del_t #np.pi/4+0.3
+g = 0. * del_t #np.pi/4+0.3
 
 
-Jx_odd_boundary = 0. * del_t 
-Jy_odd_boundary =  0. * del_t #np.pi/4+0.3
-Jz_odd_boundary = 1. #np.pi/4+0.3
+Jx_odd_boundary = Jx 
+Jy_odd_boundary =  Jy #np.pi/4+0.3
+Jz_odd_boundary = 0.0 #np.pi/4+0.3
 
 
 #Pauli matrices
@@ -54,6 +54,7 @@ ham_ZZ_two_site_boundary = Jz_odd_boundary * np.kron(sigma_z, sigma_z)
 F_odd =  expm(1j * ham_XY)
 F_odd_boundary =  expm(1j * ham_ZZ_two_site_boundary) @ expm(1j * ham_XY_boundary) 
 F_even = expm(1j * kick_two_site) @ expm(1j * ham_XY)
+
 
 #------------------------------------------------------------ Define initial state density matrix--------------------------------------------------------------------
 
@@ -93,15 +94,20 @@ for i in range (1,L-2, 2):
 for i in range(L-1):
     ham_Ising_kick += g * np.kron(np.identity(2**i) ,  np.kron( sigma_z, np.identity(2**(L-2-i))))
 
-commutator_XY = ham_even @ ham_odd - ham_odd @ ham_even
-commutator_Ising = ham_Ising_kick @ (ham_even + ham_odd) - (ham_even + ham_odd) @ ham_Ising_kick
-Floquet_ham = ham_even + ham_odd + ham_Ising_kick + 0.5j * commutator_XY + 0.5j * commutator_Ising
 
-
+#first order Magnus Hamiltonian
+#commutator_XY = ham_even @ ham_odd - ham_odd @ ham_even
+#commutator_Ising = ham_Ising_kick @ (ham_even + ham_odd) - (ham_even + ham_odd) @ ham_Ising_kick
+#Floquet_ham = ham_even + ham_odd + ham_Ising_kick + 0.5j * commutator_XY + 0.5j * commutator_Ising
+#print(Floquet_ham)
+#exact effective Hamiltonian
+Floquet_ham = -1.j * linalg.logm(linalg.expm(1.j * ham_Ising_kick)  @ linalg.expm(1.j * ham_even) @ linalg.expm(1.j * ham_odd))
+#print(Floquet_ham.shape)
+#print(Floquet_ham)
 ham = Floquet_ham
 ham = ham - np.identity(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
 
-gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
+gs_energy, gs = eigsh(ham, 10) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
 print('ground state energy')
 print(gs_energy)
 
@@ -112,12 +118,12 @@ state *= 1 / np.trace(state)
 
 #--------------- e-beta Z product state DM -------------------------------
 
-
-#one_site = expm(-beta * sigma_z )
-#state = one_site
-#for i in range (1,L-1):
-#    state = np.kron(state,one_site)
-
+"""
+one_site = expm(-beta * sigma_z )
+state = one_site
+for i in range (1,L-1):
+    state = np.kron(state,one_site)
+"""
 #--------------- Bell product state initial DM -------------------------------
 """
 Bell = np.zeros((4,4))
@@ -232,8 +238,9 @@ print(state.shape)
 state = np.reshape(state,np.repeat(2,2*(L-L%2)))
 print(state.shape)
 
-print('IM_val')
-print(state[0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0])
+#print('IM_val')
+#print(state[0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]/state[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+#print(state[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 
 
 """
