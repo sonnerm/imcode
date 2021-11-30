@@ -5,7 +5,7 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
     dim_B = len(B)
 
     hermitian_matrix = add_cmplx_random_antisym(B,1.e-8)
-    hermitian_matrix = B.T @ B.conj()
+    hermitian_matrix = hermitian_matrix.T @ hermitian_matrix.conj()
     eigenvalues_hermitian_matrix, R = linalg.eigh(hermitian_matrix)#compute rotation matrix as eigenvalues of hermitian_matrix, (eigsh is not as reliable)
 
     B_schur = R.T.conj() @ B @ R.conj()
