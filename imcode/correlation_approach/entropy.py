@@ -31,7 +31,7 @@ def entropy(correlation_block, ntimes, time_cut, iterator,filename):
     # print (correlation_block_reduced)
     eigenvalues_correlations, ev_correlations = linalg.eig(correlation_block_reduced)
     eigenvalues_correlations[::-1].sort()
-    print(eigenvalues_correlations)
+    #print(eigenvalues_correlations)
     with h5py.File(filename + '.hdf5', 'a') as f:
             data = f['entangl_spectr']
             data[iterator, time_cut,0:len(eigenvalues_correlations)] = np.array(np.real(eigenvalues_correlations))
