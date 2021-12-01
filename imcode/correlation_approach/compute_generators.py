@@ -61,16 +61,16 @@ def compute_generators(nsites, Jx=0, Jy=0, g=0, beta_tilde = 0):
     G_1[nsites, nsites] = +2 * beta_tilde
 
     # give out explicit form of generators
-    print('G_XY_even = ')
-    print(G_XY_even)
+    #print('G_XY_even = ')
+    #print(G_XY_even)
 
-    print('G_XY_odd = ')
-    print(G_XY_odd)
+    #print('G_XY_odd = ')
+    #print(G_XY_odd)
 
-    print('G_g = ')
-    print(G_g)
+    #print('G_g = ')
+    #print(G_g)
 
-    print('G_1 = ')
-    print(G_1)
+    #print('G_1 = ')
+    #print(G_1)
 
     return G_XY_even, G_XY_odd, G_g, G_1

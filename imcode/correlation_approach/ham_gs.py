@@ -101,11 +101,11 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #create Floquet Hamiltonian of interest
     #exact effective Hamiltonian
     H_eff = create_exact_Floquet_ham(Jx,Jy,g,L)
-    print('H_eff')
-    print(H_eff)
+    #print('H_eff')
+    #print(H_eff)
 
     #Magnus expansion
-    H_eff_mag = create_Magnus_Floquet_ham(Jx,Jy,g,L,mu)
+    #H_eff_mag = create_Magnus_Floquet_ham(Jx,Jy,g,L,mu)
     #print('H_eff')
     #print(H_eff-H_eff_mag)
     
