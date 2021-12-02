@@ -23,16 +23,16 @@ def rdm(vec,sites):
     ret=np.einsum("ij,kj->ik",vec.conj(),vec)
     return ret
 
-np.set_printoptions(linewidth=np.nan, precision=14, suppress=True)
+np.set_printoptions(linewidth=np.nan, precision=8, suppress=True)
 np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(linewidth=470)
 L = 5# number of sites of the spin chain (i.e. INCLUDING THE SYSTEM)
 beta = 0.0
 del_t = 2.
 #Parameters for Floquet evolution (can handle KIC as well as XY model)
-Jx = 0.3 * del_t 
-Jy =  0.4 * del_t #np.pi/4+0.3
-g = 0. * del_t #np.pi/4+0.3
+Jx = 0.5 * del_t 
+Jy =  0. * del_t #np.pi/4+0.3
+g = 0.5 * del_t #np.pi/4+0.3
 
 
 Jx_odd_boundary = Jx 
@@ -44,6 +44,9 @@ Jz_odd_boundary = 0.0 #np.pi/4+0.3
 sigma_x = np.array([[0,1],[1,0]])
 sigma_y = np.array([[0,-1j],[1j,0]])
 sigma_z = np.array([[1,0],[0,-1]])
+
+sigma_minus = (sigma_x - 1.j * sigma_y) / 2
+sigma_plus = (sigma_x + 1.j * sigma_y) / 2
 
 #build two-site Floquet operators
 ham_XY = Jx * np.kron(sigma_x, sigma_x) + Jy * np.kron(sigma_y, sigma_y)
@@ -96,15 +99,70 @@ for i in range(L-1):
 
 
 #first order Magnus Hamiltonian
-commutator_XY = ham_even @ ham_odd - ham_odd @ ham_even
-commutator_Ising = ham_Ising_kick @ (ham_even + ham_odd) - (ham_even + ham_odd) @ ham_Ising_kick
-Floquet_ham = ham_even + ham_odd + ham_Ising_kick + 0.5j * commutator_XY + 0.5j * commutator_Ising
-#print(Floquet_ham)
+#commutator_XY = ham_even @ ham_odd - ham_odd @ ham_even
+#Floquet_ham = ham_even + ham_odd + ham_Ising_kick + 0.5j * commutator_XY + 0.5j * commutator_Ising
+#commutator_Ising = ham_Ising_kick @ (ham_even + ham_odd) - (ham_even + ham_odd) @ ham_Ising_kick
+
 #exact effective Hamiltonian
-#Floquet_ham = -1.j * linalg.logm(linalg.expm(1.j * ham_Ising_kick)  @ linalg.expm(1.j * ham_even) @ linalg.expm(1.j * ham_odd))
+Floquet_ham = -1.j * linalg.logm(linalg.expm(1.j * ham_Ising_kick)  @ linalg.expm(1.j * ham_even) @ linalg.expm(1.j * ham_odd))
 #print(Floquet_ham.shape)
 #print(Floquet_ham)
+
+
+#construct from fermionic Hamiltonian via backward J.W.
+H=np.array([[-0.901291-0.j,        0.487769+0.j,       -0.100455-0.j,        0.024664+0.j,       -0.      +0.j,        0.316152-0.492378j, -0.060199+0.093755j,  0.014121-0.021992j],
+ [ 0.487769-0.j,       -0.792958-0.j,        0.475336+0.j,       -0.100455+0.j,       -0.316152+0.492378j,  0.      -0.j,        0.316152-0.492378j, -0.060199+0.093755j],
+ [-0.100455+0.j,        0.475336+0.j,       -0.792958-0.j,        0.487769-0.j,        0.060199-0.093755j, -0.316152+0.492378j, -0.      +0.j,        0.316152-0.492378j],
+ [ 0.024664+0.j,       -0.100455-0.j,        0.487769+0.j,       -0.901291-0.j,       -0.014121+0.021992j,  0.060199-0.093755j, -0.316152+0.492378j, -0.      -0.j      ],
+ [ 0.      +0.j,       -0.316152-0.492378j,  0.060199+0.093755j, -0.014121-0.021992j,  0.901291-0.j,       -0.487769+0.j,        0.100455-0.j,       -0.024664-0.j      ],
+ [ 0.316152+0.492378j,  0.      +0.j,       -0.316152-0.492378j,  0.060199+0.093755j, -0.487769-0.j,        0.792958-0.j,       -0.475336-0.j,        0.100455+0.j      ],
+ [-0.060199-0.093755j,  0.316152+0.492378j, -0.      +0.j,       -0.316152-0.492378j,  0.100455+0.j,       -0.475336-0.j,        0.792958+0.j,       -0.487769-0.j      ],
+ [ 0.014121+0.021992j, -0.060199-0.093755j,  0.316152+0.492378j,  0.      +0.j,       -0.024664-0.j,        0.100455-0.j,       -0.487769+0.j,        0.901291-0.j      ]])
+
+Floquet_ham = np.zeros((2**(L-1), 2**(L-1)),dtype=np.complex_)
+
+for i in range (L-1):
+    for j in range (i,L-1):
+        term = 0
+        if i == j:
+            term = np.kron(np.kron(np.identity(2**i), H[i,j] * sigma_minus @  sigma_plus  ), np.identity(2**((L-1)-i - 1)))#c^dagger c
+            Floquet_ham += term
+            print(i,j, "c_dag, c")
+            print(term)
+        elif j > i:
+            term = 1 * np.kron(np.identity(2**i), sigma_minus @ sigma_z )
+            for k in range (abs(j-i - 1)):
+                term = np.kron(term, sigma_z)
+            term =  np.kron(term, H[i,j] * sigma_plus )
+            term = np.kron(term, np.identity(2**((L-1)-1-j)))
+            Floquet_ham +=  2 * term
+            print(i,j, "c_dag, c")
+            print(2 *term)
+
+            term = np.kron(np.identity(2**i), sigma_minus @ sigma_z )
+            for k in range (abs(j-i - 1)):
+                term = -1* np.kron(term, sigma_z)
+            term =  np.kron(term, H[i,j+(L-1)] * sigma_minus )
+            term = np.kron(term, np.identity(2**((L-1)-1-j)))
+            Floquet_ham +=  2* term
+            print(i,j, "c_dag, c_dag")
+            print(2*term)
+
+Floquet_ham += Floquet_ham.T.conj()
+
+
+"""
+print(Floquet_ham)
+print(Floquet_ham1)
+checker = 0
+for i in range (Floquet_ham.shape[0]):
+    for j in range (Floquet_ham.shape[0]):
+        checker += abs(Floquet_ham[i,j] - Floquet_ham1[i,j])
+print('checker', checker)
+
+"""
 ham = Floquet_ham
+#print(Floquet_ham)
 ham = ham - np.identity(len(ham)) * 2 * L #shift Hamiltonian by a constant to make sure that eigenvalue with largest magnitude is the ground state
 
 gs_energy, gs = eigsh(ham, 1) #yields ground state vector and corresponding eigenvalue (shifted downwards by 2 * L)
