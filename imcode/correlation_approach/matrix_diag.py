@@ -33,10 +33,10 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     U_E[0] = expm(1j*G_g) @ U_E[0]
     U_E[1] = U_E[1] @ expm(-1j*G_g)
 
-    print( 'U_E[0] = expm(1j*G_g) @ U_E[0]')
-    print( U_E[0] )
-    print( 'U_E[1] = expm(1j*G_g) @ U_E[1]')
-    print( U_E[1] )
+    #print( 'U_E[0] = expm(1j*G_g) @ U_E[0]')
+    #print( U_E[0] )
+    #print( U_E[1] )
+    #print( 'U_E[1] = expm(1j*G_g) @ U_E[1]')
    
     # generator of environment (always unitary)
     G_eff_E = -1j * linalg.logm(U_E[0])
@@ -106,14 +106,14 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     print('eigenvector_check (f/b/E)',
           eigenvector_check, '/', eigenvector_check_E)
 
-    print('forward eigenvalues')
-    print(eigenvalues_G_eff[0])
+    #print('forward eigenvalues')
+    #print(eigenvalues_G_eff[0])
 
-    print('backward eigenvalues')
-    print(eigenvalues_G_eff[1])
+    #print('backward eigenvalues')
+    #print(eigenvalues_G_eff[1])
 
-    print('environment eigenvalues')
-    print(eigenvalues_G_eff_E)
+    #print('environment eigenvalues')
+    #print(eigenvalues_G_eff_E)
 
     # sort eigenvectors such that first half are the ones with positive real part of eigenvalues and second half the corresponding negative ones
     argsort_fw = np.argsort(- np.real(eigenvalues_G_eff[0]))
@@ -132,16 +132,16 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
 
 
-    print ('M0', M[0])
+    #print ('M0', M[0])
     #M[0] = reorder_eigenvecs(M[0], nsites)
     #M_E = reorder_eigenvecs(M_E, nsites)
     #M[1] = reorder_eigenvecs(M[1], nsites)
-    print('M_forward')
-    print(M[0])  # matrix that diagonalizes G_eff_fw
-    print('M_backward')
-    print(M[1])  # matrix that diagonalizes G_eff_bw
-    print('M_environment')
-    print(M_E)  # matrix that diagonalizes G_eff_E
+    #print('M_forward')
+    #print(M[0])  # matrix that diagonalizes G_eff_fw
+    #print('M_backward')
+    #print(M[1])  # matrix that diagonalizes G_eff_bw
+    #print('M_environment')
+    #print(M_E)  # matrix that diagonalizes G_eff_E
 
     
     M_inverse = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
@@ -164,12 +164,12 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     eigenvalues_G_eff_E = D_E.diagonal()
 
-    print('D_fw= ')
-    print(D[0])
-    print('D_bw= ')
-    print(D[1])
-    print('D_E= ')
-    print(D_E)
+    #print('D_fw= ')
+    #print('D_bw= ')
+    #print(D[1])
+    #print(D[0])
+    #print('D_E= ')
+    #print(D_E)
 
     # check if diagonalization worked
     diag_check = 0
