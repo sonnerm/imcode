@@ -4,7 +4,7 @@ import h5py
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
 
-def entropy(correlation_block, ntimes, time_cut, iterator,filename):
+def entropy(mode, correlation_block, ntimes, time_cut, iterator,filename):
 
     half_dim_CB = correlation_block.shape[0] // 2
 
@@ -12,20 +12,17 @@ def entropy(correlation_block, ntimes, time_cut, iterator,filename):
         # take this as default value if nothing has been specified otherwise
         time_cut = max(ntimes / 2, 1)
 
-    """
-     #for correlation approach
-    Delta_half = 2. * time_cut / (8. * ntimes / correlation_block.shape[0])#half the inverval that we define as subsystem    
-    print(Delta_half)
-    correlation_block_reduced = np.bmat([[correlation_block[0: int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[0: int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]], [
-        correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]]])
-    """
+
+    if mode == 'C' or mode == 'D':#for "C"orrelation approach and "D"MFT data evaluation
+        Delta_half = 2. * time_cut / (8. * ntimes / correlation_block.shape[0])#half the inverval that we define as subsystem    
+        print(Delta_half)
+        correlation_block_reduced = np.bmat([[correlation_block[0: int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[0: int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]], [
+            correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]]])
     
-    
-    #for GM-approach
-    
-    Delta_half = 2 * time_cut
-    correlation_block_reduced = np.bmat([[correlation_block[half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half, half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half], correlation_block[half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half, 3 * (half_dim_CB // 2) - Delta_half:3 * (half_dim_CB // 2) + Delta_half]], [
-        correlation_block[3 * (half_dim_CB // 2) - Delta_half: 3 * (half_dim_CB // 2) + Delta_half, (half_dim_CB // 2) - Delta_half: (half_dim_CB // 2) + Delta_half], correlation_block[3 * (half_dim_CB // 2) - Delta_half:3 * (half_dim_CB // 2) + Delta_half, 3 * (half_dim_CB // 2) - Delta_half: 3 * (half_dim_CB // 2) + Delta_half]]])
+    else:#for Grassmann-approach
+        Delta_half = 2 * time_cut
+        correlation_block_reduced = np.bmat([[correlation_block[half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half, half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half], correlation_block[half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half, 3 * (half_dim_CB // 2) - Delta_half:3 * (half_dim_CB // 2) + Delta_half]], [
+            correlation_block[3 * (half_dim_CB // 2) - Delta_half: 3 * (half_dim_CB // 2) + Delta_half, (half_dim_CB // 2) - Delta_half: (half_dim_CB // 2) + Delta_half], correlation_block[3 * (half_dim_CB // 2) - Delta_half:3 * (half_dim_CB // 2) + Delta_half, 3 * (half_dim_CB // 2) - Delta_half: 3 * (half_dim_CB // 2) + Delta_half]]])
     
 
     # print (correlation_block_reduced)

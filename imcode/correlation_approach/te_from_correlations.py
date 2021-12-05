@@ -24,8 +24,8 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 6
-max_time2 = 6
+max_time1 = 3
+max_time2 = 3
 stepsize1 = 1
 stepsize2 = 1
 init_state = 3 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
@@ -33,7 +33,7 @@ init_state = 3 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp
 time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
 
-mode =  sys.argv[1] # 'E': compute temporal entanglement entropy, 'L': compute Lohschmidt echo
+mode =  sys.argv[1] # 'G': compute temporal entanglement entropy from Grassmann approach, 'C': compute temporal entanglement entropy from correlation approach, 'L': compute Lohschmidt echo
 write_mode = sys.argv[2] #if the argument is 'w', overwrite file if it exists, otherwise append if it exists
 # lattice sites (in the environment):
 nsites = int(sys.argv[3])
@@ -59,15 +59,8 @@ print('mu_init_state', mu_initial_state)
 if mode == 'L':
     print('g_boundary_mag', g_boundary_mag)
 
-#beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
-
 iterator = 0 # iterator at beginning of job. If file exist and job is continued, this will be set to the appropraite value below
 # total_time = 0 means one floquet-layer
-# define initial density matrix and determine matrix which diagonalizes it:
-# this is the EXPONENT of the BARE gaussian density matrix
-#rho_0_exponent = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
-# must be initialized as matrix that diagonalizes dressed density matrix
-#N_t = np.identity(2 * nsites, dtype=np.complex_)
 
 
 #set location for data storage
@@ -81,10 +74,6 @@ if mode == 'L':
    filename += '_g_boundary_mag=' + str(g_boundary_mag)
 
 print('filename:', filename)
-
-# initialize arrays in which entropy values and corresponding time-cuts are stored
-#entropy_values = np.zeros((int(max_time1/stepsize1) +int(max_time2/stepsize2) + 3, max_time2 + stepsize2))  # entropies
-#times = np.zeros(int(max_time1/stepsize1) + int(max_time2/stepsize2))  # time cuts
 
 
 if os.path.isfile(filename+".hdf5") and write_mode != 'w':
@@ -108,19 +97,21 @@ else:
         dset_init_BCS_state = f.create_dataset('init_BCS_state', (nsites, nsites),dtype=np.complex_)
         dset_const_blip = f.create_dataset('const_blip', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1,),dtype=np.float_)
 
-# find generators and matrices which diagonalize the composite Floquet operator:
-#G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
-#evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
+if mode == "C":
+    beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
+    # define initial density matrix and determine matrix which diagonalizes it:
+    # this is the EXPONENT of the BARE gaussian density matrix
+    rho_0_exponent = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
+    # must be initialized as matrix that diagonalizes dressed density matrix
+    N_t = np.identity(2 * nsites, dtype=np.complex_)
+    # find generators and matrices which diagonalize the composite Floquet operator:
+    G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
+    evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
 
-#M, M_E, eigenvalues_G_eff, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
-#ising_gamma_times, ising_gamma_values = ising_gamma(M,eigenvalues_G_eff, nsites, gamma_test_range)
+    M, M_E, eigenvalues_G_eff, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
 
 
 for nbr_Floquet_layers in time_array[iterator:]:
-
-    #n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
-    
-    #B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
 
     #store array with times in entropy-dataset, regardless of whether entropy is acutally computed (also used for Lohschmidt)
@@ -128,21 +119,51 @@ for nbr_Floquet_layers in time_array[iterator:]:
         entr_data = f['temp_entr']
         entr_data[iterator,0] = nbr_Floquet_layers#write array with times
 
-    if mode == 'E':
-        B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
+    if mode == "C" or mode == "G":
+        if mode == "C":
+            n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+            B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
+        
+            
+        else:
+            B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
+
+
+            """"
+            #the following block expresses B in the same basis as in the correlation approach such that the two matrices can directly be compared
+            S = np.zeros(B.shape,dtype=np.complex_)
+            rot = np.zeros((4 * nbr_Floquet_layers,4 * nbr_Floquet_layers))
+            for i in range(0,4*nbr_Floquet_layers, 2):
+                rot[i,i] = 1./np.sqrt(2)
+                rot[i,i+1] = 1./np.sqrt(2)
+                rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
+                rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
+            B = rot @ B @ rot.T
+            for i in range (nbr_Floquet_layers):
+                S [B.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
+                S [B.shape[0] // 2 - (2 * i) - 1,4 * i + 2] = 1
+                S [B.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
+                S [B.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
+            B = S.T @ B @ S
+            mode = 'C'#if basis has been transformed, the routine for the entropy computation needs to be adjusted.
+            """
+
+        np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
+        print('B')
+        print(B)
+        print(np.linalg.det(B))
         correlation_block = create_correlation_block(B, nbr_Floquet_layers)
         time_cuts = np.arange(1, nbr_Floquet_layers)
-        #entropy_values[iterator, 0] = nbr_Floquet_layers
-        print('Starting to writw data at iteration', iterator)
+
+        print('Starting to write data at iteration', iterator)
         with h5py.File(filename + '.hdf5', 'a') as f:
             entr_data = f['temp_entr']
             for cut in time_cuts:
                 print('calculating entropy at time cut:', cut)
-            #entropy_values[iterator, cut] = entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename)
-                entr_data[iterator,cut] = float(entropy(correlation_block, nbr_Floquet_layers, cut, iterator, filename))
+                entr_data[iterator,cut] = float(entropy(mode, correlation_block, nbr_Floquet_layers, cut, iterator, filename))
         
         print('Finished writing data at iteration', iterator)
-    
+
 
     elif mode == 'L':
         Lohschmidt(init_state, Jx, Jy,g,beta, mu_initial_state,g_boundary_mag, nsites, nbr_Floquet_layers, filename, iterator)
@@ -155,7 +176,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
 
 with h5py.File(filename + '.hdf5', 'r') as f:
    entr_data = f['temp_entr']
-   np.set_printoptions(linewidth=np.nan, precision=10, suppress=True)
+   np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
    print(entr_data[:])
 
 #plot_entropy(entropy_values, iterator, Jx/del_t, Jy/del_t, g/del_t, del_t, beta, nsites, filename, ising_gamma_times, ising_gamma_values)
