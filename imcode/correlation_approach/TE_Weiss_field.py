@@ -69,7 +69,10 @@ B = np.zeros((ntimes,ntimes))
 
 for i in range(0,ntimes):
     B[i,:] = np.concatenate( (np.dot(-1,(data[range(ntimes-1 - i  , ntimes-1 ),1])) , data[range(ntimes-1 , i - 1, -1),1] ), axis=None) #data[range(ntimes-1 + i , -1+ i, -1),1]
-            
+    
+for i in range(B.shape[0]):
+    for j in range(i,B.shape[0]):
+        B[i,j] = - B[j,i]
 
 B = inv(B)#invert to obtain Weiss field
 
