@@ -39,14 +39,14 @@ np.set_printoptions(linewidth=np.nan, precision=5, suppress=True)
 
 #set location for data storage
 mac_path = '/Users/julianthoenniss/Documents/Studium/PhD/data/correlation_approach/'
-work_path = '/Users/julianthoenniss/Documents/PhD/data/'
-fiteo1_path = '/home/thoennis/DMFT_data/weiss_fields_vs_lmats/'
+work_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/ins_met_transition/3.5/'
+fiteo1_path = '/home/thoennis/DMFT_data/ins_met_transition/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-Weiss_data_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/weiss_field_test/'
-#Weiss_data_path = '/home/thoennis/DMFT_data/weiss_fields_vs_lmats/'
+#Weiss_data_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/ins_met_transition/'
+Weiss_data_path = '/home/thoennis/DMFT_data/ins_met_transition/'
 
-Weiss_file = 'Weiss_tau'
+Weiss_file = 'Weiss_field_tau_uloc3.25'
 
 Weiss_data_file = Weiss_data_path + Weiss_file
 
@@ -69,10 +69,10 @@ B = np.zeros((ntimes,ntimes))
 
 for i in range(0,ntimes):
     B[i,:] = np.concatenate( (np.dot(-1,(data[range(ntimes-1 - i  , ntimes-1 ),1])) , data[range(ntimes-1 , i - 1, -1),1] ), axis=None) #data[range(ntimes-1 + i , -1+ i, -1),1]
-    
+
+#set diagonal to zero
 for i in range(B.shape[0]):
-    for j in range(i,B.shape[0]):
-        B[i,j] = - B[j,i]
+    B[i,i] = 0
 
 B = inv(B)#invert to obtain Weiss field
 
