@@ -62,7 +62,7 @@ clean = [line.strip().replace('\t', '').split() for line in lines]
 data = pd.DataFrame(clean[:], columns=clean[0]).astype(float).to_numpy()
 
 ntimes = len(data[:,1]) // 2 
-filename = work_path + 'TE_from_' + Weiss_file + str(ntimes)
+filename = work_path + 'TE_from_' + Weiss_file + '_' + str(ntimes)
 
 print('ntimes', ntimes)
 B = np.zeros((ntimes,ntimes))
