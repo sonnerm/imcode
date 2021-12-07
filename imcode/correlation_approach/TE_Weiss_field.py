@@ -43,8 +43,8 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/ins_met_transit
 fiteo1_path = '/home/thoennis/DMFT_data/ins_met_transition/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-#Weiss_data_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/ins_met_transition/'
-Weiss_data_path = '/home/thoennis/DMFT_data/ins_met_transition/'
+Weiss_data_path = '/Users/julianthoenniss/Documents/PhD/data/DMFT_data/ins_met_transition/'
+#Weiss_data_path = '/home/thoennis/DMFT_data/ins_met_transition/'
 
 Weiss_file = 'Weiss_field_tau_uloc3.25'
 
@@ -70,12 +70,20 @@ B = np.zeros((ntimes,ntimes))
 for i in range(0,ntimes):
     B[i,:] = np.concatenate( (np.dot(-1,(data[range(ntimes-1 - i  , ntimes-1 ),1])) , data[range(ntimes-1 , i - 1, -1),1] ), axis=None) #data[range(ntimes-1 + i , -1+ i, -1),1]
 
+
+print(B[:10,:10])
+print(B[:10,B.shape[0]-10:B.shape[0]])
+
+B = inv(B)#invert to obtain inverse Weiss field
+
 #set diagonal to zero
 for i in range(B.shape[0]):
     B[i,i] = 0
+    for j in range (i,B.shape[0]):
+        B[j,i] = -B[i,j]
+print(B[:10,:10])
 
-B = inv(B)#invert to obtain Weiss field
-
+"""
 with h5py.File(filename + ".hdf5", 'w') as f:
     dset_temp_entr = f.create_dataset('temp_entr', (1,ntimes),dtype=np.float_)
     dset_entangl_specrt = f.create_dataset('entangl_spectr', (1,2 * ntimes,2 * ntimes),dtype=np.float_)
@@ -98,7 +106,7 @@ with h5py.File(filename + '.hdf5', 'a') as f:
         print('ent_val', ent_val)
 
 
-
+"""
 
 with h5py.File(filename + '.hdf5', 'r') as f:
    entr_data = f['temp_entr']
