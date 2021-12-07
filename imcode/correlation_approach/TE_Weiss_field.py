@@ -94,7 +94,7 @@ with h5py.File(filename + '.hdf5', 'a') as f:
     
     for cut in time_cuts:
         print('calculating entropy at time cut:', cut)
-        ent_val = float(entropy(correlation_block, ntimes, cut,0, filename))
+        ent_val = float(entropy('D', correlation_block, ntimes, cut,0, filename))
         entr_data[0,cut] = ent_val
         print('ent_val', ent_val)
 
