@@ -50,11 +50,6 @@ Weiss_file = 'Weiss_tau'
 
 Weiss_data_file = Weiss_data_path + Weiss_file
 
-filename = work_path + 'TE_from_' + Weiss_file
-
-
-#Weiss_data_file = '/home/thoennis/DMFT_data/Weiss_tt.dat'
-
 
 # Read the data.
 with open(Weiss_data_file + '.dat', 'r') as fh:
@@ -67,6 +62,7 @@ clean = [line.strip().replace('\t', '').split() for line in lines]
 data = pd.DataFrame(clean[:], columns=clean[0]).astype(float).to_numpy()
 
 ntimes = len(data[:,1]) // 2 
+filename = work_path + 'TE_from_' + Weiss_file + str(ntimes)
 
 print('ntimes', ntimes)
 B = np.zeros((ntimes,ntimes))
