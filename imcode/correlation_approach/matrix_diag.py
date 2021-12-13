@@ -6,14 +6,18 @@ from scipy import linalg
 from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 from numpy.linalg import multi_dot
+import scipy.optimize
 from reorder_eigenvecs import reorder_eigenvecs
 from compute_generators import compute_generators
 from add_cmplx_random_antisym import add_cmplx_random_antisym
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
-
+def alg_decay(x,a,b,c):
+    return a*x**b+c
 def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
-
+    #print(G_XY_odd)
+    #print(G_XY_even)
+    #print(G_g)
      # unitary gate is exp-product of exponentiated generators
     # gate that describes evolution non disconnected environment. first dimension: 0 = forward branch, 1 = backward branch
     U_E = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
@@ -40,8 +44,8 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
    
     # generator of environment (always unitary)
     G_eff_E = -1j * linalg.logm(U_E[0])
-
-    
+    #print('G_eff_E')
+    #print(G_eff_E)
     U_eff[0] = U_E[0] @ U_1
     U_eff[1] =  U_1 @ U_E[1]
 
@@ -131,6 +135,21 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         M_E[:, i] = eigenvectors_G_eff_E[:, argsort_E[i]]
         M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
 
+    """
+    fig, ax = plt.subplots(2)
+    x = np.arange(0,nsites,1)
+    y = (M_E[nsites,nsites:2*nsites] * M_E[0, :nsites])
+    ax[0].plot(x, y)
+    # perform the fit
+    p0 = (1,2,0) # start with values near those we expect
+
+    params, cv = scipy.optimize.curve_fit(alg_decay, x[2:max(nsites//10,4)], y[2:max(nsites//10,4)], p0)
+    a,b,c = params
+    print(a,b,c)
+    ax[0].plot(x[0:nsites//4], alg_decay(x[:nsites//4],a,b,c),label= 'alg. fit: '+ r'${{{}}}\cdot x^{{{}}}+ {{{}}}$'.format(round(a,6),round(b,2),round(c,4)))
+    ax[0].legend()
+    """
+    
 
     #print ('M0', M[0])
     #M[0] = reorder_eigenvecs(M[0], nsites)
@@ -163,7 +182,10 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     D_E = np.dot(D_E, M_E)
     # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     eigenvalues_G_eff_E = D_E.diagonal()
-
+    """
+    ax[1].plot(np.arange(0,nsites,1), (eigenvalues_G_eff_E[:nsites]))
+    plt.show()
+    """
     #print('D_fw= ')
     #print('D_bw= ')
     #print(D[1])
