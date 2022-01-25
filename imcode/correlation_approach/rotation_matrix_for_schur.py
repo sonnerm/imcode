@@ -1,13 +1,15 @@
 from add_cmplx_random_antisym import add_cmplx_random_antisym
 from scipy import linalg
+from scipy.sparse.linalg import eigsh
 import numpy as np
 def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix that brings B into Schur form 
     dim_B = len(B)
 
     hermitian_matrix = add_cmplx_random_antisym(B,1.e-8)
+    
     hermitian_matrix = hermitian_matrix.T @ hermitian_matrix.conj()
     eigenvalues_hermitian_matrix, R = linalg.eigh(hermitian_matrix)#compute rotation matrix as eigenvalues of hermitian_matrix, (eigsh is not as reliable)
-
+    
     B_schur = R.T.conj() @ B @ R.conj()
     #print('Schur form of B (complex eigenvalues):')
     #print(B_schur)
@@ -30,16 +32,22 @@ def rotation_matrix_for_schur(B):#this funciton computes the orthogonal matrix t
         D_phases[2 * i,2 * i] = np.exp(0.5j * np.angle(eigenvalues_hermitian_matrix[i]))
         D_phases[2 * i + 1,2 * i + 1] = np.exp(0.5j * np.angle(eigenvalues_hermitian_matrix[i]))
 
+    #print('rotation matrix R')
+    #print(R @ R.T.conj())
+    #print ('D_phases')
+    #print (D_phases)
     R = R @ D_phases #R is generally complex
+
     #print('rotation matrix R')
     #print (R)
+
     B_schur = R.T.conj() @ B @ R.conj()
     #print('Schur form of B (real eigenvalues):')
     #print(B_schur)
 
     eigenvalues_real = np.zeros(int(dim_B/2))
     for i in range(0,int(dim_B/2)):
-        eigenvalues_real[i] = B_schur[2 * i,2 * i + 1]#define eigenvalues from Schur form of matrix such that the order is in correspondence with the order of the eigenvectors in R.
+        eigenvalues_real[i] = np.real(B_schur[2 * i,2 * i + 1])#define eigenvalues from Schur form of matrix such that the order is in correspondence with the order of the eigenvectors in R.
     #print ('eigenvalues (real): ',eigenvalues_real)
 
  

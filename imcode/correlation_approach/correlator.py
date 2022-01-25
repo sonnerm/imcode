@@ -14,14 +14,17 @@ def correlator(A, n_expect, branch1, majorana_type1, tau_1, branch2, majorana_ty
     A_2 = np.zeros(A_1.shape,dtype=np.complex_)
     A_2[:,0:nsites] =  A[:, branch2, majorana_type2, tau_2_index,nsites : 2*nsites]#2D array with (2 x 2 * nsites) entries
     A_2[:,nsites: 2 * nsites] =  A[:, branch2, majorana_type2, tau_2_index,0 : nsites]#2D array with (2 x 2 * nsites) entries
- 
+
+    """
     if tau_2_index == tau_1_index and branch1 == branch2 and majorana_type1 != majorana_type2:#dressing only for second observable (first argument = 0 in second coefficient array)
         if branch1 == 0:
-            result = np.einsum('k,k,k-> ',A_1[0] , n_expect, A_2[1])
+            result = np.einsum('k,k,k-> ',A_1[0] , n_expect, A_2[0])#01
         else:
-            result = np.einsum('k,k,k-> ',A_1[1] , n_expect, A_2[0])
+            result = np.einsum('k,k,k-> ',A_1[0] , n_expect, A_2[0])#10
     else:#dressing in both cases (first argument = 1 in both coefficient arrays)
-        result = np.einsum('k,k,k-> ',A_1[1] , n_expect, A_2[1])
-    
-
+    """
+    result = np.einsum('k,k,k-> ',A_1[1] , n_expect, A_2[1])#11
+    #print('A_1[1]')
+    #print(A_1[1])
+    #print(A_2[1])
     return result

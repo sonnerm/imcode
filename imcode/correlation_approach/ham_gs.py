@@ -15,6 +15,7 @@ from random import random
 from compute_generators import compute_generators
 from scipy import linalg
 
+
 np.set_printoptions(threshold=sys.maxsize, precision=6, suppress=True)
 np.set_printoptions(linewidth=470)
 
@@ -140,7 +141,10 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #print(U)
     #print(V)
     Z = - linalg.inv(U.T.conj()) @ V.T.conj()
-    
+
+    Corr = np.bmat([[U@U.T.conj(),U@V.T.conj()],[V@U.T.conj(),V@V.T.conj()]])
+    print('eig(Corr)')
+    print(linalg.eigvalsh(Corr))
     antisym_check = 0
     sum = 0
     for i in range (len(Z[0])):
@@ -153,8 +157,9 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     print('antisym_check')
     print(antisym_check)
 
-    #print('Z')
-    #print(Z)
+    print('Z')
+    
+    print(linalg.eigvals(Z))
 
     with h5py.File(filename + ".hdf5", 'a') as f:
         init_BCS_data = f['init_BCS_state']

@@ -11,8 +11,7 @@ from tests import anti_sym_check, test_identity_correlations
 def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect):
 
     # define parameters:
-    alpha = np.cos(Jx) * np.cos(Jy) * np.sqrt(2. / (np.cos(2*Jx) + np.cos(2*Jy)))
-
+    T = (1 + np.tan(Jx) * np.tan(Jy))
     # procompute evolvers T from which the correlation coefficients A can be inferred
     T_tilde = evolvers(evolution_matrix, N_t, nsites, nbr_Floquet_layers, beta_tilde)
    
@@ -79,32 +78,32 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_
 
             else:# for tau_1 = tau_2, G_Feynman and G_AntiFeynman are zero for same fields
                 #equal time correlators between same operators on same branch have only one factor alpha -> cancel out one of the two.
-                G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1) * 1. / alpha
-                G_AntiFeynman_zetatheta = correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2) * 1. / alpha
+              
+                G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1) - np.exp(2 * beta_tilde) #* 1. / alpha
+                G_AntiFeynman_zetatheta =  + correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2) - np.exp(2 * beta_tilde)#* 1. / alpha
 
-                G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1) * 1. / alpha
-                G_AntiFeynman_thetazeta = correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2) * 1. / alpha
-
-
+                G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1) + np.exp(2 * beta_tilde) #* 1. / alpha
+                G_AntiFeynman_thetazeta = + correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2) + np.exp(2 * beta_tilde)#* 1. / alpha
+      
             #define prefactors for correlators to make notation more compact
-            prefac_x = alpha * np.tan(Jx) * np.sqrt(2) 
-            prefac_y = alpha * np.tan(Jy) * np.sqrt(2) 
-
+            prefac_x = np.sqrt(2) * 1/T * np.tan(Jx) 
+            prefac_y = np.sqrt(2) * 1/T * np.tan(Jy) 
+        
             # B is the matrix that contains all the correlations, excatly corresponding to the matrix [[G_thetatheta, G_thetazeta],[G_zetatheta, G_zetazeta]] in my notes, without additional prefactors
-            B[4 * tau_1, 4 * tau_2] = 1j * G_Feynman_thetatheta * prefac_y**2 
+            B[4 * tau_1, 4 * tau_2] = 1j * G_Feynman_thetatheta  * prefac_y**2 
             B[4 * tau_1, 4 * tau_2 + 1] = 1j * G_lesser_thetatheta * prefac_y**2 
-            B[4 * tau_1 + 1, 4 * tau_2] = 1j * G_greater_thetatheta * prefac_y**2 
-            B[4 * tau_1 + 1, 4 * tau_2 + 1] = 1j * G_AntiFeynman_thetatheta * prefac_y**2 
+            B[4 * tau_1 + 1, 4 * tau_2] = 1j * G_greater_thetatheta  * prefac_y**2 
+            B[4 * tau_1 + 1, 4 * tau_2 + 1] = 1j * G_AntiFeynman_thetatheta * prefac_y**2
             
-            B[4 * tau_1, 4 * tau_2 + 2] = 1j * G_Feynman_thetazeta * prefac_x * prefac_y 
-            B[4 * tau_1, 4 * tau_2 + 3] = -1j* G_lesser_thetazeta * prefac_x * prefac_y 
-            B[4 * tau_1 + 1, 4 * tau_2 + 2] =  1j * G_greater_thetazeta * prefac_x * prefac_y 
-            B[4 * tau_1 + 1, 4 * tau_2 + 3] =-1j* G_AntiFeynman_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1, 4 * tau_2 + 2] = -1 * G_Feynman_thetazeta  * prefac_x * prefac_y 
+            B[4 * tau_1, 4 * tau_2 + 3] =  1*G_lesser_thetazeta  * prefac_x * prefac_y 
+            B[4 * tau_1 + 1, 4 * tau_2 + 2] =  -1 * G_greater_thetazeta * prefac_x * prefac_y 
+            B[4 * tau_1 + 1, 4 * tau_2 + 3] = 1*G_AntiFeynman_thetazeta  * prefac_x * prefac_y 
 
-            B[4 * tau_1 + 2, 4 * tau_2] = 1j * G_Feynman_zetatheta * prefac_x * prefac_y 
-            B[4 * tau_1 + 2, 4 * tau_2 + 1] =  1j * G_lesser_zetatheta * prefac_x * prefac_y 
-            B[4 * tau_1 + 3, 4 * tau_2] = -1j*G_greater_zetatheta * prefac_x * prefac_y 
-            B[4 * tau_1 + 3, 4 * tau_2 + 1] = -1j*G_AntiFeynman_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 2, 4 * tau_2] = -1 * G_Feynman_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 2, 4 * tau_2 + 1] =  -1 * G_lesser_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 3, 4 * tau_2] = 1*G_greater_zetatheta * prefac_x * prefac_y 
+            B[4 * tau_1 + 3, 4 * tau_2 + 1] = 1*G_AntiFeynman_zetatheta * prefac_x * prefac_y 
             
             B[4 * tau_1 + 2, 4 * tau_2 + 2] =-1j * G_Feynman_zetazeta * prefac_x**2 
             B[4 * tau_1 + 2, 4 * tau_2 + 3] = 1j * G_lesser_zetazeta * prefac_x**2 
@@ -112,14 +111,19 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_
             B[4 * tau_1 + 3, 4 * tau_2 + 3] = -1j * G_AntiFeynman_zetazeta * prefac_x**2 
 
     B *= -1  # from the inversed order of Grassmanns in the exponent
+    
+    Tt = np.cos(Jx + Jy) / np.cos(Jx - Jy)
+    
     for tau in range(nbr_Floquet_layers):  # trivial factor. Note that there is no factor 0.5 here since it is absorbed into B which already has a prefactor 0.5 in the exponent
-        B[4 * tau, 4 * tau + 2] +=  1
-        B[4 * tau + 1, 4 * tau + 3] -=  1
-        B[4 * tau + 2, 4 * tau] -=  1
-        B[4 * tau + 3, 4 * tau + 1] += 1
+        B[4 * tau, 4 * tau + 2] +=  Tt
+        B[4 * tau + 2, 4 * tau] -=  Tt
+        B[4 * tau + 3, 4 * tau + 1] += Tt
+        B[4 * tau + 1, 4 * tau + 3] -=  Tt
+    
 
     anti_sym_check(B)
     #print('B\n')
+    #print(abs(B[0,1]))
     #print(B)# this matrix is twice the exponent of the influence matrix.
-
+    
     return B

@@ -18,8 +18,7 @@ def correlation_coefficients(T_tilde, nsites, nbr_Floquet_layers):
         A[:, :, 0, tau,:] = T_tilde[:, :, tau, 0, :] - T_tilde[:, :, tau, 1, :] #explicitly given arguments: evolution time, c at site j=0 in env. || arguments: evolution time, c^dagger at site j=0 in env.
         # "Zeta/+ Majorana" (relative plus sign):
         A[:, :, 1, tau,:] = T_tilde[:, :, tau, 0, :] + T_tilde[:, :, tau, 1, :]
-
-
+    
     return A
 
     

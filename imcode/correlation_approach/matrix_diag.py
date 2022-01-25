@@ -11,9 +11,17 @@ from reorder_eigenvecs import reorder_eigenvecs
 from compute_generators import compute_generators
 from add_cmplx_random_antisym import add_cmplx_random_antisym
 np.set_printoptions(suppress=False, linewidth=np.nan)
+from mpl_toolkits.axes_grid.inset_locator import (inset_axes, InsetPosition,
+                                                  mark_inset)
+from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
+plt.rcParams.update({
+  "text.usetex": True,
+  "font.family": "Helvetica",
+  "font.size" : 12
+})
 
-def alg_decay(x,a,b,c):
-    return a*x**b+c
+def alg_decay(x,a,b):
+    return a*np.log(x)+b
 def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     #print(G_XY_odd)
     #print(G_XY_even)
@@ -21,21 +29,17 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
      # unitary gate is exp-product of exponentiated generators
     # gate that describes evolution non disconnected environment. first dimension: 0 = forward branch, 1 = backward branch
     U_E = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
-
-    U_1 =  np.zeros(( 2 * nsites, 2 * nsites), dtype=np.complex_)
-    if (abs(abs(np.tan(Jx) * np.tan(Jy)) - 1) > 1e-6 ):
-        print (abs(np.tan(Jx) * np.tan(Jy)))
-        U_1 = expm(G_1)
     # gate that governs time evolution on both branches. first dimension: 0 = forward branch, 1 = backward branch
     U_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
 
-    U_E[0] =  expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd)
-    U_E[1] =  expm(-1.j * G_XY_odd) @ expm(-1.j * G_XY_even)
 
-    # onsite kicks (used in KIC):
-    # this has an effect only when local onsite kicks (as in KIC) are nonzero
-    U_E[0] = expm(1j*G_g) @ U_E[0]
-    U_E[1] = U_E[1] @ expm(-1j*G_g)
+    evol = expm(1.j*G_g) @ expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd)   
+
+    U_E[0] = evol.T.conj()
+    U_E[1] = evol.T.conj()
+
+    U_eff[0] = expm(-G_1) @ evol.T.conj()  # forward branch
+    U_eff[1] = expm(G_1) @ evol.T.conj()   # backward branch
 
     #print( 'U_E[0] = expm(1j*G_g) @ U_E[0]')
     #print( U_E[0] )
@@ -46,13 +50,16 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     G_eff_E = -1j * linalg.logm(U_E[0])
     #print('G_eff_E')
     #print(G_eff_E)
-    U_eff[0] = U_E[0] @ U_1
-    U_eff[1] =  U_1 @ U_E[1]
-
+   
     # G_eff is equivalent to generator for composed map (in principle obtainable through Baker-Campbell-Hausdorff)
     G_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     G_eff[0] = -1j * linalg.logm(U_eff[0])
     G_eff[1] = +1j * linalg.logm(U_eff[1])
+
+    #print('G_eff_f')
+    #print(G_eff[0])
+    #print('G_eff_b')
+    #print(G_eff[1]-G_eff[0])
     
     # add small random part to G_eff to lift degenaracies, such that numerical diagnoalization is more stable
     rand_magn = 1e-8
@@ -138,16 +145,31 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     """
     fig, ax = plt.subplots(2)
     x = np.arange(0,nsites,1)
-    y = (M_E[nsites,nsites:2*nsites] * M_E[0, :nsites])
-    ax[0].plot(x, y)
+    k_vals = np.arange(-nsites,0) * np.pi / nsites
+    C_real = np.real(M_E[0, :nsites] - M_E[nsites,0:nsites] )
+    C_imag = np.imag(M_E[0, :nsites] - M_E[nsites,0:nsites] )
+    ax[0].plot(k_vals[:],(C_real), 'o',label=r'$|Re(\mathcal{C}_k)|$',ms=.8)
+    ax[0].plot(k_vals[:], (C_imag),'o', label=r'$|Im(\mathcal{C}_k)|$',ms=.8)
+    ax[0].plot(k_vals[:], np.sqrt(C_real ** 2 + C_imag ** 2 ),'--', label=r'$|\mathcal{C}_k|$',ms=.8)
     # perform the fit
-    p0 = (1,2,0) # start with values near those we expect
+    p0 = (1,0) # start with values near those we expect
+    theta = np.arange(-4,5)
+    
+    ax[0].set_xlim(-np.pi,0)
+    #ax[0].set_ylim(0,0.1)
+    ax[0].set_ylabel(r'$|\mathcal{C}_k(0)|$')
+    params, cv = scipy.optimize.curve_fit(alg_decay, x[nsites-10:nsites-1], abs(C_imag[nsites-10:nsites-1]), p0)
+    a ,b= params
+    print(a,b)
+    
+    ax[0].plot(k_vals[0:nsites], alg_decay(x[:nsites],a,b),'--',label= 'linear. fit: '+ r'${}\cdot x+{}$'.format(round(a,6),round(b,6)))
+    ax[0].set_xticks([-np.pi,-3*np.pi/4,-np.pi/2,-np.pi/4,0])
+    ax[0].set_xticklabels([r'$-\pi$', r'$-3\pi/4$', r'$-\pi/2$', r'$-\pi/4$', r'$0$'])
 
-    params, cv = scipy.optimize.curve_fit(alg_decay, x[2:max(nsites//10,4)], y[2:max(nsites//10,4)], p0)
-    a,b,c = params
-    print(a,b,c)
-    ax[0].plot(x[0:nsites//4], alg_decay(x[:nsites//4],a,b,c),label= 'alg. fit: '+ r'${{{}}}\cdot x^{{{}}}+ {{{}}}$'.format(round(a,6),round(b,2),round(c,4)))
-    ax[0].legend()
+    ax[0].axhline(y=0,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
+    #ax[0].axhline(y=Jx**2,xmin=0.7, xmax=1,  linestyle='-',linewidth=1.,color='green')
+    print('heeeeeeere', C_real[nsites - 1])
+    #ax[0].legend()
     """
     
 
@@ -157,11 +179,12 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     #M[1] = reorder_eigenvecs(M[1], nsites)
     #print('M_forward')
     #print(M[0])  # matrix that diagonalizes G_eff_fw
+    #print(M[1])
     #print('M_backward')
     #print(M[1])  # matrix that diagonalizes G_eff_bw
     #print('M_environment')
     #print(M_E)  # matrix that diagonalizes G_eff_E
-
+    #print(M_E @ M_E.T.conj()) 
     
     M_inverse = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     # diagonalize G_eff with eigenvectors to check:
@@ -183,8 +206,22 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     eigenvalues_G_eff_E = D_E.diagonal()
     """
-    ax[1].plot(np.arange(0,nsites,1), (eigenvalues_G_eff_E[:nsites]))
-    plt.show()
+    print(eigenvalues_G_eff_E)
+    print('slope')
+    print((eigenvalues_G_eff_E[nsites-1]-eigenvalues_G_eff_E[nsites-2])/(k_vals[nsites-1]- k_vals[nsites - 2]))
+    ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
+    ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
+
+    ax[1].axhline(y=2*g+2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
+    ax[1].axhline(y=2*g-2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='green')
+    ax[1].set_xlim(-np.pi,0)
+    ax[1].set_xticks([-np.pi,-3*np.pi/4,-np.pi/2,-np.pi/4,0])
+    ax[1].set_xticklabels([r'$-\pi$', r'$-3\pi/4$', r'$-\pi/2$', r'$-\pi/4$', r'$0$'])
+    #ax[1].set_ylim(-2.5,2.5)
+    ax[1].set_xlabel(r'$k$')
+    ax[1].set_ylabel(r'$\phi_k$')
+    #plt.show()
+    #plt.savefig('0.3_0.3.pdf')
     """
     #print('D_fw= ')
     #print('D_bw= ')
@@ -212,17 +249,17 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
             2j * imag(M_E[0, k]*M_E[nsites, k].conj())
     print ('f', f)
     #eigenvalues_G_eff = ews_sorted
-    print('eigenvalues of G_eff_fw: ')
-    print(eigenvalues_G_eff[0])
+    #print('eigenvalues of G_eff_fw: ')
+    #print(eigenvalues_G_eff[0])
 
-    print('eigenvalues of G_eff_bw: ')
-    print(eigenvalues_G_eff[1])
+    #print('eigenvalues of G_eff_bw: ')
+    #print(eigenvalues_G_eff[1])
 
     #print ('eigenvalues of G_eff_bw: ')
     # print(eigenvalues_G_eff_bw)
 
-    print('eigenvalues of G_eff_E: ')
-    print(eigenvalues_G_eff_E)
+    #print('eigenvalues of G_eff_E: ')
+    #print(eigenvalues_G_eff_E)
 
     print('Diagonalization of generators completed..')
     

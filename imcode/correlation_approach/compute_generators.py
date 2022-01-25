@@ -58,7 +58,7 @@ def compute_generators(nsites, Jx=0, Jy=0, g=0, beta_tilde = 0):
     G_1 = np.zeros((2 * nsites, 2 * nsites))
 
     G_1[0, 0] = - 2 * beta_tilde
-    G_1[nsites, nsites] = +2 * beta_tilde
+    G_1[nsites, nsites] = 2 * beta_tilde
 
     # give out explicit form of generators
     #print('G_XY_even = ')

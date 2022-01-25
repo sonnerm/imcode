@@ -68,9 +68,9 @@ def gm_integral(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, i
     #Matrix that couples the system to the first site of the environment
     R = sps.dok_matrix((nbr_eta, 2 * (N_t - 1)),dtype=np.complex_)#store only the part of the matrix that has non-zero entries (in principle it is of size (nbr_eta, nbr_xsi))
     for i in range (t):#2t
-        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad_boundary)
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(1.,R_quad_boundary)#edit np.identity(2)#
     for i in range (t,2*t):#2t
-        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad_boundary)
+        R[2*i:2*i+2, 4*i:4*i+2] = np.dot(-1.,R_quad_boundary)#edit -1*np.identity(2)
 
     #Matrix that couples system variables to system variables
     A_s = sps.dok_matrix((nbr_eta, nbr_eta),dtype=np.complex_)
@@ -98,8 +98,14 @@ def gm_integral(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, i
 
     now = datetime.now()
     print('Finish inversion', now)
-
-    B =  (A_s  +  R  @ A_inv[:2 * (N_t - 1),:] @ R.T).toarray()
+    #print(A_E.shape)
+    #print(A_inv.shape)
+    #print(-1j*A_inv[4,2])
+    np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
+    #print(A_inv[:2 * (N_t - 1),:].toarray())
+    #print(R.toarray())
+    B =  (A_s + R  @ A_inv[:2 * (N_t - 1),:] @ R.T).toarray()
+   
     print('size(B)', sys.getsizeof(B)/ (1024 * 1024))
 
   
@@ -130,7 +136,7 @@ def gm_integral(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, i
     #write A_inv and B to file
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
-        edge_corr_data = f['edge_corr']
+        #edge_corr_data = f['edge_corr']
         #bulk_corr_data = f['bulk_corr']
         IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
         #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]

@@ -1,12 +1,14 @@
 import numpy as np
+from scipy.sparse.dok import dok_matrix
 
 def add_cmplx_random_antisym(matrix, magnitude):
-
-    if len(matrix)!= len(matrix[0]):
+    matrix = dok_matrix(matrix)
+    print('add, dim', matrix.shape[0])
+    if matrix.shape[0]!= matrix.shape[1]:
         print ('ERROR: Matrix is not a square matrix - no random part has been added.')
 
     else:    
-        dim = len(matrix) # matrix is square matrix with dimension dim
+        dim = matrix.shape[0] # matrix is square matrix with dimension dim
         random_part = np.random.rand(dim,dim) * magnitude 
         
         #antisymmetrize random part

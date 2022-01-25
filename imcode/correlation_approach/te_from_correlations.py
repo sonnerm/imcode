@@ -9,6 +9,7 @@ from IM_exponent import IM_exponent
 from add_cmplx_random_antisym import add_cmplx_random_antisym
 from plot_entropy import plot_entropy
 from matrix_diag import matrix_diag
+from scipy import linalg
 from dress_density_matrix import dress_density_matrix
 from compute_generators import compute_generators
 from Lohschmidt import Lohschmidt
@@ -27,7 +28,7 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 max_time1 = 3
 max_time2 = 3
 stepsize1 = 1
-stepsize2 = 1
+stepsize2 = 2
 init_state = 3 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
 
 time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
@@ -98,7 +99,9 @@ else:
         dset_const_blip = f.create_dataset('const_blip', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1,),dtype=np.float_)
 
 if mode == "C":
-    beta_tilde = np.arctanh(np.tan(Jx) * np.tan(Jy))
+    beta_tilde = 0.5 * np.log( (1 + np.tan(Jx) * np.tan(Jy) ) / (1 - np.tan(Jx) * np.tan(Jy) )  )
+    print (beta_tilde)
+    print('beta_tilde', beta_tilde, np.exp(beta_tilde))
     # define initial density matrix and determine matrix which diagonalizes it:
     # this is the EXPONENT of the BARE gaussian density matrix
     rho_0_exponent = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
@@ -109,9 +112,8 @@ if mode == "C":
     evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
 
     M, M_E, eigenvalues_G_eff, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
-
-
 for nbr_Floquet_layers in time_array[iterator:]:
+    mode =  sys.argv[1]
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
 
     #store array with times in entropy-dataset, regardless of whether entropy is acutally computed (also used for Lohschmidt)
@@ -119,17 +121,14 @@ for nbr_Floquet_layers in time_array[iterator:]:
         entr_data = f['temp_entr']
         entr_data[iterator,0] = nbr_Floquet_layers#write array with times
 
+
     if mode == "C" or mode == "G":
         if mode == "C":
             n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
             B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
-        
             
         else:
             B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
-
-
-            """"
             #the following block expresses B in the same basis as in the correlation approach such that the two matrices can directly be compared
             S = np.zeros(B.shape,dtype=np.complex_)
             rot = np.zeros((4 * nbr_Floquet_layers,4 * nbr_Floquet_layers))
@@ -138,20 +137,19 @@ for nbr_Floquet_layers in time_array[iterator:]:
                 rot[i,i+1] = 1./np.sqrt(2)
                 rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
                 rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
-            B = rot @ B @ rot.T
             for i in range (nbr_Floquet_layers):
                 S [B.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
                 S [B.shape[0] // 2 - (2 * i) - 1,4 * i + 2] = 1
                 S [B.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
                 S [B.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
+            B = rot @ B @ rot.T
             B = S.T @ B @ S
-            mode = 'C'#if basis has been transformed, the routine for the entropy computation needs to be adjusted.
-            """
+            mode = 'C'
 
-        np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
-        print('B')
-        print(B)
-        print(np.linalg.det(B))
+        #np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
+        #print('B')
+        #print(B)
+        #print(np.linalg.det(B))
         correlation_block = create_correlation_block(B, nbr_Floquet_layers)
         time_cuts = np.arange(1, nbr_Floquet_layers)
 
