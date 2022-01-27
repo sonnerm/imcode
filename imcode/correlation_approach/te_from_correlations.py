@@ -29,7 +29,6 @@ max_time1 = 10
 max_time2 = 50
 stepsize1 = 1
 stepsize2 = 2
-init_state = 3 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
 
 time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
@@ -43,10 +42,11 @@ del_t = float(sys.argv[4])
 Jx = float(sys.argv[5]) * del_t #0.5# 0.31 # 0.31
 Jy =float(sys.argv[6])* del_t#np.pi/4+0.3#np.pi/4
 g =float(sys.argv[7])* del_t #np.pi/4+0.3
-beta = float(sys.argv[8])#0.4  # temperature
-mu_initial_state = float(sys.argv[9])
+init_state = float(sys.argv[8])#0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
+beta = float(sys.argv[9])#0.4  # temperature
+mu_initial_state = float(sys.argv[10])
 if mode == 'L':
-    g_boundary_mag = float(sys.argv[10])
+    g_boundary_mag = float(sys.argv[11])
 
 print('mode', mode)
 print('write_mode', write_mode)
@@ -56,6 +56,7 @@ print('Jx', Jx)
 print('Jy', Jy)
 print('g', g)
 print('beta', beta)
+print('init_state', init_state)
 print('mu_init_state', mu_initial_state)
 if mode == 'L':
     print('g_boundary_mag', g_boundary_mag)
