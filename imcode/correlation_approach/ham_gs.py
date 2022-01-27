@@ -103,8 +103,8 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #create Floquet Hamiltonian of interest
     #exact effective Hamiltonian
     H_eff = create_exact_Floquet_ham(Jx,Jy,g,L)
-    print('H_eff')
-    print(H_eff)
+    #print('H_eff')
+    #print(H_eff)
 
     #Magnus expansion
     #H_eff_mag = create_Magnus_Floquet_ham(Jx,Jy,g,L,mu)
@@ -113,7 +113,7 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     
 
     eigvals, eigvecs = linalg.eigh(H_eff)
-    print('eigenvalues of eff. Hamiltonian:',eigvals)
+    #print('eigenvalues of eff. Hamiltonian:',eigvals)
     """
     M = np.zeros((2*L,2*L), dtype=np.complex_)
     for i in range(L):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
@@ -145,7 +145,7 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
 
     Corr = np.bmat([[U@U.T.conj(),U@V.T.conj()],[V@U.T.conj(),V@V.T.conj()]])
     print('eig(Corr)')
-    print(linalg.eigvalsh(Corr))
+    #print(linalg.eigvalsh(Corr))
     antisym_check = 0
     sum = 0
     for i in range (len(Z[0])):
@@ -158,10 +158,10 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     print('antisym_check')
     print(antisym_check)
 
-    print('Z')
-    print(Z)
+    #print('Z')
+    #print(Z)
     
-    print(linalg.eigvals(Z))
+    #print(linalg.eigvals(Z))
 
     with h5py.File(filename + ".hdf5", 'a') as f:
         init_BCS_data = f['init_BCS_state']
