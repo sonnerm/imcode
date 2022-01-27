@@ -80,7 +80,8 @@ def create_exact_Floquet_ham(Jx, Jy, g, L, mu = 0):#creates exact Hamiltonan WIT
    
     G_even, G_odd, G_kick,G1 = compute_generators(L,Jx,Jy,g,0)
 
-    H =  -1.j * linalg.logm(linalg.expm(.5j * G_kick) @ linalg.expm(.5j * G_even)  @ linalg.expm(.5j * G_odd))
+    #H =  -1.j * linalg.logm(linalg.expm(.5j * G_kick) @ linalg.expm(.5j * G_even)  @ linalg.expm(.5j * G_odd))
+    H =  .5j * linalg.logm( linalg.expm(1.j * G_odd) @ linalg.expm(1.j * G_even)  @ linalg.expm(1.j * G_kick))
     return H
 
 
@@ -98,12 +99,12 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     #print('ordering')
     #print(ordering)
     """
-    np.set_printoptions(threshold=sys.maxsize, precision=6, suppress=True)
+    np.set_printoptions(threshold=sys.maxsize, precision=10, suppress=True)
     #create Floquet Hamiltonian of interest
     #exact effective Hamiltonian
     H_eff = create_exact_Floquet_ham(Jx,Jy,g,L)
-    #print('H_eff')
-    #print(H_eff)
+    print('H_eff')
+    print(H_eff)
 
     #Magnus expansion
     #H_eff_mag = create_Magnus_Floquet_ham(Jx,Jy,g,L,mu)
@@ -129,9 +130,9 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
 
     #print(M)
     #check that matrix is diagonalized by M
-    #diag = M.T.conj() @ H @ M
-    #print('Diagonal')
+    #diag = M.T.conj() @ H_eff @ M
     #print(diag)
+    #print('Diagonal')
 
 
     U = M[0:L,0:L]
@@ -158,6 +159,7 @@ def compute_BCS_Kernel(Jx, Jy, g, mu, L, filename):
     print(antisym_check)
 
     print('Z')
+    print(Z)
     
     print(linalg.eigvals(Z))
 
