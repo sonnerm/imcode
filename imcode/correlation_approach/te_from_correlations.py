@@ -25,8 +25,8 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 3
-max_time2 = 3
+max_time1 = 10
+max_time2 = 50
 stepsize1 = 1
 stepsize2 = 2
 init_state = 3 #0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
@@ -72,7 +72,7 @@ baobab_path = '/home/users/t/thoennis/scratch/'
 
 filename = work_path + 'Lohschmidt(gap=0)_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) 
 if mode == 'L':
-   filename += '_g_boundary_mag=' + str(g_boundary_mag)
+   filename += '_g_boundary_mag=' + str(g_boundary_mag) + '_init=' + str(init_state)
 
 print('filename:', filename)
 
@@ -145,7 +145,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
             B = rot @ B @ rot.T
             B = S.T @ B @ S
             mode = 'C'
-
+            
         #np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
         #print('B')
         #print(B)
