@@ -42,7 +42,7 @@ del_t = float(sys.argv[4])
 Jx = float(sys.argv[5]) * del_t #0.5# 0.31 # 0.31
 Jy =float(sys.argv[6])* del_t#np.pi/4+0.3#np.pi/4
 g =float(sys.argv[7])* del_t #np.pi/4+0.3
-init_state = float(sys.argv[8])#0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
+init_state = int(sys.argv[8])#0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
 beta = float(sys.argv[9])#0.4  # temperature
 mu_initial_state = float(sys.argv[10])
 if mode == 'L':
