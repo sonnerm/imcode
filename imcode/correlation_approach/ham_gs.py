@@ -81,7 +81,7 @@ def create_exact_Floquet_ham(Jx, Jy, g, L, mu = 0):#creates exact Hamiltonan WIT
     G_even, G_odd, G_kick,G1 = compute_generators(L,Jx,Jy,g,0)
 
     #H =  -1.j * linalg.logm(linalg.expm(.5j * G_kick) @ linalg.expm(.5j * G_even)  @ linalg.expm(.5j * G_odd))
-    H =  .5j * linalg.logm( linalg.expm(1.j * G_odd) @ linalg.expm(1.j * G_even)  @ linalg.expm(1.j * G_kick))
+    H =  -.5j * linalg.logm( linalg.expm(1.j * G_kick) @ linalg.expm(1.j * G_even) @ linalg.expm(1.j * G_odd) )
     return H
 
 
