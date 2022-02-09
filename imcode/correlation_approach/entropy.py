@@ -20,7 +20,9 @@ def entropy(mode, correlation_block, ntimes, time_cut, iterator,filename):
         print(Delta_half)
         correlation_block_reduced = np.bmat([[correlation_block[0: int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[0: int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]], [
             correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]]])
-    
+        #if time_cut < 2:
+            #print(correlation_block_reduced.shape)
+            #print(correlation_block_reduced)
     else:#for Grassmann-approach
         Delta_half = 2 * time_cut
         correlation_block_reduced = np.bmat([[correlation_block[half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half, half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half], correlation_block[half_dim_CB // 2 - Delta_half: half_dim_CB // 2 + Delta_half, 3 * (half_dim_CB // 2) - Delta_half:3 * (half_dim_CB // 2) + Delta_half]], [
@@ -40,7 +42,27 @@ def entropy(mode, correlation_block, ntimes, time_cut, iterator,filename):
     """
     #correlation_block_reduced -= 0.5*np.identity(correlation_block_reduced.shape[0])
 
+    """"
+    #for Michael ..orders vector from (c,c,c..,cdagger,cdagger..) to (c,cdagger,c,cdagger,..)
+    U = np.zeros(correlation_block.shape)
+    for i in range (correlation_block.shape[0]//2):
+        U[2*i, i] = 1
+        U[2*i + 1, i + correlation_block.shape[0]//2] = 1
+
+    correlation_block = U @ correlation_block @ U.T
+
+    filename = 'Corr_Jx=0.3_Jy=0.0_g=0.3_FermiSea'
+    #with h5py.File(filename + ".hdf5", 'w') as f:
+    #    dset_corr = f.create_dataset('FS_corr_t='+ str(ntimes), (correlation_block.shape[0],correlation_block.shape[1]),dtype=np.complex_)
+    #    dset_corr[:,:] = correlation_block[:,:]
+
+    with h5py.File(filename + ".hdf5", 'r') as f:
+        data = f['FS_corr_t=50']
+        correlation_block2 = data[:,:]
+    print(correlation_block-correlation_block2)
     """
+    """
+    
     T = np.zeros(correlation_block.shape)
     for i in range (correlation_block.shape[0] // 4):
         T [correlation_block.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
@@ -56,8 +78,8 @@ def entropy(mode, correlation_block, ntimes, time_cut, iterator,filename):
         S [correlation_block_reduced.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
         S [correlation_block_reduced.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
     correlation_block_reduced = S @ correlation_block_reduced @ S.T
-    """    
-    """
+    
+    
     rot = np.zeros(correlation_block_reduced.shape, dtype=np.complex_)
     for i in range(0,correlation_block_reduced.shape[0], 2):
         rot[i,i] = 1./np.sqrt(2)
@@ -66,7 +88,7 @@ def entropy(mode, correlation_block, ntimes, time_cut, iterator,filename):
         rot[i+1,i+1] = 1.j/np.sqrt(2) #* np.sign(correlation_block_reduced.shape[0]//2 - i-1)
     
     correlation_block_reduced = rot @ correlation_block_reduced @ rot.conj().T
-    """    
+    """   
     #print(correlation_block)
     #print(correlation_block_reduced)
     #fig, ax = plt.subplots()
