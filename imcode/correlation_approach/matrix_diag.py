@@ -17,7 +17,7 @@ from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 plt.rcParams.update({
   "text.usetex": True,
   "font.family": "Helvetica",
-  "font.size" : 12
+  "font.size" : 10
 })
 
 def alg_decay(x,a,b):
@@ -56,7 +56,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     G_eff[0] = -1j * linalg.logm(U_eff[0])
     G_eff[1] = +1j * linalg.logm(U_eff[1])
 
-    #print('G_eff_f')
+    #print('G_eff_E')
     #print(G_eff[0])
     #print('G_eff_b')
     #print(G_eff[1]-G_eff[0])
@@ -68,7 +68,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     rand_C = add_cmplx_random_antisym(np.zeros((nsites,nsites), dtype=np.complex_), rand_magn)
     random_part = np.bmat([[rand_A,rand_B], [rand_C, -rand_A.T]])
 
-    G_eff_E += random_part
+    #G_eff_E += random_part
     G_eff[0] += random_part
     G_eff[1] += random_part
 
@@ -100,7 +100,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         eigenvalues_G_eff[0], eigenvectors_G_eff[0] = linalg.eig(G_eff[0])
         eigenvalues_G_eff[1], eigenvectors_G_eff[1] = linalg.eig(G_eff[1])
         #eigenvalues_G_eff_bw, eigenvectors_G_eff_bw = linalg.eig(G_eff_bw)
-        eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eig(G_eff_E)
+        eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eigh(G_eff_E)
 
     # check if found eigenvectors indeed fulfill eigenvector equation (trivial check)
     eigenvector_check = 0
@@ -131,6 +131,14 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     argsort_bw = np.argsort(- np.real(eigenvalues_G_eff[1]))
     #argsort_bw = np.argsort(- np.real(eigenvalues_G_eff_bw))
     argsort_E = np.argsort(- np.real(eigenvalues_G_eff_E))
+
+    #eigenvalues_G_eff[0] = eigenvalues_G_eff[0,argsort_fw[:]]
+    #eigenvalues_G_eff[1] = eigenvalues_G_eff[1,argsort_bw[:]]
+    #eigenvalues_G_eff_E = eigenvalues_G_eff_E[argsort_E[:]]
+    #print(eigenvalues_G_eff[0])
+    #print(eigenvalues_G_eff[1])
+    #print(eigenvalues_G_eff_E)
+
     M = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     #M_bw = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
     M_E = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
@@ -144,36 +152,39 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
 
     """
     fig, ax = plt.subplots(2)
+    plt.subplots_adjust(hspace=0.1)
+ 
+    fig.set_size_inches(1.35,1.7) 
     x = np.arange(0,nsites,1)
     k_vals = np.arange(-nsites,0) * np.pi / nsites
     C_real = np.real(M_E[0, :nsites] - M_E[nsites,0:nsites] )
     C_imag = np.imag(M_E[0, :nsites] - M_E[nsites,0:nsites] )
-    ax[0].plot(k_vals[:],(C_real), 'o',label=r'$|Re(\mathcal{C}_k)|$',ms=.8)
-    ax[0].plot(k_vals[:], (C_imag),'o', label=r'$|Im(\mathcal{C}_k)|$',ms=.8)
-    ax[0].plot(k_vals[:], np.sqrt(C_real ** 2 + C_imag ** 2 ),'--', label=r'$|\mathcal{C}_k|$',ms=.8)
+    #ax[0].plot(k_vals[:],(C_real), 'o',label=r'$|Re(\mathcal{C}_k)|$',ms=.8)
+    #ax[0].plot(k_vals[:], (C_imag),'o', label=r'$|Im(\mathcal{C}_k)|$',ms=.8)
+    ax[0].plot(k_vals[:], np.sqrt(C_real ** 2 + C_imag ** 2 ), label=r'$|\mathcal{C}_k|$')
     # perform the fit
     p0 = (1,0) # start with values near those we expect
     theta = np.arange(-4,5)
     
     ax[0].set_xlim(-np.pi,0)
-    #ax[0].set_ylim(0,0.1)
+    ax[0].set_ylim(bottom=0)
+    ax[0].tick_params(axis="x",direction="in")
     ax[0].set_ylabel(r'$|\mathcal{C}_k(0)|$')
-    params, cv = scipy.optimize.curve_fit(alg_decay, x[nsites-10:nsites-1], abs(C_imag[nsites-10:nsites-1]), p0)
-    a ,b= params
-    print(a,b)
+    #params, cv = scipy.optimize.curve_fit(alg_decay, x[nsites-10:nsites-1], abs(C_imag[nsites-10:nsites-1]), p0)
+    #a ,b= params
+    #print(a,b)
     
-    ax[0].plot(k_vals[0:nsites], alg_decay(x[:nsites],a,b),'--',label= 'linear. fit: '+ r'${}\cdot x+{}$'.format(round(a,6),round(b,6)))
-    ax[0].set_xticks([-np.pi,-3*np.pi/4,-np.pi/2,-np.pi/4,0])
-    ax[0].set_xticklabels([r'$-\pi$', r'$-3\pi/4$', r'$-\pi/2$', r'$-\pi/4$', r'$0$'])
+    #ax[0].plot(k_vals[0:nsites], alg_decay(x[:nsites],a,b),'--',label= 'linear. fit: '+ r'${}\cdot x+{}$'.format(round(a,6),round(b,6)))
+    ax[0].set_xticks([-np.pi,-np.pi/2,0])
+    ax[0].set_xticklabels([])
 
     ax[0].axhline(y=0,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
     #ax[0].axhline(y=Jx**2,xmin=0.7, xmax=1,  linestyle='-',linewidth=1.,color='green')
     print('heeeeeeere', C_real[nsites - 1])
     #ax[0].legend()
     """
-    
 
-    #print ('M0', M[0])
+    #print ('M0', M[0]@M[0].T.conj())
     #M[0] = reorder_eigenvecs(M[0], nsites)
     #M_E = reorder_eigenvecs(M_E, nsites)
     #M[1] = reorder_eigenvecs(M[1], nsites)
@@ -194,34 +205,46 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
 
     D = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     for branch in range(2):
-        D[branch] = np.dot(M_inverse[branch], G_eff[branch])
+        D[branch] = M_inverse[branch] @ G_eff[branch] @ M[branch]
         # this is the diagonal matrix with eigenvalues of G_eff on the diagonal
-        D[branch] = np.dot(D[branch], M[branch])
         # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
         eigenvalues_G_eff[branch] = D[branch].diagonal()
 
-    D_E = np.dot(M_E_inverse, G_eff_E)
+    D_E = M_E_inverse @ G_eff_E @ M_E
     # this is the diagonal matrix with eigenvalues of G_eff on the diagonal
-    D_E = np.dot(D_E, M_E)
     # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     eigenvalues_G_eff_E = D_E.diagonal()
     """
-    print(eigenvalues_G_eff_E)
-    print('slope')
-    print((eigenvalues_G_eff_E[nsites-1]-eigenvalues_G_eff_E[nsites-2])/(k_vals[nsites-1]- k_vals[nsites - 2]))
     ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
     ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
+    ax[1].plot(k_vals,eigenvalues_G_eff[0,0:nsites],color='C1')
+    ax[1].plot(k_vals,eigenvalues_G_eff[0,nsites:2*nsites],color='C1')
+    ax[1].plot(k_vals,eigenvalues_G_eff[1,0:nsites],color='C2')
+    ax[1].plot(k_vals,eigenvalues_G_eff[1,nsites:2*nsites],color='C2')
+    
 
-    ax[1].axhline(y=2*g+2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
-    ax[1].axhline(y=2*g-2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='green')
+    ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
+    ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
+    #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[0,0:nsites]),color='C1', linestyle='--')
+    #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[0,nsites:2*nsites]),color='C1', linestyle='--')
+    #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[1,0:nsites]),color='C2', linestyle=':')
+    #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[1,nsites:2*nsites]),color='C2', linestyle=':')
+
+    #ax[1].plot(k_vals[:30],0.002*np.array((k_vals-k_vals[0]))[:30]**2, linestyle=':')
+    #ax[1].axhline(y=2*g+2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
+    #ax[1].axhline(y=2*g-2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='green')
     ax[1].set_xlim(-np.pi,0)
-    ax[1].set_xticks([-np.pi,-3*np.pi/4,-np.pi/2,-np.pi/4,0])
-    ax[1].set_xticklabels([r'$-\pi$', r'$-3\pi/4$', r'$-\pi/2$', r'$-\pi/4$', r'$0$'])
+    ax[1].set_xticks([-np.pi,-np.pi/2,0])
+    ax[0].tick_params(axis="x",direction="inout")
+    ax[1].set_xticklabels([r'$-\pi$', r'$-\pi/2$', r'$0$'])
     #ax[1].set_ylim(-2.5,2.5)
     ax[1].set_xlabel(r'$k$')
+    #ax[1].yaxis.tick_right()
+    #ax[0].yaxis.tick_right()
     ax[1].set_ylabel(r'$\phi_k$')
     #plt.show()
-    #plt.savefig('0.3_0.3.pdf')
+    #plt.savefig('0.31_pi4.pdf', bbox_inches='tight')
+    #plt.savefig('0.3_0.3.pdf', bbox_inches='tight')
     """
     #print('D_fw= ')
     #print('D_bw= ')
