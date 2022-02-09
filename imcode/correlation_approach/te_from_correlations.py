@@ -7,8 +7,10 @@ from create_correlation_block import create_correlation_block
 from entropy import entropy
 from IM_exponent import IM_exponent
 from add_cmplx_random_antisym import add_cmplx_random_antisym
+from ham_gs import create_exact_Floquet_ham
 from plot_entropy import plot_entropy
 from matrix_diag import matrix_diag
+from scipy.linalg import expm, logm
 from scipy import linalg
 from dress_density_matrix import dress_density_matrix
 from compute_generators import compute_generators
@@ -25,12 +27,12 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 10
-max_time2 = 22
+max_time1 = 5
+max_time2 = 5
 stepsize1 = 1
-stepsize2 = 10
+stepsize2 = 1
 
-time_array = np.append(np.arange(2, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
+time_array = np.append(np.arange(1, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
 
 mode =  sys.argv[1] # 'G': compute temporal entanglement entropy from Grassmann approach, 'C': compute temporal entanglement entropy from correlation approach, 'L': compute Lohschmidt echo
@@ -71,7 +73,7 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-filename = work_path + 'mode=' + str(mode) + '_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) + '_init=' + str(init_state)
+filename = work_path + 'compmode=' + str(mode) + '_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) + '_init=' + str(init_state)
 if mode == 'L':
    filename += '_g_boundary_mag=' + str(g_boundary_mag) 
 
@@ -125,27 +127,43 @@ for nbr_Floquet_layers in time_array[iterator:]:
 
     if mode == "C" or mode == "G":
         if mode == "C":
-            n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger, nbr_Floquet_layers)
+            n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M_E, nbr_Floquet_layers, init_state)
             B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
             
         else:
             B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
             #the following block expresses B in the same basis as in the correlation approach such that the two matrices can directly be compared
-            S = np.zeros(B.shape,dtype=np.complex_)
+           
+            
             rot = np.zeros((4 * nbr_Floquet_layers,4 * nbr_Floquet_layers))
-            for i in range(0,4*nbr_Floquet_layers, 2):
+            for i in range(0,4*nbr_Floquet_layers, 2):#go from bar, nonbar to zeta, theta
                 rot[i,i] = 1./np.sqrt(2)
                 rot[i,i+1] = 1./np.sqrt(2)
                 rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
                 rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
-            for i in range (nbr_Floquet_layers):
+            B = rot @ B @ rot.T
+            
+            S = np.zeros(B.shape,dtype=np.complex_)
+            for i in range (nbr_Floquet_layers):#order plus and minus next to each other
                 S [B.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
                 S [B.shape[0] // 2 - (2 * i) - 1,4 * i + 2] = 1
                 S [B.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
                 S [B.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
-            B = rot @ B @ rot.T
+            
             B = S.T @ B @ S
+        
+            """
+            #for Michael:
+            U = np.zeros(B.shape)#order in the way specified in pdf for him
+            for i in range (nbr_Floquet_layers):
+                U[4*i, B.shape[0] //2 - (2*i) -1] = 1
+                U[4*i + 1, B.shape[0] //2 + (2*i)] = 1
+                U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
+                U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
+            B = U @ B @ U.T
+            """
             mode = 'C'
+            
             
         #np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
         #print('B')
