@@ -21,7 +21,7 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_
     # define matrix B that is twice exponent of IM:
     B = np.zeros((4 * nbr_Floquet_layers, 4 * nbr_Floquet_layers), dtype=np.complex_)
 
-    test_identity_correlations(A,n_expect, nbr_Floquet_layers)
+    #test_identity_correlations(A,n_expect, nbr_Floquet_layers)
 
     for tau_1 in range(nbr_Floquet_layers):
         for tau_2 in range(nbr_Floquet_layers):

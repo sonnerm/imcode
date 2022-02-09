@@ -44,5 +44,5 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M_E, nbr_Fl
         #n_expect[k] = np.exp(+eval)  / (2 * np.cosh(eval) ) # for < c^dagger c >
         n_expect[k] = eval  / (eval + 1/eval ) # for < c^dagger c >
         n_expect[k + nsites] = 1 - n_expect[k] # for < c c^dagger >
-    print('nexpext',n_expect)
+    #print('nexpext',n_expect)
     return n_expect, N_t
