@@ -163,6 +163,10 @@ for nbr_Floquet_layers in time_array[iterator:]:
             B = U @ B @ U.T
             """
             mode = 'C'
+        
+        with h5py.File(filename + '.hdf5', 'a') as f:
+            IM_data = f['IM_exponent']
+            IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
             
             
         #np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)

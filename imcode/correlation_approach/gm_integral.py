@@ -132,7 +132,7 @@ def gm_integral(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, i
             counter += abs(B_comp[i,j])
     print('compare B', counter)
     """
- 
+ """
     #write A_inv and B to file
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
@@ -141,7 +141,7 @@ def gm_integral(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, i
         IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
         #bulk_corr_data[iterator,:len(A_inv[1]),:len(A_inv[0])] = A_inv[:,:]
         #edge_corr_data[iterator,0:2 * (N_t - 1),0:2 * (N_t - 1)] = A_inv.toarray()[0:2 * (N_t - 1),0:2 * (N_t - 1)]
-
+"""
 
     return B
 
