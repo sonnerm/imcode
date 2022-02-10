@@ -27,8 +27,8 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 5
-max_time2 = 5
+max_time1 = 50
+max_time2 = 50
 stepsize1 = 1
 stepsize2 = 1
 
@@ -123,7 +123,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
     with h5py.File(filename + '.hdf5', 'a') as f:
         entr_data = f['temp_entr']
         entr_data[iterator,0] = nbr_Floquet_layers#write array with times
-
+    
 
     if mode == "C" or mode == "G":
         if mode == "C":
@@ -180,7 +180,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
         with h5py.File(filename + '.hdf5', 'a') as f:
             entr_data = f['temp_entr']
             for cut in time_cuts:
-                print('calculating entropy at time cut:', cut)
+                #print('calculating entropy at time cut:', cut)
                 entr_data[iterator,cut] = float(entropy(mode, correlation_block, nbr_Floquet_layers, cut, iterator, filename))
         
         print('Finished writing data at iteration', iterator)
