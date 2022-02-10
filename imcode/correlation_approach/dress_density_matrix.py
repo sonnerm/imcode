@@ -34,7 +34,7 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M_E, nbr_Fl
     #diag_check = N_t.T.conj() @ rho_dressed_exponent @ N_t
     #eigenvals_dressed = -np.diag(diag_check)
     #print('Dressed density matrix diagonalized', diag_check)
-    print('Eigenvalues of exponent:', eigenvals_dressed)
+    #print('Eigenvalues of exponent:', eigenvals_dressed)
 
     np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
     n_expect = np.zeros((2 * nsites))#fermi-Dirac distribution for modes (basis in which dressed density matrix is diagonal). 
