@@ -17,7 +17,6 @@ def entropy(mode, correlation_block, ntimes, time_cut, iterator,filename):
 
     if mode == 'C' or mode == 'D':#for "C"orrelation approach and "D"MFT data evaluation
         Delta_half = 2. * time_cut / (8. * ntimes / correlation_block.shape[0])#half the inverval that we define as subsystem    
-        print(Delta_half)
         correlation_block_reduced = np.bmat([[correlation_block[0: int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[0: int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]], [
             correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), 0:  int(2 * Delta_half)], correlation_block[half_dim_CB: half_dim_CB + int(2 * Delta_half), half_dim_CB: half_dim_CB + int(2 * Delta_half)]]])
         #if time_cut < 2:
