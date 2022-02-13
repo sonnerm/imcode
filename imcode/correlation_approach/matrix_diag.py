@@ -150,8 +150,14 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         M_E[:, i] = eigenvectors_G_eff_E[:, argsort_E[i]]
         M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
 
-    """
-    fig, ax = plt.subplots(2)
+    #M1_inv = linalg.inv(M[1])
+    #M0_inv = linalg.inv(M[0])
+
+    #M_w = np.bmat([[M1_inv[:,nsites:2*nsites],M1_inv[:,:nsites]]])
+    #print(M_w.shape)
+    #print(M_w - M1_inv.T.conj())
+
+    """fig, ax = plt.subplots(2)
     plt.subplots_adjust(hspace=0.1)
  
     fig.set_size_inches(1.35,1.7) 
@@ -181,8 +187,8 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     ax[0].axhline(y=0,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
     #ax[0].axhline(y=Jx**2,xmin=0.7, xmax=1,  linestyle='-',linewidth=1.,color='green')
     print('heeeeeeere', C_real[nsites - 1])
-    #ax[0].legend()
-    """
+    #ax[0].legend()"""
+    
 
     #print ('M0', M[0]@M[0].T.conj())
     #M[0] = reorder_eigenvecs(M[0], nsites)
@@ -206,34 +212,41 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     D = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     for branch in range(2):
         D[branch] = M_inverse[branch] @ G_eff[branch] @ M[branch]
+        #print(branch, '\n',D[branch])
         # this is the diagonal matrix with eigenvalues of G_eff on the diagonal
         # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
         eigenvalues_G_eff[branch] = D[branch].diagonal()
 
     D_E = M_E_inverse @ G_eff_E @ M_E
+    #print(D_E)
     # this is the diagonal matrix with eigenvalues of G_eff on the diagonal
     # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     eigenvalues_G_eff_E = D_E.diagonal()
     """
-    ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
-    ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
-    ax[1].plot(k_vals,eigenvalues_G_eff[0,0:nsites],color='C1')
-    ax[1].plot(k_vals,eigenvalues_G_eff[0,nsites:2*nsites],color='C1')
-    ax[1].plot(k_vals,eigenvalues_G_eff[1,0:nsites],color='C2')
-    ax[1].plot(k_vals,eigenvalues_G_eff[1,nsites:2*nsites],color='C2')
+    #ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
+    #ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
+    #ax[1].plot(k_vals,eigenvalues_G_eff[0,0:nsites],color='C1')
+    #ax[1].plot(k_vals,eigenvalues_G_eff[0,nsites:2*nsites],color='C1')
+    #ax[1].plot(k_vals,eigenvalues_G_eff[1,0:nsites],color='C2')
+    #ax[1].plot(k_vals,eigenvalues_G_eff[1,nsites:2*nsites],color='C2')
     
 
-    ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
-    ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
-    #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[0,0:nsites]),color='C1', linestyle='--')
-    #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[0,nsites:2*nsites]),color='C1', linestyle='--')
+    #ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
+    #ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
+    #ax[1].plot(k_vals,np.real(eigenvalues_G_eff[0,0:nsites]),color='C1', linestyle='--')
+    #ax[1].plot(k_vals,np.real(eigenvalues_G_eff[0,nsites:2*nsites]),color='C1', linestyle='--')
+    #ax[1].plot(k_vals,np.real(eigenvalues_G_eff[1,0:nsites]),color='C2', linestyle=':')
+    #ax[1].plot(k_vals,np.real(eigenvalues_G_eff[1,nsites:2*nsites]),color='C2', linestyle=':')
+
+    ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[0,0:nsites]),color='green', linestyle='--')
+    ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[0,nsites:2*nsites]),color='green', linestyle='--')
     #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[1,0:nsites]),color='C2', linestyle=':')
     #ax[1].plot(k_vals,np.imag(eigenvalues_G_eff[1,nsites:2*nsites]),color='C2', linestyle=':')
-
+    
     #ax[1].plot(k_vals[:30],0.002*np.array((k_vals-k_vals[0]))[:30]**2, linestyle=':')
     #ax[1].axhline(y=2*g+2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
     #ax[1].axhline(y=2*g-2*Jx,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='green')
-    ax[1].set_xlim(-np.pi,0)
+    ax[1].set_xlim(-np.pi/10,0)
     ax[1].set_xticks([-np.pi,-np.pi/2,0])
     ax[0].tick_params(axis="x",direction="inout")
     ax[1].set_xticklabels([r'$-\pi$', r'$-\pi/2$', r'$0$'])
@@ -288,4 +301,4 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     
     # return M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, f
     
-    return M, M_E, eigenvalues_G_eff, f
+    return M, M_E, eigenvalues_G_eff, eigenvalues_G_eff_E, f
