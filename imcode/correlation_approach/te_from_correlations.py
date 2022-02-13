@@ -27,8 +27,8 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 50
-max_time2 = 50
+max_time1 = 2
+max_time2 = 1
 stepsize1 = 1
 stepsize2 = 1
 
@@ -102,7 +102,11 @@ else:
         dset_const_blip = f.create_dataset('const_blip', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1,),dtype=np.float_)
 
 if mode == "C":
-    beta_tilde = 0.5 * np.log( (1 + np.tan(Jx) * np.tan(Jy) ) / (1 - np.tan(Jx) * np.tan(Jy) )  )
+
+    if (abs((abs(Jx-Jy)*2/np.pi)%2 - 1)< 1.e-8):#if difference between Jx and Jy is close to multiples of pi/2
+        beta_tilde = 0
+    else:
+        beta_tilde = 0.5 * np.log( (1 + np.tan(Jx) * np.tan(Jy) ) / (1 - np.tan(Jx) * np.tan(Jy) )  )
     print (beta_tilde)
     print('beta_tilde', beta_tilde, np.exp(beta_tilde))
     # define initial density matrix and determine matrix which diagonalizes it:
