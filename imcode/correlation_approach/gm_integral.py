@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-
+from tests import anti_sym_check
 from create_environment_exponent import create_environment_exponent
 import h5py
 from datetime import datetime
@@ -108,7 +108,7 @@ def gm_integral(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, i
    
     print('size(B)', sys.getsizeof(B)/ (1024 * 1024))
 
-  
+    anti_sym_check(B)
     """
     #compare to result without sparse matrices
     identity_matrix_comp = np.identity(A_E.shape[0])
