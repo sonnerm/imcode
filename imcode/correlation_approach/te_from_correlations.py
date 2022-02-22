@@ -28,7 +28,7 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 # define fixed parameters:
 # step sizes for total times t
 max_time1 = 5
-max_time2 = 4
+max_time2 = 6
 stepsize1 = 1
 stepsize2 = 1
 
@@ -118,7 +118,7 @@ if mode == "C":
     G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
     evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
 
-    M, M_E, eigenvalues_G_eff, eigenvalues_G_eff_E, f= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
+    M, M_E, eigenvalues_G_eff, eigenvalues_G_eff_E= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
 for nbr_Floquet_layers in time_array[iterator:]:
     mode =  sys.argv[1]
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
@@ -131,7 +131,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
 
     if mode == "C" or mode == "G":
         if mode == "C":
-            n_expect, N_t = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E,  eigenvalues_G_eff, eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers, init_state)
+            n_expect, N_t, Lambda = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E,  eigenvalues_G_eff, eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers, init_state)
             B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
             
         else:
