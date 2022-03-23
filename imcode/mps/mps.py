@@ -78,7 +78,7 @@ def _tp_overlap_sandwich(left,mpo,right):
 def _tp_canonical_form(tpmps):
     #apparently tenpy can only do canonical form for L>2 :(
     if tpmps.L>2:
-        tpmps.canonical_form(False)
+        tpmps.canonical_form_finite(False)
     elif tpmps.L==2:
         B1=tpmps.get_B(0,form=None).to_ndarray()
         B2=tpmps.get_B(1,form=None).to_ndarray()
@@ -120,16 +120,16 @@ class _B_helper():
         self.tpmps=tpmps
     def __getitem__(self,i):
         return self.tpmps.get_B(i,copy=False)
-    def __setitem__(self,i):
-        self.tpmps.set_B(i)
+    def __setitem__(self,i,B):
+        self.tpmps.set_B(i,B)
 
 class _S_helper():
     def __init__(self,tpmps):
         self.tpmps=tpmps
     def __getitem__(self,i):
         return self.tpmps.get_SR(i)
-    def __setitem__(self,i):
-        self.tpmps.set_SR(i)
+    def __setitem__(self,i,S):
+        self.tpmps.set_SR(i,S)
 class SimpleMPS(MPS):
     def __init__(self,tpmps):
         self.tpmps=tpmps
