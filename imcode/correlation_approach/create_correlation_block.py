@@ -30,7 +30,7 @@ def create_correlation_block(B, ntimes, filename):
         corr_block_diag[2 * i + dim_B + 1, 2 * i] = - ew.conj()/norm #<d_{-k}^dagger d_{k}^\dagger>
         corr_block_diag[2 * i + dim_B, 2 * i + dim_B] = abs(ew)**2/norm #<d_{k}^dagger d_{k}>
         corr_block_diag[2 * i + dim_B + 1, 2 * i + dim_B + 1] = abs(ew)**2/norm #<d_{-k}^dagger d_{-k}>
-    print ('corr_block_diag\n', corr_block_diag)
+    #print ('corr_block_diag\n', corr_block_diag)
     
     #matrix that rotates the correlation block between the diagonal basis and the original fermion basis
     double_R = np.bmat([[R, np.zeros((dim_B, dim_B),dtype=np.complex_)],[np.zeros((dim_B, dim_B),dtype=np.complex_), R.conj()]])
