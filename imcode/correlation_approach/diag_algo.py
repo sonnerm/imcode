@@ -128,19 +128,21 @@ data = np.zeros((2,len(times)))
 data[:,:] = [times[:],max_block_sizes[:]]
 print (data)
 
-print(max_block_sizes)
 with h5py.File(filename + "blockscaling" + ".hdf5", 'w') as f:
         dset_blocks = f.create_dataset('block_scaling', (2,len(times)),dtype=np.int_)
         hdf5_data = f['block_scaling']
-        hdf5_data = data
+        hdf5_data[:,:] = data[:,:]
 
-with h5py.File(filename + "blockscaling" + '.hdf5', 'r') as f:
+"""
+#read out test
+with h5py.File(filename + "blockscaling" + ".hdf5", 'r') as f:
    hdf5_data = f['block_scaling']
    np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
-   print(hdf5_data[:,:])
-
-fig, ax = plt.subplots()
-fig.set_size_inches(12.5,10.2) 
-ax.set_xscale('log')
-ax.plot( np.arange(len(max_block_sizes)),max_block_sizes ,alpha=1, marker='o',linestyle=':')
-plt.show()
+   data_read = hdf5_data[:,:]
+   print(data_read)
+"""
+#fig, ax = plt.subplots()
+#fig.set_size_inches(12.5,10.2) 
+#ax.set_xscale('log')
+#ax.plot( np.arange(len(max_block_sizes)),max_block_sizes ,alpha=1, marker='o',linestyle=':')
+#plt.show()
