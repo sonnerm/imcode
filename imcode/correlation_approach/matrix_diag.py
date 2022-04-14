@@ -35,7 +35,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
 
     evol = expm(1.j*G_g) @ expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd)   
 
-    U_E = evol.T.conj()
+    U_E = evol#.T.conj()
 
     U_eff[0] = expm(-G_1) @ evol.T.conj()  # forward branch
     U_eff[1] = expm(G_1) @ evol.T.conj()   # backward branch
@@ -95,7 +95,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         # take superposition with hermitian conjugate to stabilize numerical diagonalization (works only in unitary case, e.g. Ising-type coupling)
         eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eigh(
             0.5 * (G_eff_E + G_eff_E.conj().T))
-
+    
     else:
         eigenvalues_G_eff[0], eigenvectors_G_eff[0] = linalg.eig(G_eff[0])
         eigenvalues_G_eff[1], eigenvectors_G_eff[1] = linalg.eig(G_eff[1])
@@ -103,7 +103,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
       
         eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eigh( G_eff_E + random_part + random_part.T.conj())
         #eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eig(U_E)
-
+   
     # check if found eigenvectors indeed fulfill eigenvector equation (trivial check)
     eigenvector_check = 0
     #eigenvector_check_bw = 0
