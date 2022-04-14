@@ -38,13 +38,13 @@ def create_correlation_block(B, ntimes, filename):
     corr_block_back_rotated = double_R @ corr_block_diag @ double_R.T.conj()#rotate correlation block back from diagonal basis to original fermion basis
     #print ('corr_block_back_rotated\n', corr_block_back_rotated)
 
-    
+    """
     #store for Michael:
     filename_correlations = 'correlations_' + filename
     with h5py.File(filename_correlations + ".hdf5", 'a') as f:
         dset_corr = f.create_dataset('corr_t='+ str(ntimes), (corr_block_back_rotated.shape[0],corr_block_back_rotated.shape[1]),dtype=np.complex_)
         dset_corr[:,:] = corr_block_back_rotated[:,:]
-
+    """
 
     #check that eigenvalues coincide in both bases (half of them should be 0 and half of them should be 1 in both cases)
     #eigenvalues_correlations, ev_correlations = linalg.eigh(corr_block_diag)
