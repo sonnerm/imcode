@@ -27,12 +27,12 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 5
-max_time2 = 6
+max_time1 = 4
+max_time2 = 4
 stepsize1 = 1
 stepsize2 = 1
 
-time_array = np.append(np.arange(4, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
+time_array = np.append(np.arange(3, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
 
 mode =  sys.argv[1] # 'G': compute temporal entanglement entropy from Grassmann approach, 'C': compute temporal entanglement entropy from correlation approach, 'L': compute Lohschmidt echo
@@ -41,9 +41,9 @@ write_mode = sys.argv[2] #if the argument is 'w', overwrite file if it exists, o
 nsites = int(sys.argv[3])
 # model parameters:
 del_t = float(sys.argv[4])
-Jx = float(sys.argv[5]) * del_t #0.5# 0.31 # 0.31
-Jy =float(sys.argv[6])* del_t#np.pi/4+0.3#np.pi/4
-g =float(sys.argv[7])* del_t #np.pi/4+0.3
+Jx = float(sys.argv[5]) * del_t #* np.pi/2 #0.5# 0.31 # 0.31
+Jy =float(sys.argv[6])* del_t# * np.pi/2#np.pi/4+0.3#np.pi/4
+g =float(sys.argv[7])* del_t #* np.pi/2#np.pi/4+0.3
 init_state = int(sys.argv[8])#0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
 beta = float(sys.argv[9])#0.4  # temperature
 mu_initial_state = float(sys.argv[10])
@@ -106,9 +106,9 @@ if mode == "C":
     if (abs((abs(Jx-Jy)*2/np.pi)%2 - 1)< 1.e-8):#if difference between Jx and Jy is close to multiples of pi/2
         beta_tilde = 0
     else:
-        beta_tilde = 0.5 * np.log( (1 + np.tan(Jx) * np.tan(Jy) ) / (1 - np.tan(Jx) * np.tan(Jy) )  )
-    print (beta_tilde)
-    print('beta_tilde', beta_tilde, np.exp(beta_tilde))
+        beta_tilde = 0.5 * np.log( (1 + np.tan(Jx) * np.tan(Jy) ) / (1 - np.tan(Jx) * np.tan(Jy) ) + 0.j) 
+        #beta_tilde = - 0.5 * np.log( (1 + np.tan(Jx-np.pi/2) * np.tan(Jy) ) / (1 - np.tan(Jx-np.pi/2) * np.tan(Jy) ) + 0.j) 
+    #print('beta_tilde', beta_tilde, beta_tilde_comp, np.exp(beta_tilde))
     # define initial density matrix and determine matrix which diagonalizes it:
     # this is the EXPONENT of the BARE gaussian density matrix
     rho_0_exponent = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
@@ -134,11 +134,35 @@ for nbr_Floquet_layers in time_array[iterator:]:
             n_expect, N_t, Lambda = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E,  eigenvalues_G_eff, eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers, init_state)
             B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
             
+            
+            """
+            #for production mode, turn of ALL of the below rotation. They bring the 'C'-exponent (correlation approach) into the basis of the 'G'-exponent (Grassmann) approach). For Michael, turn them on!
+          
+            S = np.zeros(B.shape,dtype=np.complex_)
+            for i in range (nbr_Floquet_layers):#order plus and minus next to each other
+                S [B.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
+                S [B.shape[0] // 2 - (2 * i) - 1,4 * i + 2] = 1
+                S [B.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
+                S [B.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
+            
+            B = S @ B @ S.T
+
+            #the following two transformation bring it into in/out- basis (not theta, zeta)
+            rot = np.zeros((4 * nbr_Floquet_layers,4 * nbr_Floquet_layers))
+            for i in range(0,4*nbr_Floquet_layers, 2):#go from bar, nonbar to zeta, theta
+                rot[i,i] = 1./np.sqrt(2)
+                rot[i,i+1] = 1./np.sqrt(2)
+                rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
+                rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
+            B = rot.T @ B @ rot
+
+            """
+
         else:
             B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
             #the following block expresses B in the same basis as in the correlation approach such that the two matrices can directly be compared
            
-            
+            #the following two rotations (rot and S) bring the 'G'-exponent (Grassmann approach) into the basis of the 'C'-exponent (correlation approach). For Michael, turn them off!
             rot = np.zeros((4 * nbr_Floquet_layers,4 * nbr_Floquet_layers))
             for i in range(0,4*nbr_Floquet_layers, 2):#go from bar, nonbar to zeta, theta
                 rot[i,i] = 1./np.sqrt(2)
@@ -153,31 +177,27 @@ for nbr_Floquet_layers in time_array[iterator:]:
                 S [B.shape[0] // 2 - (2 * i) - 1,4 * i + 2] = 1
                 S [B.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
                 S [B.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
-            
             B = S.T @ B @ S
-        
-            """
-            #for Michael:
-            U = np.zeros(B.shape)#order in the way specified in pdf for him
-            for i in range (nbr_Floquet_layers):
-                U[4*i, B.shape[0] //2 - (2*i) -1] = 1
-                U[4*i + 1, B.shape[0] //2 + (2*i)] = 1
-                U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
-                U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
-            B = U @ B @ U.T
-            """
             mode = 'C'
+            
+        """
+        #for Michael:
+        U = np.zeros(B.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
+        for i in range (nbr_Floquet_layers):
+            U[4*i, B.shape[0] //2 - (2*i) -1] = 1
+            U[4*i + 1, B.shape[0] //2 + (2*i)] = 1
+            U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
+            U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
+        B = U @ B @ U.T 
+        """
+            
         
         with h5py.File(filename + '.hdf5', 'a') as f:
             IM_data = f['IM_exponent']
             IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
-            
-            
-        #np.set_printoptions(linewidth=np.nan, precision=7, suppress=True)
-        #print('B')
-        #print(B)
-        #print(np.linalg.det(B))
-        correlation_block = create_correlation_block(B, nbr_Floquet_layers)
+
+
+        correlation_block = create_correlation_block(B, nbr_Floquet_layers, filename)
         time_cuts = np.arange(1, nbr_Floquet_layers)
 
         print('Starting to write data at iteration', iterator)
