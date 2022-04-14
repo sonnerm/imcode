@@ -11,15 +11,23 @@ from scipy.linalg import sqrtm
 def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state):
     nsites = int (len(rho_0_exponent[0]) / 2)
 
-    rho_0_single_body = 0.25*expm(- rho_0_exponent) @ expm(- rho_0_exponent)#rho_exponent = 0 corresponds to infinite temperature
+    rho_0_single_body = 0.25*expm(- rho_0_exponent) @ expm(- rho_0_exponent)#rho_exponent = 0 corresponds to infinite temperature (factor 0.25 so it gives correct normalization 0.5 from partition function when pulled out of the square root below)
     if init_state == 2:
         rho_0_single_body = M_E @ np.bmat([[np.identity(nsites),np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),np.zeros((nsites,nsites))] ]) @ M_E.T.conj() 
-   
+    elif init_state == 4:
+        cutoff = int((2*nsites) //3)
+        print(eigenvalues_G_eff_E)
+        print(-1.j *logm( M_E.T.conj() @ F_E_prime @ M_E))
+        distr_func1 = np.diag(np.concatenate((np.full((1, cutoff), 1), np.full((1, nsites - cutoff), .25)), axis=None))
+        distr_func2 = np.diag(np.concatenate((np.full((1, cutoff), 0), np.full((1, nsites - cutoff), .25)), axis=None))
+
+        rho_0_single_body = M_E @ np.bmat([[distr_func1,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),  distr_func2] ]) @ M_E.T.conj() 
+
     # the following line assumes that rho_0_exponent is given in real space basis..
     rho_dressed =  sqrtm(matrix_power(F_E_prime,nbr_Floquet_layers)  @ rho_0_single_body @  matrix_power( F_E_prime_dagger,nbr_Floquet_layers) )
+    
 
     eigenvals_dressed, eigenvecs_dressed = linalg.eigh(rho_dressed)
-
 
     argsort = np.argsort(-eigenvals_dressed)
     
@@ -34,14 +42,15 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
     else: 
         N_t = np.identity(eigenvecs_dressed.shape[0])
 
-    """#print ('N_t\n',N_t)
-    N_t = eigenvecs_dressed
-    diag_check = N_t.T.conj() @ rho_dressed @ N_t
+    #print ('N_t\n',N_t)
+    #N_t = eigenvecs_dressed
+    #diag_check = N_t.T.conj() @ rho_dressed @ N_t
 
     
-    eigenvals_dressed = np.real(np.diag(diag_check))
-    print('Dressed density matrix diagonalized \n', diag_check)
-    #print('Eigenvalues of exponent:', eigenvals_dressed)"""
+    #eigenvals_dressed = np.real(np.diag(diag_check))
+    #print('Dressed density matrix diagonalized \n', np.real(diag_check),'\n',np.imag(diag_check))
+    #print('Dressed density matrix diagonalized2 \n', eigenvecs_dressed.T.conj() @ rho_dressed @ eigenvecs_dressed)
+    #print('Eigenvalues of exponent:', eigenvals_dressed)
 
     np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
     n_expect = np.zeros((2 * nsites))#fermi-Dirac distribution for modes (basis in which dressed density matrix is diagonal). 
@@ -57,5 +66,5 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
     #for i in range (nsites):
     #    Z_t += (eigenvals_dressed[k] + eigenvals_dressed[k+nsites])
     #Z_t = 0np.trace(rho_dressed)
-   
+    #print(n_expect)
     return n_expect, N_t, rho_dressed#/Z_t
