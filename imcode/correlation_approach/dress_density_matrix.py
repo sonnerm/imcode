@@ -16,8 +16,7 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
         rho_0_single_body = M_E @ np.bmat([[np.identity(nsites),np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),np.zeros((nsites,nsites))] ]) @ M_E.T.conj() 
     elif init_state == 4:
         cutoff = int((2*nsites) //3)
-        print(eigenvalues_G_eff_E)
-        print(-1.j *logm( M_E.T.conj() @ F_E_prime @ M_E))
+   
         distr_func1 = np.diag(np.concatenate((np.full((1, cutoff), 1), np.full((1, nsites - cutoff), .25)), axis=None))
         distr_func2 = np.diag(np.concatenate((np.full((1, cutoff), 0), np.full((1, nsites - cutoff), .25)), axis=None))
 
