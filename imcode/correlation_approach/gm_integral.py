@@ -37,7 +37,9 @@ def find_index(x, tau, bar, t):
 
 #@profile
 def gm_integral(init_state, Jx, Jy,g,mu_initial_state, beta, N_l, t, filename, iterator):
-
+    if init_state == 4:
+        print('Three-step initial state not implemented for Grassmanns, switched initial state to Infinite Temperature')
+        init_state =3
     #boundary couplings
     Jx_boundary = Jx
     Jy_boundary = Jy
