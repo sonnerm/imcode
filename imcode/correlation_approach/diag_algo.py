@@ -18,15 +18,24 @@ with h5py.File(filename + '.hdf5', 'r') as f:
     corr_read = f[key][:,:]"""
 
 B = [] 
-filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/paper_nb_mode=C_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=2'
+filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/longtime_papermode=C_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=400_init=2'
 #filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/papermode=G_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=3'
 max_block_sizes = []
 times = []
 max_block_individual = 0
-for nbr_Floquet_layers in range (1,4,2):
+
+with h5py.File(filename + '.hdf5', 'r') as f:
+    times_read = f['temp_entr']
+    times = np.trim_zeros(times_read[:,0].astype(int))
+    print('times: ', times)
+
+iter = 0
+
+for nbr_Floquet_layers in times:
     with h5py.File(filename + '.hdf5', 'r') as f:
-        B = f['IM_exponent'][nbr_Floquet_layers - 1,:4*nbr_Floquet_layers,:4*nbr_Floquet_layers]
-    
+        print(iter,4*nbr_Floquet_layers,4*nbr_Floquet_layers)
+        B = f['IM_exponent'][iter,:4*nbr_Floquet_layers,:4*nbr_Floquet_layers]
+
     S = np.zeros(B.shape,dtype=np.complex_)
     for i in range (nbr_Floquet_layers):#order plus and minus next to each other
         S [B.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
@@ -55,7 +64,7 @@ for nbr_Floquet_layers in range (1,4,2):
     B = U @ B @ U.T 
     print(B.shape)
     print(B*0.5)
-    corr_read = create_correlation_block(B, nbr_Floquet_layers)
+    corr_read = create_correlation_block(B, nbr_Floquet_layers, filename)
         
 
     tol = 1.e-15
@@ -121,14 +130,14 @@ for nbr_Floquet_layers in range (1,4,2):
 
     print(np.diag(U_total @ corr_init @ U_total.T.conj()))
     max_block_sizes = np.append(max_block_sizes,max_block_individual / 2)
-    times = np.append(times,nbr_Floquet_layers)
 
-
+    iter += 1
+    
 data = np.zeros((2,len(times)))
 data[:,:] = [times[:],max_block_sizes[:]]
 print (data)
 
-with h5py.File(filename + "blockscaling" + ".hdf5", 'w') as f:
+with h5py.File(filename + "blockscaling_eps=" + str(epsilon) + ".hdf5", 'w') as f:
         dset_blocks = f.create_dataset('block_scaling', (2,len(times)),dtype=np.int_)
         hdf5_data = f['block_scaling']
         hdf5_data[:,:] = data[:,:]
