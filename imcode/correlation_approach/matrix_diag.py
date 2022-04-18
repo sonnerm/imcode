@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import version
+from numpy import dtype, version
 from numpy.lib.type_check import imag
 from scipy.linalg import expm, schur, eigvals
 from scipy import linalg
@@ -7,6 +7,7 @@ from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 from numpy.linalg import multi_dot
 import scipy.optimize
+import h5py
 from reorder_eigenvecs import reorder_eigenvecs
 from compute_generators import compute_generators
 from add_cmplx_random_antisym import add_cmplx_random_antisym
@@ -152,7 +153,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         M[1, :, 2 * nsites - 1 - i] = eigenvectors_G_eff[1, :, argsort_bw[i + nsites]]
         #M_E[:, i] = eigenvectors_G_eff_E[:, argsort_E[i]]
         #M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
-    M_E =  np.bmat([[eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]].conj(), eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]]],[eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]].conj(),eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]]]]) 
+    M_E =  np.block([[eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]].conj(), eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]]],[eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]].conj(),eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]]]]) 
 
 
     #M1_inv = linalg.inv(M[1])
@@ -161,24 +162,92 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     #M_w = np.bmat([[M1_inv[:,nsites:2*nsites],M1_inv[:,:nsites]]])
     #print(M_w.shape)
     #print(M_w - M1_inv.T.conj())
-
-    """fig, ax = plt.subplots(2)
+    """
+    fig, ax = plt.subplots(2)
     plt.subplots_adjust(hspace=0.1)
  
     fig.set_size_inches(1.35,1.7) 
     x = np.arange(0,nsites,1)
     k_vals = np.arange(-nsites,0) * np.pi / nsites
+
+    time_max = 4
+    B_analyt = np.zeros((4*time_max,4*time_max),dtype=np.complex_)
+
+    C_real = []
+
     C_real = np.real(M_E[0, :nsites] - M_E[nsites,0:nsites] )
     C_imag = np.imag(M_E[0, :nsites] - M_E[nsites,0:nsites] )
+    D_real = np.real(M_E[0, :nsites] + M_E[nsites,0:nsites] )
+    D_imag = np.imag(M_E[0, :nsites] + M_E[nsites,0:nsites] )
+
+    D_E = M_E.T.conj() @ G_eff_E @ M_E
+    eigenvals = np.diag(D_E)
+
+    times = np.arange(0,10)
+    kappa_x = np.zeros((10))
+    kappa_y = np.zeros((10))
+    for t in times:
+        kappa_x[t] = (2 * (np.tan(Jx)**2 ) *  np.einsum('k,k->',(D_real ** 2 + D_imag ** 2) , np.cos(eigenvals[:nsites] * times[t])))
+        kappa_y[t] = (2 * (np.tan(Jy)**2 ) *  np.einsum('k,k->',(C_real ** 2 + C_imag ** 2) , np.cos(eigenvals[:nsites] * times[t])))
+
+    for tauprime in range (time_max):
+        for tau in range (tauprime,time_max):
+            B_analyt[4*tau+2 , 4 * tauprime+2] =  2 * (np.tan(Jx)**2 ) *  np.einsum('k,k->',(D_real ** 2 + D_imag ** 2) , np.exp(-1.j * eigenvals[:nsites] * (tau - tauprime)))
+            if tau == tauprime:
+                B_analyt[4*tau+2 , 4 * tauprime+2] *= 0.5
+
+            B_analyt[4*tau +3, 4 * tauprime+2] = - B_analyt[4*tau+2 , 4 * tauprime+2]
+            B_analyt[4*tau +2, 4 * tauprime+3] =  B_analyt[4*tau+2 , 4 * tauprime+2].conj()
+            B_analyt[4*tau +3, 4 * tauprime+3] = - B_analyt[4*tau+2 , 4 * tauprime+2].conj()
+
+            if tau == tauprime:
+                B_analyt[4*tau , 4 * tauprime+2] = 1
+                B_analyt[4*tau+1 , 4 * tauprime+3] = -1
+    B_analyt = (B_analyt - B_analyt.T)
+    
+    filename = 'analytic_IM_Jx=' + str(Jx) + '_Jy='+str(Jy)+'_g=' + str(g) + '_nsites='+ str(nsites) + '_time=' + str(time_max) + '_2'
+    with h5py.File(filename + ".hdf5", 'w') as f:
+        #dset_IM_exponent = f.create_dataset('IM_exponent', (4 * time_max, 4 * time_max),dtype=np.complex_)
+        dset_coeff_square = f.create_dataset('coeff_square', (1,nsites))
+        dset_spectr = f.create_dataset('spectr', (1,nsites),dtype=np.complex_)
+        #IM_data = f['IM_exponent']
+        coeff_square = f['coeff_square']
+        spectr = f['spectr']
+        #IM_data[:,:] = B_analyt[:,:]
+        coeff_square[:] = 2 * (np.tan(Jx)**2 ) * (D_real ** 2 + D_imag ** 2)
+        spectr[:] = eigenvals[:nsites]
+
+
+   # with h5py.File(filename + '.hdf5', 'r') as f:
+   #     coeff_square_read = f['coeff_square']
+   #     spectr_read = f['spectr']
+
+   #     print(coeff_square_read[:] - 2 * (np.tan(Jx)**2 ) * (D_real ** 2 + D_imag ** 2))
+   #     print(spectr_read[:] - eigenvals[:nsites] )
+        
+    
+
+    print('B_analyt saved')
+    print(B_analyt)
+    exit()
+    """
+
+    """
+
+    #print(np.array(C_real[:]))
+    #print(kappa_x)
+    #print(kappa_y)
+    #ax[0].plot(times[:],np.real(kappa[:]), label=r'$|Re(\mathcal{C}_k)|$',ms=.8)
     #ax[0].plot(k_vals[:],(C_real), 'o',label=r'$|Re(\mathcal{C}_k)|$',ms=.8)
-    #ax[0].plot(k_vals[:], (C_imag),'o', label=r'$|Im(\mathcal{C}_k)|$',ms=.8)
-    ax[0].plot(k_vals[:], np.sqrt(C_real ** 2 + C_imag ** 2 ), label=r'$|\mathcal{C}_k|$')
+    #ax[0].plot(k_vals, C_imag,'o', label=r'$|Im(\mathcal{C}_k)|$',ms=.8)
+    #ax[0].plot(k_vals[:], kappa, label=r'$|\mathcal{C}_k|$')
+    #ax[0].plot(k_vals[:], np.sqrt(D_real ** 2 + D_imag ** 2 ), label=r'$|\mathcal{D}_k|$')
     # perform the fit
     p0 = (1,0) # start with values near those we expect
     theta = np.arange(-4,5)
     
-    ax[0].set_xlim(-np.pi,0)
-    ax[0].set_ylim(bottom=0)
+    #ax[0].set_xlim(-np.pi,0)
+    #ax[0].set_ylim(bottom=0)
     ax[0].tick_params(axis="x",direction="in")
     ax[0].set_ylabel(r'$|\mathcal{C}_k(0)|$')
     #params, cv = scipy.optimize.curve_fit(alg_decay, x[nsites-10:nsites-1], abs(C_imag[nsites-10:nsites-1]), p0)
@@ -191,9 +260,10 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
 
     ax[0].axhline(y=0,xmin=0., xmax=1,  linestyle='--',linewidth=1.,color='black')
     #ax[0].axhline(y=Jx**2,xmin=0.7, xmax=1,  linestyle='-',linewidth=1.,color='green')
-    print('heeeeeeere', C_real[nsites - 1])
-    #ax[0].legend()"""
-    
+    #print('heeeeeeere', C_real[nsites - 1])
+    #ax[0].legend()
+    plt.show()
+    """
 
     #print ('M0', M[0]@M[0].T.conj())
     #M[0] = reorder_eigenvecs(M[0], nsites)
