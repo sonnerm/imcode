@@ -12,29 +12,63 @@ ntimes = 2
 epsilon = 1.e-4
 
 
-"""filename = 'Corr_t=' + str(ntimes) + '_Jx=0.3_Jy=0.3ww_g=0.0_IT'
-with h5py.File(filename + '.hdf5', 'r') as f:
-    key = 'corr_t='+str(ntimes)
-    corr_read = f[key][:,:]"""
 
 B = [] 
 filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/longtime_papermode=C_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=400_init=2'
 #filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/papermode=G_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=3'
+filename = '/Users/julianthoenniss/Documents/PhD/code/imcode/imcode/correlation_approach/analytic_IM_Jx=0.3_Jy=0.0_g=0.3_nsites=200_time=4_2'
+
 max_block_sizes = []
 times = []
 max_block_individual = 0
+iter = 0
 
+"""
+#if exponent B is read out
 with h5py.File(filename + '.hdf5', 'r') as f:
     times_read = f['temp_entr']
     times = np.trim_zeros(times_read[:,0].astype(int))
     print('times: ', times)
 
-iter = 0
-
 for nbr_Floquet_layers in times:
     with h5py.File(filename + '.hdf5', 'r') as f:
         print(iter,4*nbr_Floquet_layers,4*nbr_Floquet_layers)
         B = f['IM_exponent'][iter,:4*nbr_Floquet_layers,:4*nbr_Floquet_layers]
+"""
+
+#if exponent B is constructed analytically for KIC¨
+spectr = []
+coeff_square = []
+with h5py.File(filename + '.hdf5', 'r') as f:
+        coeff_square_read = f['coeff_square']
+        spectr_read = f['spectr']
+        spectr = spectr_read[:]
+        coeff_square = coeff_square_read[:]
+        print(len(spectr[0,:]))
+        print(len(coeff_square[0,:]))
+times = np.concatenate((np.arange(1,100,10), np.arange(100,500,50),np.arange(500,100,100)))
+times = np.array([4])
+for nbr_Floquet_layers in times: 
+    B = np.zeros((4*nbr_Floquet_layers, 4*nbr_Floquet_layers),dtype=np.complex_)
+    #create B
+    for tauprime in range (nbr_Floquet_layers):
+            for tau in range (tauprime,nbr_Floquet_layers):
+                B[4*tau+2 , 4 * tauprime+2] =   np.einsum('k,k->',coeff_square[0,:], np.exp(-1.j * spectr[0,:] * (tau - tauprime)))
+                if tau == tauprime:
+                    B[4*tau+2 , 4 * tauprime+2] *= 0.5
+
+                B[4*tau +3, 4 * tauprime+2] = - B[4*tau+2 , 4 * tauprime+2]
+                B[4*tau +2, 4 * tauprime+3] =  B[4*tau+2 , 4 * tauprime+2].conj()
+                B[4*tau +3, 4 * tauprime+3] = - B[4*tau+2 , 4 * tauprime+2].conj()
+
+                if tau == tauprime:
+                    B[4*tau , 4 * tauprime+2] = 1
+                    B[4*tau+1 , 4 * tauprime+3] = -1
+    B = (B - B.T)
+    print('B')
+    print(B)
+
+
 
     S = np.zeros(B.shape,dtype=np.complex_)
     for i in range (nbr_Floquet_layers):#order plus and minus next to each other
