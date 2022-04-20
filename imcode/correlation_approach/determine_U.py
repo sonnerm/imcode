@@ -51,7 +51,7 @@ def determine_U(sub_corr,eigvec, lower, upper, total_dim):
      
             U_sub = U_sub_new @ U_sub
 
-    print(np.einsum('ij,j->i',U_sub,eigvec))
+    #print(np.einsum('ij,j->i',U_sub,eigvec))
     if abs(eigvec_temp[0]) > abs(eigvec_temp[1]):#Givens like above
         print('last layer: Givens')
         exp_phi = 1
@@ -105,7 +105,7 @@ def determine_U(sub_corr,eigvec, lower, upper, total_dim):
         U_sub_new = np.bmat([[ G_theta @ D_phi, np.zeros((4, sub_dim - 4))],[np.zeros((sub_dim - 4, 4)),np.identity(sub_dim - 4)]])
         eigvec_temp = np.einsum('ij,j->i',U_sub_new,eigvec_temp)
 
-        #U_sub = U_sub_new @ U_sub
+        U_sub = U_sub_new @ U_sub
 
 
     #print(np.einsum('ij,j->i',U_sub,eigvec))
