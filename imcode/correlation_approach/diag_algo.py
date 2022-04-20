@@ -179,6 +179,7 @@ for nbr_Floquet_layers in times:
             hdf5_data = f['block_scaling']
             hdf5_data[0,iter] = nbr_Floquet_layers
             hdf5_data[1,iter] = max_block_individual / 2
+    print('Iteration ', iter+1,' stored (time =', nbr_Floquet_layers,', max_blocksize=', max_block_individual / 2, '). Code terminating after ', len(times) - iter -1,' more steps.')
 
     iter += 1
 """
