@@ -27,12 +27,13 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-max_time1 = 4
-max_time2 = 4
+time_0 = 1
+max_time1 = 5
+max_time2 = 5
 stepsize1 = 1
 stepsize2 = 1
 
-time_array = np.append(np.arange(3, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
+time_array = np.append(np.arange(time_0, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
 
 mode =  sys.argv[1] # 'G': compute temporal entanglement entropy from Grassmann approach, 'C': compute temporal entanglement entropy from correlation approach, 'L': compute Lohschmidt echo
@@ -93,13 +94,13 @@ if os.path.isfile(filename+".hdf5") and write_mode != 'w':
 else:
     print('Create/Truncate File..')
     with h5py.File(filename + ".hdf5", 'w') as f:
-        dset_temp_entr = f.create_dataset('temp_entr', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2),dtype=np.float_)
-        dset_entangl_specrt = f.create_dataset('entangl_spectr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2, 8*(max_time2 + stepsize2)),dtype=np.float_)
-        dset_IM_exponent = f.create_dataset('IM_exponent', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 4 * (max_time2 + stepsize2), 4 * (max_time2 + stepsize2)),dtype=np.complex_)
-        dset_edge_corr = f.create_dataset('edge_corr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1), 2 * (4*(max_time2 + stepsize2) - 1) ),dtype=np.complex_)
-        #dset = f.create_dataset('bulk_corr', (int(max_time1/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1) *nsites, 2 * (4*(max_time2 + stepsize2) - 1) *nsites),dtype=np.complex_)
+        dset_temp_entr = f.create_dataset('temp_entr', ((max_time1-time_0)//stepsize1 + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2),dtype=np.float_)
+        dset_entangl_specrt = f.create_dataset('entangl_spectr', (int((max_time1-time_0)/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2, 8*(max_time2 + stepsize2)),dtype=np.float_)
+        dset_IM_exponent = f.create_dataset('IM_exponent', (int((max_time1-time_0)/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 4 * (max_time2 + stepsize2), 4 * (max_time2 + stepsize2)),dtype=np.complex_)
+        dset_edge_corr = f.create_dataset('edge_corr', (int((max_time1-time_0)/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1), 2 * (4*(max_time2 + stepsize2) - 1) ),dtype=np.complex_)
+        #dset = f.create_dataset('bulk_corr', (int(max_time1-time_0)/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 2 * (4*(max_time2 + stepsize2) - 1) *nsites, 2 * (4*(max_time2 + stepsize2) - 1) *nsites),dtype=np.complex_)
         dset_init_BCS_state = f.create_dataset('init_BCS_state', (nsites, nsites),dtype=np.complex_)
-        dset_const_blip = f.create_dataset('const_blip', (max_time1//stepsize1 + (max_time2- max_time1)//stepsize2 + 1,),dtype=np.float_)
+        dset_const_blip = f.create_dataset('const_blip', ((max_time1-time_0)//stepsize1 + (max_time2- max_time1)//stepsize2 + 1,),dtype=np.float_)
 
 if mode == "C":
 
@@ -167,8 +168,8 @@ for nbr_Floquet_layers in time_array[iterator:]:
             for i in range(0,4*nbr_Floquet_layers, 2):#go from bar, nonbar to zeta, theta
                 rot[i,i] = 1./np.sqrt(2)
                 rot[i,i+1] = 1./np.sqrt(2)
-                rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
-                rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
+                rot[i+1,i] = - 1./np.sqrt(2)#* np.sign(2*nbr_Floquet_layers - i-1)#the commented part should be activated in order to compare to correaltion-mode IM exponent (uses different sign for convention of theta-grassmann fiel on forward and backwar branch)
+                rot[i+1,i+1] = 1./np.sqrt(2) #* np.sign(2*nbr_Floquet_layers - i-1)
             B = rot @ B @ rot.T
             
             S = np.zeros(B.shape,dtype=np.complex_)
@@ -190,7 +191,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
             U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
         B = U @ B @ U.T 
         """
-            
+        #print(B)
         
         with h5py.File(filename + '.hdf5', 'a') as f:
             IM_data = f['IM_exponent']
