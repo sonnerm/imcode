@@ -16,7 +16,7 @@ epsilon = 1.e-4
 B = [] 
 filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/longtime_papermode=C_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=400_init=2'
 #filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/papermode=G_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=3'
-filename = '/Users/julianthoenniss/Documents/PhD/code/imcode/imcode/correlation_approach/analytic_IM_Jx=0.3_Jy=0.0_g=0.3_nsites=200_time=4_2'
+filename = '/Users/julianthoenniss/Documents/PhD/code/imcode/imcode/correlation_approach/analytic_IM_Jx=0.3_Jy=0.0_g=0.3_nsites=1000_2'
 
 max_block_sizes = []
 times = []
@@ -47,7 +47,7 @@ with h5py.File(filename + '.hdf5', 'r') as f:
         print(len(spectr[0,:]))
         print(len(coeff_square[0,:]))
 times = np.concatenate((np.arange(1,100,10), np.arange(100,500,50),np.arange(500,100,100)))
-times = np.array([4])
+times = np.arange(300,1000,100)
 for nbr_Floquet_layers in times: 
     B = np.zeros((4*nbr_Floquet_layers, 4*nbr_Floquet_layers),dtype=np.complex_)
     #create B
@@ -154,15 +154,15 @@ for nbr_Floquet_layers in times:
 
         U_temp = determine_U(sub_corr, eigvecs.T[0], lower, upper, dim_corr)
         corr = U_temp @ corr @ U_temp.T.conj()
-        
+      
         tol = 1.e-15
         diag1 = corr
         diag1[abs(diag1) < tol] = 0.0
         print('diag',diag1)
 
-        U_total = U_temp @ U_total 
+        #U_total = U_temp @ U_total 
 
-    print(np.diag(U_total @ corr_init @ U_total.T.conj()))
+    #print(np.diag(U_total @ corr_init @ U_total.T.conj()))
     max_block_sizes = np.append(max_block_sizes,max_block_individual / 2)
 
     iter += 1
