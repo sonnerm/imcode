@@ -17,6 +17,15 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_
    
     # precompute correlation coefficients A from which we construct the correlation functions, i.e. an array containing all correlation coefficients (computed from evolvers T_tilde)
     A = correlation_coefficients( T_tilde,  nsites, nbr_Floquet_layers)
+
+    #correlation coefficients equal time
+    A_ET = np.zeros((2, 2, 2, nbr_Floquet_layers, 2*nsites), dtype=np.complex_)#dressing, branch
+    for tau in range(0, nbr_Floquet_layers):
+        # "c_dagger" (relative minus sign):
+        A_ET[:, :, 0, tau,:] = T_tilde[:, :, tau, 0, :] #explicitly given arguments: evolution time, c at site j=0 in env. || arguments: evolution time, c^dagger at site j=0 in env.
+        # "c" (relative plus sign):
+        A_ET[:, :, 1, tau,:] = T_tilde[:, :, tau, 1, :] 
+    
   
     # define matrix B that is twice exponent of IM:
     B = np.zeros((4 * nbr_Floquet_layers, 4 * nbr_Floquet_layers), dtype=np.complex_)
@@ -79,12 +88,17 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_
             else:# for tau_1 = tau_2, G_Feynman and G_AntiFeynman are zero for same fields
                 #equal time correlators between same operators on same branch have only one factor alpha -> cancel out one of the two.
               
-                G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1) - np.exp(2 * beta_tilde) #* 1. / alpha
-                G_AntiFeynman_zetatheta =  + correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2) - np.exp(2 * beta_tilde)#* 1. / alpha
+                #G_Feynman_zetatheta = - correlator(A, n_expect, 0, 0, time_2, 0, 1, time_1) - np.exp(2 * beta_tilde) #* 1. / alpha
+                #G_AntiFeynman_zetatheta =  + correlator(A, n_expect, 1, 1, time_1, 1, 0, time_2) - np.exp(2 * beta_tilde)#* 1. / alpha
+                #G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1) + np.exp(2 * beta_tilde) #* 1. / alpha
+                #G_AntiFeynman_thetazeta = + correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2) + np.exp(2 * beta_tilde)#* 1. / alpha
 
-                G_Feynman_thetazeta = - correlator(A, n_expect, 0, 1, time_2, 0, 0, time_1) + np.exp(2 * beta_tilde) #* 1. / alpha
-                G_AntiFeynman_thetazeta = + correlator(A, n_expect, 1, 0, time_1, 1, 1, time_2) + np.exp(2 * beta_tilde)#* 1. / alpha
-      
+                G_Feynman_zetatheta = -2 * correlator(A_ET, n_expect, 0, 0, time_2, 0, 1, time_1) 
+                G_AntiFeynman_zetatheta = -2* correlator(A_ET, n_expect, 1, 0, time_2, 1, 1, time_1)
+                G_Feynman_thetazeta = - G_Feynman_zetatheta
+                G_AntiFeynman_thetazeta = - G_AntiFeynman_zetatheta
+               
+
             #define prefactors for correlators to make notation more compact
             prefac_x = np.sqrt(2) * 1/T * np.tan(Jx) 
             prefac_y = np.sqrt(2) * 1/T * np.tan(Jy) 
@@ -119,6 +133,7 @@ def IM_exponent(evolution_matrix, N_t, nsites, nbr_Floquet_layers, Jx, Jy, beta_
         B[4 * tau + 2, 4 * tau] -=  Tt
         B[4 * tau + 3, 4 * tau + 1] += Tt
         B[4 * tau + 1, 4 * tau + 3] -=  Tt
+
     
 
     anti_sym_check(B)
