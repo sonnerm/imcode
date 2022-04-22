@@ -1,9 +1,9 @@
 from re import sub
 import numpy as np
-from quimb import eig
 from scipy import linalg
 import matplotlib.pyplot as plt
 from scipy.sparse.linalg import eigsh
+from scipy import sparse
 import h5py
 
 np.set_printoptions(suppress=False, linewidth=np.nan)
@@ -111,5 +111,5 @@ def determine_U(sub_corr,eigvec, lower, upper, total_dim):
     #print(np.einsum('ij,j->i',U_sub,eigvec))
     #print('U-befire',U_sub)
         
-    U_sub_full_dim = np.bmat([[np.identity(lower), np.zeros((lower,total_dim - lower))],[np.zeros((sub_dim,lower)), U_sub, np.zeros((sub_dim, total_dim-upper))],[np.zeros((total_dim-upper,upper)),np.identity(total_dim-upper)]])
+    U_sub_full_dim = sparse.csr_matrix(np.block([[np.identity(lower), np.zeros((lower,total_dim - lower))],[np.zeros((sub_dim,lower)), U_sub, np.zeros((sub_dim, total_dim-upper))],[np.zeros((total_dim-upper,upper)),np.identity(total_dim-upper)]]))
     return U_sub_full_dim
