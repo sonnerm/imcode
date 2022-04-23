@@ -48,11 +48,11 @@ with h5py.File(filename + '.hdf5', 'r') as f:
         print(len(spectr[0,:]))
         print(len(coeff_square[0,:]))
 times = np.concatenate((np.arange(1,100,10), np.arange(100,500,50),np.arange(500,100,100)))
-times = np.arange(1,100,10)
+times = np.arange(10,100,10)
 
 
 with h5py.File(filename + "blockscaling_eps=" + str(epsilon) + ".hdf5", 'w') as f:
-    dset_blocks = f.create_dataset('block_scaling', (2,len(times)),dtype=np.int_)
+    dset_blocks = f.create_dataset('block_scaling', (3,len(times)),dtype=np.int_)
       
 
 
@@ -137,8 +137,10 @@ for nbr_Floquet_layers in times:
     sub_corr = []
     eigvecs = []
 
+    average_blocksize = 0
+    nbr_iterations = 0
     for lower in range(0,dim_corr-2,2):
-
+        nbr_iterations += 1
         upper = lower + 2
         search_upper= 1
         while(search_upper ):
@@ -157,7 +159,8 @@ for nbr_Floquet_layers in times:
             else:
                 search_upper = 0
                 print('diagonalizing subsystem..')
-                max_block_individual = max(max_block_individual,upper-lower)
+                max_block_individual = max(max_block_individual,(upper-lower)/2)
+                average_blocksize += (upper - lower)/2
 
 
         U_temp = determine_U(sub_corr, eigvecs.T[0], lower, upper, dim_corr)
@@ -171,15 +174,16 @@ for nbr_Floquet_layers in times:
         #U_total = U_temp @ U_total 
 
     #print(np.diag(U_total @ corr_init @ U_total.T.conj()))
-    max_block_sizes = np.append(max_block_sizes,max_block_individual / 2)
+    max_block_sizes = np.append(max_block_sizes,max_block_individual)
 
-    
+    average_blocksize = average_blocksize / nbr_iterations #divide by number of iterations in correlation matrix
 
     with h5py.File(filename + "blockscaling_eps=" + str(epsilon) + ".hdf5", 'a') as f:
             hdf5_data = f['block_scaling']
             hdf5_data[0,iter] = nbr_Floquet_layers
-            hdf5_data[1,iter] = max_block_individual / 2
-    print('Iteration ', iter+1,' stored (time =', nbr_Floquet_layers,', max_blocksize=', max_block_individual / 2, '). Code terminating after ', len(times) - iter -1,' more steps.')
+            hdf5_data[1,iter] = max_block_individual 
+            hdf5_data[2,iter] = average_blocksize
+    print('Iteration ', iter+1,' stored (time =', nbr_Floquet_layers,', max_blocksize=', max_block_individual,', aver_blocksize=', average_blocksize, '). Code terminating after ', len(times) - iter -1,' more steps.')
 
     iter += 1
 """
