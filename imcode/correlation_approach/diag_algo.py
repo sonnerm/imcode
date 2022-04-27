@@ -163,7 +163,7 @@ for nbr_Floquet_layers in times:
                 average_blocksize += (upper - lower)/2
 
 
-        U_temp = determine_U(sub_corr, eigvecs.T[0], lower, upper, dim_corr)
+        U_temp = determine_U(sub_corr, eigvecs.T[arg_list[0]], lower, upper, dim_corr)
         corr = U_temp @ corr @ U_temp.T.conj()
       
         tol = 1.e-15
