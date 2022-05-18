@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from reorder_eigenvecs import reorder_eigenvecs
 from add_cmplx_random_antisym import add_cmplx_random_antisym
 from scipy.linalg import sqrtm
+import h5py
 
 
 def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state):
@@ -16,7 +17,7 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
         rho_0_single_body = M_E @ np.bmat([[np.identity(nsites),np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),np.zeros((nsites,nsites))] ]) @ M_E.T.conj() 
     elif init_state == 4:
         cutoff = int((2*nsites) //3)
-   
+
         distr_func1 = np.diag(np.concatenate((np.full((1, cutoff), 1), np.full((1, nsites - cutoff), .25)), axis=None))
         distr_func2 = np.diag(np.concatenate((np.full((1, cutoff), 0), np.full((1, nsites - cutoff), .25)), axis=None))
 
@@ -24,7 +25,9 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
 
     # the following line assumes that rho_0_exponent is given in real space basis..
     rho_dressed =  sqrtm(matrix_power(F_E_prime,nbr_Floquet_layers)  @ rho_0_single_body @  matrix_power( F_E_prime_dagger,nbr_Floquet_layers) )
-    
+
+    #rho_dressed =  sqrtm( rho_0_single_body )#this is the quantity that Michael needs for exact calculation
+
 
     eigenvals_dressed, eigenvecs_dressed = linalg.eigh(rho_dressed)
 
@@ -61,6 +64,18 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
         n_expect[k + nsites] =  eigenvals_dressed[k+nsites]  / (eigenvals_dressed[k]+ eigenvals_dressed[k+nsites])# # for < c c^dagger >
         #print(eval)
     #print('nexpext',n_expect)
+
+    corr_real_space_diag = np.diag(n_expect)
+    print(corr_real_space_diag)
+    corr_real_space = N_t @ corr_real_space_diag @ N_t.T.conj()
+    print(corr_real_space)
+    filename_correlations =  'Jx=0.3_Jy=0.3_g=0_L=200_FermiSea_correlations'
+    with h5py.File(filename_correlations + ".hdf5", 'a') as f:
+        dset_corr = f.create_dataset('corr_realspace=', (corr_real_space.shape[0],corr_real_space.shape[1]),dtype=np.complex_)
+        dset_corr[:,:] = corr_real_space[:,:]
+    print('Real space correlations stored for Michael.')
+
+
     #Z_t =0
     #for i in range (nsites):
     #    Z_t += (eigenvals_dressed[k] + eigenvals_dressed[k+nsites])
