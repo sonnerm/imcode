@@ -64,7 +64,7 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
         n_expect[k + nsites] =  eigenvals_dressed[k+nsites]  / (eigenvals_dressed[k]+ eigenvals_dressed[k+nsites])# # for < c c^dagger >
         #print(eval)
     #print('nexpext',n_expect)
-
+    """
     corr_real_space_diag = np.diag(n_expect)
     print(corr_real_space_diag)
     corr_real_space = N_t @ corr_real_space_diag @ N_t.T.conj()
@@ -74,7 +74,7 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
         dset_corr = f.create_dataset('corr_realspace=', (corr_real_space.shape[0],corr_real_space.shape[1]),dtype=np.complex_)
         dset_corr[:,:] = corr_real_space[:,:]
     print('Real space correlations stored for Michael.')
-
+    """
 
     #Z_t =0
     #for i in range (nsites):
