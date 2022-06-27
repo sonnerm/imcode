@@ -2,15 +2,10 @@ import numpy as np
 import ttarray as tt
 
 def unitary_channel(F):
-    Ws=F.asmatrices_unchecked()
+    Ws=tt.asarray(F).tomatrices_unchecked()
     Ws=[np.einsum("abcd,efgh->aebfcgdh",W,W.conj()).reshape((W.shape[0]**2,W.shape[1]**2,W.shape[2]**2,W.shape[3]**2)) for W in Ws]
-    return MPO.frommatrices(Ws)
-def unitary_channel(F):
-    L=int(np.log2(F.shape[0]))
-    ret=np.kron(F,F.conj()).reshape((2,)*(4*L))
-    tplist=sum(zip(range(L),range(L,2*L)),())+sum(zip(range(2*L,3*L),range(3*L,4*L)),())
-    ret=ret.transpose(tplist)
-    return ret.reshape((F.shape[0]**2,F.shape[1]**2))
+    return tt.frommatrices(Ws)
+
 def dephasing_channel(gamma,basis=np.eye(2)):
     D=np.diag([1.0,1.0-gamma,1.0-gamma,1.0])
     U=unitary_channel(basis)

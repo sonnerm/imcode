@@ -1,12 +1,24 @@
 import ttarray as tt
 import math
-def brickwork_lcga(Ts,init=None,boundary=None,chi_max=128,cutoff=1e-12,yieldcopy=True):
+import itertools
+def _generator_matrices(mps):
+    mps=tt.slice(mps)
+    assert int(math.log2(mps.shape[0]))==math.log2(mps.shape[0])
+    assert mps.shape[0]==mps.shape[1]
+    mps=mps.recluster(((2,2),)*int(math.log2(mps.shape[0])))
+    return itertools.cycle(mps.tomatrices_unchecked())
+
+
+
+
+def brickwork_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcopy=True):
     '''
         Implements the light-cone growth algorithm for brickwork like circuits.
         works like a generator of intermediate influence matrices
         init defaults to infinite temperature
     '''
     bwobim=np.eye(4)
+    gene=_generator_matrices(init)
     if boundary is None:
         cmps=tt.fromproduct([bwobim]) # empty ttarrays are not allowed
     else:
@@ -16,7 +28,11 @@ def brickwork_lcga(Ts,init=None,boundary=None,chi_max=128,cutoff=1e-12,yieldcopy
         tdim=int(math.log2(T.shape[1]))//4 #math not numpy since the dimension can be quite large
         cdim=int(math.log2(cmps.shape[0]))//4 #math not numpy since the dimension can be quite large
         if tdim>cdim:
-            cmps=tt.frommatrices_unchecked(cmps.asmatrices_unchecked()+[bwobim for _ in range(tdim-cdim)])
+            cmps=tt.frommatrices_unchecked(cmps.tomatrices_unchecked()+[bwobim for _ in range(tdim-cdim)])
+        # contract with initial
+        T.tomatrices_unchecked([0])
+        init=np.array(tt.frommatrices_slice(itertools.take(gene)))[None,...].transpose([0,1,3,2])
+        T=tt.frommatrices_unchecked([init]+T.tomatrices_unchecked())
         # apply
         cmps=T@cmps
         # truncate
@@ -26,11 +42,12 @@ def brickwork_lcga(Ts,init=None,boundary=None,chi_max=128,cutoff=1e-12,yieldcopy
         else:
             yield cmps
 
-def zoz_lcga(Ts,init,boundary=None,chi_max=128,cutoff=1e-12,yieldcopy=True):
+def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcopy=True):
     '''
         Implements the light-cone growth algorithm for zoz style circuits
     '''
     zozobim=np.ones((4,))
+    gene=_generator_matrices(init)
     if boundary is None:
         cmps=tt.fromproduct([zozobim]) # empty ttarrays are not allowed
     else:
@@ -40,7 +57,10 @@ def zoz_lcga(Ts,init,boundary=None,chi_max=128,cutoff=1e-12,yieldcopy=True):
         tdim=int(math.log2(T.shape[1]))//2 #math not numpy since the dimension can be quite large
         cdim=int(math.log2(cmps.shape[0]))//2 #math not numpy since the dimension can be quite large
         if tdim>cdim:
-            cmps=tt.frommatrices_unchecked(cmps.asmatrices_unchecked()+[zozobim for _ in range(tdim-cdim)])
+            cmps=tt.frommatrices_unchecked(cmps.tomatrices_unchecked()+[zozobim for _ in range(tdim-cdim)])
+        # contract with initial
+        init=next(gene)
+        T=tt.frommatrices_unchecked([init]+T.tomatrices_unchecked())
         # apply
         cmps=T@cmps
         # truncate

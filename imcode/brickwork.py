@@ -27,19 +27,19 @@ def brickwork_F(L,gates,reversed=False):
         return brickwork_Fe(L,gates[::2])@brickwork_Fo(L,gates[1::2]))
 def brickwork_H(L,gates):
     pass
-def brickwork_La(t):
-    return tt.fromproduct([np.eye(4)]*t)
+def brickwork_La(t,chs=np.eye(4)):
+    chs=np.asarray(chs)
+    if len(chs.shape==2):
+        chs=(chs for _ in range(t))
+    return tt.fromproduct_slice([ch.T for ch in chs])
 def brickwork_Lb(t,chs):
-    init=init.reshape((1,1,4))
-    final=final.T.reshape((1,1,4))
-    us=u*np.sqrt(s)
-    vs=(v.T*np.sqrt(s)).T
-    gatea=vs[None,:,:]
-    gateb=us.T[:,None,:]
-    init=np.einsum("abc,bde->adce",init,gatea).reshape((1,4,16))
-    gate=np.einsum("abc,bde->adce",gateb,gatea).reshape((4,4,16))
-    final=np.einsum("abc,bde->adce",gateb,final).reshape((4,1,16))
-    return MPS.from_matrices([init]+[gate]*(t-2)+[final])
+    chs=np.asarray(chs)
+    if len(chs.shape==2):
+        chs=(chs for _ in range(t))
+    chs=[ch.T.reshape((1,4,4,1)) for ch in chs]
+    chs[-1]=np.tensordot(chs[-1],np.eye(2).ravel(),axis=((1,),(0,))).reshape((1,4,1))
+    chs[0]=chs[0].transpose([1,0])
+    return tt.frommatrices_slice([ch.T for ch in chs])
 
 def brickwork_Sa(t, chs):
     '''
@@ -49,7 +49,7 @@ def brickwork_Sa(t, chs):
     if len(chs.shape==2):
         chs=(chs for _ in range(t))
     dual=[ch.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((16,16)) for ch in chs]
-    return tt.fromproduct(dual)
+    return tt.fromproduct_slice(dual)
 
 def brickwork_Sb(t, chs):
     '''
@@ -58,13 +58,18 @@ def brickwork_Sb(t, chs):
     chs=np.asarray(chs)
     if len(chs.shape==2):
         chs=[chs for _ in range(t)]
-    dual=[ch.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((16,16)) for ch in chs]
-    # dual[-1]=
-    init=np.array(init)
-    final=np.array(final)
-    return tt.frommatrices(dual) # for now ...
+    dual=[ch.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((1,16,16,1)) for ch in chs]
+    dual[-1]=np.tensordot(dual[-1].reshape((4,4,4,4)),np.eye(2).ravel(),axis=((1,),(0,))).reshape((1,16,1))
+    dual[-1]=np.tensordot(dual[-1].reshape((4,4,4,4)),np.eye(2).ravel(),axis=((2,),(0,))).reshape((1,16,1))
+    dual[0]=dual[0].transpose([1,0])
+    return tt.frommatrices_slice(dual)
 def brickwork_open_boundary_im(t):
-    return brickwork_La(t)
+    return brickwork_La(t).asarray()
 
 def interleave_brickwork(ima,imb):
-    pass
+    res=[]
+    for l,r in zip(lhs,rhs):
+        l=l.reshape((l.shape[0],4,4,l.shape[-1]))
+        r=r.reshape((r.shape[0],4,4,r.shape[-1]))
+        res.append(np.einsum("abcd,ecfg->aebfdg",l,r).reshape(l.shape[0]*r.shape[0],16,l.shape[-1]*r.shape[-1]))
+    return res

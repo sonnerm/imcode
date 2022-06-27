@@ -2,7 +2,7 @@ import ttarray as tt
 
 def temporal_gauge(im):
     im.clearcenter()
-    im=im.asmatrices_unchecked()
+    im=im.tomatrices_unchecked()
     postval=np.array([1.0])
     for i in range(len(im)-1,-1,-1):
         preval=np.einsum("c,abc,b->a",postval,im[i],[0.5,0.0,0.0,0.5])
