@@ -29,7 +29,7 @@ def loadhdf5(hdf5obj,name=None):
         else:#legacy mode
             if name is not None:
                 hdf5obj=hdf5obj[name]
-            L=np.array(hdf5obj[L])
+            L=np.array(hdf5obj["L"])
             Ms=[]
             for i in range(L):
                 m=np.array(hdf5obj["M_%i"%i])

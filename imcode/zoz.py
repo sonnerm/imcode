@@ -8,9 +8,9 @@ import numpy as np
         |
         2
 '''
-ID_ZOZ
-ID_OZ=
-ID_ZO=
+# ID_ZOZ
+# ID_OZ=
+# ID_ZO=
 
 def zoz_H(L,zozs):
     pass

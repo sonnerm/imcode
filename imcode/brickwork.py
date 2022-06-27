@@ -22,9 +22,9 @@ def brickwork_Fo(L,gateso):
 
 def brickwork_F(L,gates,reversed=False):
     if not reversed:
-        return brickwork_Fo(L,gates[1::2])@brickwork_Fe(L,gates[::2]))
+        return brickwork_Fo(L,gates[1::2])@brickwork_Fe(L,gates[::2])
     else:
-        return brickwork_Fe(L,gates[::2])@brickwork_Fo(L,gates[1::2]))
+        return brickwork_Fe(L,gates[::2])@brickwork_Fo(L,gates[1::2])
 def brickwork_H(L,gates):
     pass
 def brickwork_La(t,chs=np.eye(4)):
