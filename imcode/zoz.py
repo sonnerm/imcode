@@ -7,6 +7,13 @@ import numpy as np
     0 - o - 3
         |
         2
+        
+    OZ gate order:
+        0
+        |
+        o - 2
+        |
+        1
 '''
 # ID_ZOZ
 # ID_OZ=

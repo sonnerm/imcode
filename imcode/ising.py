@@ -1,5 +1,6 @@
 import numpy as np
 import ttarray as tt
+from . import SX,SZ,ID
 def ising_H(L,J,g,h):
     J=np.asarray(J)
     g=np.asarray(g)
@@ -45,8 +46,8 @@ def ising_F(L,J,g,h):
     DI=np.array([[np.exp(-1.0j*J[-1]),0],[0,np.exp(1.0j*J[-1])]])
     wjc=np.array([[UI],[DI]])
     WJ.append(wjc)
-    mpJ=MPO.from_matrices(WJ)
-    return (mpJ@mph@mpg).contract()
+    mpJ=tt.frommatrices(WJ)
+    return mpJ@mph@mpg
 def ising_gate(J,g,h):
     pass
 def ising_lop(t,ch,init=np.eye(2)/2,final=np.eye(2)):
