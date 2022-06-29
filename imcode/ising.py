@@ -1,6 +1,7 @@
 import numpy as np
 import ttarray as tt
-from . import SX,SZ,ID
+from . import SX,SZ,ID,ZE
+from . import brickwork
 def ising_H(L,J,g,h):
     J=np.asarray(J)
     g=np.asarray(g)
@@ -30,33 +31,21 @@ def ising_F(L,J,g,h):
         g=np.tile(g,L)
     if len(h.shape)==0:
         h=np.tile(h,L)
-    Wg=[np.array([[[[np.cos(gc),1.0j*np.sin(gc)],[1.0j*np.sin(gc),np.cos(gc)]]]]) for gc in g]
-    Wh=[np.array([[[[np.exp(1.0j*hc),0],[0,np.exp(-1.0j*hc)]]]]) for hc in h]
+    Wloc=[np.diag([np.exp(1.0j*hc),np.exp(-1.0j*hc)])@np.array([[np.cos(gc),1.0j*np.sin(gc)],[1.0j*np.sin(gc),np.cos(gc)]]) for hc,gc in zip(h,g)]
+    mploc=tt.fromproduct(Wloc)
     if L==1:
-        return multiply_mpos([mph,mpg])
+        return mploc
     if len(J.shape)==0:
         J=np.tile(J,L-1)
-    UP=np.array([[1,0],[0,0]])
-    DO=np.array([[0,0],[0,1]])
-    WJ=[np.array([[UP,DO]])]
-    for Jc in J[:-1]:
-        wjc=np.array([[UP*np.exp(1.0j*Jc),DO*np.exp(-1.0j*Jc)],[UP*np.exp(-1.0j*Jc),DO*np.exp(1.0j*Jc)]])
-        WJ.append(wjc)
-    UI=np.array([[np.exp(1.0j*J[-1]),0],[0,np.exp(-1.0j*J[-1])]])
-    DI=np.array([[np.exp(-1.0j*J[-1]),0],[0,np.exp(1.0j*J[-1])]])
-    wjc=np.array([[UI],[DI]])
-    WJ.append(wjc)
-    mpJ=tt.frommatrices(WJ)
-    return mpJ@mph@mpg
-def ising_gate(J,g,h):
+    mpJ=brickwork.brickwork_F(L,[np.diag([np.exp(1.0j*Jc),np.exp(-1.0j*Jc),np.exp(-1.0j*Jc),np.exp(1.0j*Jc)]) for Jc in J])
+    return mpJ@mploc
+def ising_zoz(J,g,h):
     pass
-def ising_lop(t,ch,init=np.eye(2)/2,final=np.eye(2)):
+
+def ising_lop(t,ch):
     pass
 def ising_J(t,J):
     pass
 
-def ising_T(t,J,g,h,init=np.eye(2)/2,final=np.eye(2)):
-    init=np.array(init)
-    if len(init.shape)==2:
-        init=init[None,...,None]
-    return (ising_J(t,J)@ising_g(t,g,init,final)@ising_h(t,h)).contract()
+def ising_T(t,J,g,h):
+    return ising_J(t,J)@ising_lop(t,g,h)

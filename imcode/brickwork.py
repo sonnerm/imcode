@@ -8,17 +8,15 @@ def brickwork_Fe(L,gatese):
     if L%2==0:
         Bs=gatese
     else:
-        gatebound=np.eye(2)[None,...,None]
-        Bs=list(gatese)+[gatebound]
-    return tt.frommatrices(Bs).recluster(((2,),)*L)
+        Bs=list(gatese)+[np.eye(2)]
+    return tt.fromproduct(Bs).recluster(((2,2),)*L)
 
 def brickwork_Fo(L,gateso):
-    gatebound=np.eye(2)[None,...,None]
     if L%2==0:
-        Bs=[gatebound]+gateso+[gatebound]
+        Bs=[np.eye(2)]+gateso+[np.eye(2)]
     else:
-        Bs=[gatebound]+gateso
-    return tt.frommatrices(Bs).recluster(((2,),)*L)
+        Bs=[np.eye(2)]+gateso
+    return tt.fromproduct(Bs).recluster(((2,2),)*L)
 
 def brickwork_F(L,gates,reversed=False):
     if not reversed:
