@@ -7,7 +7,7 @@ import functools
 import ttarray as tt
 
 def simple_ising_F(L, J, g, h):
-    return scla.expm(1.0j * np.array(imcode.ising_H(L,J, [0.0] * L, h)) @ scla.expm(1.0j * np.array(imcode.ising_H(L,[0.0] * L, g, [0.0] * L))))
+    return scla.expm(1j * np.array(imcode.ising_H(L,J,0,h))) @ scla.expm(1j * np.array(imcode.ising_H(L,0,g,0)))
 
 def simple_ising_H(L,J,g,h):
     ret = np.zeros((2**L,2**L),dtype=complex)
@@ -20,23 +20,7 @@ def simple_ising_H(L,J,g,h):
 def mkron(args):
     return functools.reduce(np.kron,args)
 
-def test_ising_F_complex(seed_rng):
-    L=5
-    J = np.random.normal(size=L-1) + 1.0j * np.random.normal(size=L-1)
-    g = np.random.normal(size=L) + 1.0j * np.random.normal(size=L)
-    h = np.random.normal(size=L) + 1.0j * np.random.normal(size=L)
-    # simple implementation of ising_F, to be compared to future implementations
-    miF=imcode.ising_F(L,J,g,h)
-    diF=np.array(miF)
-    assert diF.dtype==np.complex_
-    assert diF.conj().T@diF!=pytest.approx(np.eye(diF.shape[0])) #not unitary
-    assert diF@diF.T.conj()!=pytest.approx(np.eye(diF.shape[0])) #not unitary
-    assert diF.T.conj()!=pytest.approx(diF)
-    assert diF.T!=pytest.approx(diF)
-    assert diF.conj()!=pytest.approx(diF)
-    assert simple_ising_F(L, J, g, h) == pytest.approx(diF)
-
-def test_ising_F_real(seed_rng):
+def test_ising_F(seed_rng):
     L=5
     J = np.random.normal(size=L-1)
     g = np.random.normal(size=L)
@@ -44,11 +28,6 @@ def test_ising_F_real(seed_rng):
     miF=imcode.ising_F(L,J,g,h)
     diF=np.array(miF)
     assert diF.dtype==np.complex_
-    assert diF.conj().T@diF==pytest.approx(np.eye(diF.shape[0])) #unitary
-    assert diF@diF.T.conj()==pytest.approx(np.eye(diF.shape[0]))
-    assert diF.T.conj()!=pytest.approx(diF)
-    assert diF.T!=pytest.approx(diF)
-    assert diF.conj()!=pytest.approx(diF)
     assert simple_ising_F(L, J, g, h) == pytest.approx(diF)
 
 def test_ising_F_trotter(seed_rng):
@@ -56,10 +35,10 @@ def test_ising_F_trotter(seed_rng):
     J=np.random.normal(size=(L-1,))
     g=np.random.normal(size=(L,))
     h=np.random.normal(size=(L,))
-    dt=0.01
+    dt=0.001
     miF=np.array(imcode.ising_F(L,J*dt,g*dt,h*dt))
     miH=np.array(imcode.ising_H(L,J*dt,g*dt,h*dt))
-    assert scla.expm(1.0j*miH)==pytest.approx(miF)
+    assert scla.expm(1.0j*miH)==pytest.approx(miF,rel=10*dt)
 
 def test_ising_H(seed_rng):
     # Build operator manually from basic operators and compare also for complex coefficients <=> non-hermitian operators
