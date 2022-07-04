@@ -1,6 +1,8 @@
 import imcode
+import pytest
 import ttarray as tt
 import numpy as np
+from imcode import SZ,SX,ID,ZE
 import functools
 def mkron(a):
     return functools.reduce(np.kron,a)
@@ -15,7 +17,7 @@ def test_product_homhom(seed_rng):
     h=np.random.random()-0.5
     init=[np.random.random((2,))+np.random.random((2,))*1.0j-0.5-0.5j for _ in range(L)]
     init=[i.T.conj()+i for i in init]
-    init=[i/np.trace(i) for i in init]
+    init=[i/np.sqrt(np.sum(i.conj()*i)) for i in init]
     F=imcode.ising_F(L,J,g,h)
     opr2=np.random.random((4,4))-0.5
     opr2+=opr2.T.conj()
@@ -47,7 +49,7 @@ def test_product_homhom(seed_rng):
     wopr2=tt.fromproduct([ID]*(L-2)+[opr2])
     wope=tt.fromproduct([ID]*(L//2)+[ope]+[ID]*(L//2))
     wope2=tt.fromproduct([ID]*(L//2)+[ope2]+[ID]*(L//2-1))
-    winit=tt.fromproductr(init)
+    winit=tt.fromproduct(init)
     for _ in range(t):
         wzzl.append(np.array(winit.T.conj()@wopl@winit))
         wzzr2.append(np.array(winit.T.conj()@wopr2@winit))
@@ -68,17 +70,23 @@ def test_product_homhom(seed_rng):
     mzzl,mzzr2,mzze,mzze2=[],[],[],[]
     minit=tt.fromproduct([np.outer(i.T.conj(),i) for i in init])
     for _ in range(t):
-        mzzl.append(np.trace(wopl@minit))
-        mzzr2.append(np.trace(wopr2@minit))
-        mzze.append(np.trace(wope@minit))
-        mzze2.append(np.trace(wope2@minit))
-        minit=(F@winit@F.T.conj())
+        mzzl.append(np.array(np.trace(wopl@minit)))
+        mzzr2.append(np.array(np.trace(wopr2@minit)))
+        mzze.append(np.array(np.trace(wope@minit)))
+        mzze2.append(np.array(np.trace(wope2@minit)))
+        minit=(F@minit@F.T.conj())
         minit.truncate(chi_max=64)
 
-    mzzl.append(np.trace(wopl@minit))
-    mzzr2.append(np.trace(wopr2@minit))
-    mzze.append(np.trace(wope@minit))
-    mzze2.append(np.trace(wope2@minit))
+    mzzl.append(np.array(np.trace(wopl@minit)))
+    mzzr2.append(np.array(np.trace(wopr2@minit)))
+    mzze.append(np.array(np.trace(wope@minit)))
+    mzze2.append(np.array(np.trace(wope2@minit)))
+
+    assert mzzl==pytest.approx(dzzl)
+    assert mzzr2==pytest.approx(dzzr2)
+    assert mzze==pytest.approx(dzze)
+    assert mzze2==pytest.approx(dzze2)
+    
     Ts=[imcode.ising_T(t,J,g,h) for t in range(t)]
 
 
