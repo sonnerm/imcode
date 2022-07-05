@@ -1,11 +1,14 @@
 import ttarray as tt
+import numpy as np
 import math
 import itertools
 def _generator_matrices(mps):
+    if len(mps.shape)==2:
+        mps=mps[None,...,None]
     mps=tt.slice(mps)
-    assert int(math.log2(mps.shape[0]))==math.log2(mps.shape[0])
-    assert mps.shape[0]==mps.shape[1]
-    mps=mps.recluster(((2,2),)*int(math.log2(mps.shape[0])))
+    assert int(math.log2(mps.shape[1]))==math.log2(mps.shape[1])
+    assert mps.shape[1]==mps.shape[2]
+    mps=mps.recluster(((2,2),)*int(math.log2(mps.shape[1])))
     return itertools.cycle(mps.tomatrices_unchecked())
 
 
@@ -32,7 +35,7 @@ def brickwork_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yi
         # contract with initial
         T.tomatrices_unchecked([0])
         init=np.array(tt.frommatrices_slice(itertools.take(gene)))[None,...].transpose([0,1,3,2])
-        T=tt.frommatrices_unchecked([init]+T.tomatrices_unchecked())
+        T=tt.frommatrices([init]+T.tomatrices_unchecked())
         # apply
         cmps=T@cmps
         # truncate
@@ -46,10 +49,10 @@ def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcop
     '''
         Implements the light-cone growth algorithm for zoz style circuits
     '''
-    zozobim=np.ones((4,))
+    zozobim=np.ones((4,))[None,...,None]
     gene=_generator_matrices(init)
     if boundary is None:
-        cmps=tt.fromproduct([zozobim]) # empty ttarrays are not allowed
+        cmps=tt.frommatrices([zozobim]) # empty ttarrays are not allowed
     else:
         cmps=boundary.copy()
     for T in Ts:
@@ -57,10 +60,12 @@ def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcop
         tdim=int(math.log2(T.shape[1]))//2 #math not numpy since the dimension can be quite large
         cdim=int(math.log2(cmps.shape[0]))//2 #math not numpy since the dimension can be quite large
         if tdim>cdim:
-            cmps=tt.frommatrices_unchecked(cmps.tomatrices_unchecked()+[zozobim for _ in range(tdim-cdim)])
+            cmps=tt.frommatrices(cmps.tomatrices_unchecked()+[zozobim for _ in range(tdim-cdim)])
         # contract with initial
         init=next(gene)
-        T=tt.frommatrices_unchecked([init]+T.tomatrices_unchecked())
+        init=init.reshape((1,init.shape[0],4,init.shape[-1])).transpose([0,1,3,2])
+        print(init.shape)
+        T=tt.frommatrices([init]+T.tomatrices_unchecked())
         # apply
         cmps=T@cmps
         # truncate

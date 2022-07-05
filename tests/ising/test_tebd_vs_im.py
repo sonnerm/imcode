@@ -86,8 +86,15 @@ def test_product_homhom(seed_rng):
     assert mzzr2==pytest.approx(dzzr2)
     assert mzze==pytest.approx(dzze)
     assert mzze2==pytest.approx(dzze2)
-    
-    Ts=[imcode.ising_T(t,J,g,h) for t in range(t)]
+
+    #im lcga
+    Ts=[imcode.ising_T(t,J,g,h) for t in range(1,t+1)]
+    lim=list(imcode.zoz_lcga(Ts))
+
+    #im rectangle
+    T=imcode.ising_T(t,J,g,h)
+
+
 
 
 def test_product_hethom():
