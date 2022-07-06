@@ -7,4 +7,8 @@ ZE=np.array([[0,0],[0,0]])
 from .ising import ising_F,ising_H,ising_T
 from .im_algo import zoz_lcga,brickwork_lcga
 from .brickwork import brickwork_F,brickwork_H
+from .obs import ising_boundary_evolution,ising_embedded_evolution
+from .obs import brickwork_boundary_evolution,brickwork_embedded_evolution
+from .obs import zoz_boundary_evolution,zoz_embedded_evolution
 from .io import savehdf5,loadhdf5
+from .channel import unitary_channel,vectorize_operator,unvectorize_operator
