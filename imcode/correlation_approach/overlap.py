@@ -14,7 +14,7 @@ from random import random
 np.set_printoptions(threshold=sys.maxsize, precision=1)
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=G_o=1_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=41_init=2'
 filename = '/Users/julianthoenniss/Documents/PhD/data/interleaved_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200InfTemp-FermiSea_my_conv'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=0_timestep=0.05_test3'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=0_timestep=0.01_T=100'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=20_init=2'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=3'
 
@@ -27,19 +27,19 @@ elif conv == 'M':
     filename += '_Michaels_conv' 
     print('using Ms convention')
 
-t = 10. # hopping between spin species
-delta_t = 0.05
+t = 1. # hopping between spin species
+delta_t = 0.01
 
 with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
     dset_propag_IM = f.create_dataset('propag_IM', (50,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset(
-        'propag_exact', (50,), dtype=np.complex_)
+        'propag_exact', (100,), dtype=np.complex_)
 
 trace_vals = []
 trace_vals_const = []
 rho_eigvals_min = []
 rho_eigvals_max = []
-for iter in range(1,49):
+for iter in range(1,99):
 
     """
     with h5py.File(filename + '.hdf5', 'r') as f:
@@ -123,9 +123,9 @@ for iter in range(1,49):
     #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
     seed(10)
     for i in range(dim_B//4-1):
-        t = random()
-        mu_up = random()
-        mu_down = random()
+        #t = random()
+        mu_up =0# random()
+        mu_down =0# random()
         print(t,mu_up,mu_down)
 
         T=1+np.tan(t/2)**2
@@ -193,30 +193,41 @@ for iter in range(1,49):
     #Transpose (antisymm)
     exponent_check[3 * dim_B, 3 * dim_B + dim_B - 1] -= -1
     
-    A = np.bmat([[exponent_check[1:dim_B-1,1:dim_B-1], exponent_check[1:dim_B-1,dim_B :]], 
-    [exponent_check[dim_B:, 1:dim_B-1], exponent_check[dim_B:, dim_B:]]])
+    A = np.bmat([[exponent_check[1:dim_B-1,1:dim_B-1], exponent_check[1:dim_B-1,dim_B :2*dim_B], exponent_check[1:dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[1:dim_B-1,3*dim_B:]], 
+                [exponent_check[dim_B :2*dim_B,1:dim_B-1], exponent_check[dim_B :2*dim_B,dim_B :2*dim_B], exponent_check[dim_B :2*dim_B,2*dim_B +1:3*dim_B-1], exponent_check[dim_B :2*dim_B,3*dim_B:]],
+                [exponent_check[2*dim_B +1:3*dim_B-1,1:dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,dim_B :2*dim_B], exponent_check[2*dim_B +1:3*dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,3*dim_B:]],
+                [exponent_check[3*dim_B:,1:dim_B-1], exponent_check[3*dim_B:,dim_B :2*dim_B], exponent_check[3*dim_B:,2*dim_B +1:3*dim_B-1], exponent_check[3*dim_B:,3*dim_B:]]])
+
+   
     
-    R = np.bmat([exponent_check[[0,dim_B -1],1:dim_B-1] , exponent_check[[0,dim_B -1],dim_B:] ])
-    C = np.zeros((2,2),dtype=np.complex_)
+    R = np.bmat([exponent_check[[0,dim_B -1, 2*dim_B, 3*dim_B -1],1:dim_B-1] , exponent_check[[0,dim_B -1, 2*dim_B, 3*dim_B -1],dim_B :2*dim_B],exponent_check[[0,dim_B -1, 2*dim_B, 3*dim_B -1],2*dim_B +1:3*dim_B-1] , exponent_check[[0,dim_B -1, 2*dim_B, 3*dim_B -1],3*dim_B:] ])
+    C = np.zeros((4,4),dtype=np.complex_)
     C[0,1] = exponent_check[0,dim_B-1]
-    C[1,0] = exponent_check[dim_B-1,0]
-    
+    C[0,2] = exponent_check[0,2*dim_B]
+    C[0,3] = exponent_check[0,2*dim_B-1]
+
+    C[1,2] = exponent_check[dim_B -1 ,2*dim_B]
+    C[1,3] = exponent_check[dim_B -1,2*dim_B-1]
+
+    C[2,3] = exponent_check[2*dim_B,2*dim_B-1]
+    C -= C.T
+    print(C)
     A_inv = linalg.inv(A)
     
     rho_exponent_evolved = 0.5*(R @ A_inv @ R.T + C)
     rho_evolved = np.zeros((2,2),dtype=np.complex_)
+ 
     rho_evolved[0,0] = 1
-    rho_evolved[1,1] = 2 * rho_exponent_evolved[0,1]
-    #rho_evolved *= 0.5 
-    rho_evolved = 1./((1+np.exp(-beta_up)) * (1+np.exp(-beta_down))) * linalg.inv(rho_evolved)
-    print(rho_evolved, np.trace(rho_evolved))
+    rho_evolved[1,1] = - 2 * rho_exponent_evolved[2,3] # minus sign because of sign-change-convention
+    rho_evolved *= 1./(1+np.exp(-beta_up)) 
+
     trace_vals.append( np.trace(rho_evolved))
     rho_eigvals = linalg.eigvals(rho_evolved)
     rho_eigvals_max.append(np.max(rho_eigvals))
     rho_eigvals_min.append(np.min(rho_eigvals))
 
 
-
+    """
     # temporal boundary condition for measure
     # sign because substituted in such a way that all kernels are the same.
     #spin up
@@ -235,15 +246,15 @@ for iter in range(1,49):
         propag_data[iter] = exponent_inv[2*dim_B + 1,dim_B//2-1]
 
     print(exponent_inv[2*dim_B + 1, dim_B//2-1])
-
-plt.plot(np.arange(1,48)*delta_t, trace_vals[:47],linewidth=2,label='Tr'+r'$(\rho)$')
-plt.plot(np.arange(1,48)*delta_t, rho_eigvals_max[:47],linewidth=2,label='max. eigenvalue of '+ r'$\rho$')
-plt.plot(np.arange(1,48)*delta_t, rho_eigvals_min[:47],linewidth=2,label='min. eigenvalue of '+ r'$\rho$')
+    """
+plt.plot(np.arange(1,98)*delta_t, trace_vals[:97],linewidth=2,label='Tr'+r'$(\rho)$')
+plt.plot(np.arange(1,98)*delta_t, rho_eigvals_max[:97],linewidth=2,label='max. eigenvalue of '+ r'$\rho$')
+plt.plot(np.arange(1,98)*delta_t, rho_eigvals_min[:97],linewidth=2,label='min. eigenvalue of '+ r'$\rho$')
 #plt.plot(np.arange(2,28)*delta_t, trace_vals_const[1:27],linewidth=2,linestyle = '--',label='fixed IM at ' + r'$T=29$')
-plt.plot(np.arange(1,49)*delta_t, 48*[1.0], linestyle='--',color="grey")
+plt.plot(np.arange(1,98)*delta_t, 97*[1.0], linestyle='--',color="grey")
 plt.xlabel('physical time '+r'$t$')
 #plt.ylabel('Tr'+r'$(\rho)$')
-plt.text(.1,0.6,r'$ \delta t = 0.05,$'+ ' spinfull fermions, Inf. Temp.,\n random spin-hopping interaction and random phases')
+plt.text(.1,0.6,r'$ \delta t = {},\, \rho(0) = \exp (-\beta c^\dagger c ),\,\beta = {}$'.format(delta_t,beta_up)+ '\n spinfull fermions,\n random spin-hopping interaction and random phases')
 #plt.ylim([0.7,1.3])
 plt.legend()
-plt.show()
+plt.savefig('/Users/julianthoenniss/Documents/PhD/data/'+ 'deltat='+str(delta_t) + '_beta=' +str(beta_up) + '_randomdynamics.pdf')
