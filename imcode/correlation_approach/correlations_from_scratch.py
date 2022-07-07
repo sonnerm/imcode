@@ -154,9 +154,15 @@ G_XY_odd[13,12] = 0
 
 evol = (expm(1.j*G_XY_odd) @ expm(1.j*G_XY_even))
 
+filename = '/Users/julianthoenniss/Documents/PhD/data/Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200_InfTemp'
 print (evol.shape,Lambda.shape)
-for i in range (2,6):
+for i in range (0,50):
     t_2=i
     t_1=0
-    print(i, (matrix_power(evol,t_2) @ Lambda @ matrix_power(evol.T.conj(),t_1))[nsites//2,nsites//2])
+    value = (matrix_power(evol,t_2) @ Lambda @ matrix_power(evol.T.conj(),t_1))[nsites//2,nsites//2]
+    with h5py.File(filename+'_propag' + ".hdf5", 'a') as f:
+        propag_data = f['propag_exact']
+        propag_data[i] = value
+
+    print(i, value)
   
