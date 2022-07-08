@@ -23,7 +23,7 @@ plt.rcParams.update({
 
 def alg_decay(x,a,b):
     return a*np.log(x)+b
-def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
+def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, order, Jx=0, Jy=0, g=0):
     #print(G_XY_odd)
     #print(G_XY_even)
     #print(G_g)
@@ -33,19 +33,29 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     # gate that governs time evolution on both branches. first dimension: 0 = forward branch, 1 = backward branch
     U_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
 
-
-    evol = expm(1.j*G_g) @ expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd)   
+    evol = np.empty((2*nsites,2*nsites))
+    if order == 1:
+        evol = expm(1.j*G_g) @ expm(1.j * G_XY_even) @ expm(1.j * G_XY_odd)   
+    else:
+        evol = expm(1.j*G_g) @ expm(1.j * G_XY_odd) @ expm(1.j * G_XY_even)
 
     U_E = evol#.T.conj()
 
-    U_eff[0] = expm(-G_1) @ evol.T.conj()  # forward branch
-    U_eff[1] = expm(G_1) @ evol.T.conj()   # backward branch
+    if order == 1:
+        U_eff[0] = expm(-G_1) @ evol.T.conj()  # forward branch
+        U_eff[1] = expm(G_1) @ evol.T.conj()   # backward branch
+    else:
+        U_eff[0] = expm(-1.j * G_XY_even) @ expm(-G_1) @ expm(-1.j * G_XY_odd)  @ expm(-1.j*G_g)  # forward branch
+        U_eff[1] = expm(-1.j * G_XY_even) @ expm(G_1) @ expm(-1.j * G_XY_odd)  @ expm(-1.j*G_g)   # backward branch
+        
+
+
 
     #print( 'U_E[0] = expm(1j*G_g) @ U_E[0]')
     #print( U_E[0] )
     #print( U_E[1] )
     #print( 'U_E[1] = expm(1j*G_g) @ U_E[1]')
-   
+    
     # generator of environment (always unitary)
     G_eff_E = -1j * linalg.logm(U_E)
     #print('G_eff_E')
@@ -56,10 +66,14 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     G_eff[0] = -1j * linalg.logm(U_eff[0])
     G_eff[1] = +1j * linalg.logm(U_eff[1])
 
+    evol_imag_time = expm(-G_1) @ expm(-G_g) @ expm(-G_XY_even) @ expm(-G_XY_odd)   
+    G_eff_imag_time = -linalg.logm(evol_imag_time)
     #print('G_eff_E')
     #print(G_eff[0])
     #print('G_eff_b')
     #print(G_eff[1]-G_eff[0])
+   
+
     
     # add small random part to G_eff to lift degenaracies, such that numerical diagnoalization is more stable
     rand_magn = 1.e-7
@@ -72,6 +86,8 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     #G_eff_E += random_part
     G_eff[0] += random_part
     G_eff[1] += random_part
+    
+
 
     # compute eigensystem of G_eff. Set of eigenvectors "eigenvectors_G_eff_fw/bw" diagnonalizes G_eff_fw/bw
     # first dimension: foward branch (index 0) and backward branch (index 1)
@@ -96,15 +112,21 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         # take superposition with hermitian conjugate to stabilize numerical diagonalization (works only in unitary case, e.g. Ising-type coupling)
         eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eigh(
             0.5 * (G_eff_E + G_eff_E.conj().T))
+        
+        eigenvalues_imagtime, eigenvectors_imagtime = linalg.eig( G_eff_imag_time )
     
     else:
         eigenvalues_G_eff[0], eigenvectors_G_eff[0] = linalg.eig(G_eff[0])
         eigenvalues_G_eff[1], eigenvectors_G_eff[1] = linalg.eig(G_eff[1])
         #eigenvalues_G_eff_bw, eigenvectors_G_eff_bw = linalg.eig(G_eff_bw)
-      
+
         eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eigh( G_eff_E + random_part + random_part.T.conj())
+        eigenvalues_imagtime, eigenvectors_imagtime = linalg.eig( G_eff_imag_time )
         #eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eig(U_E)
-   
+    #print('simple')
+    #eigvals_a, eigvecs_a = linalg.eigh(evol_imag_time)
+    #print(linalg.inv(eigenvectors_imagtime) @ G_eff_imag_time  @ eigenvectors_imagtime )
+    #print(G_eff_imag_time - G_eff_imag_time.T.conj())
     # check if found eigenvectors indeed fulfill eigenvector equation (trivial check)
     eigenvector_check = 0
     #eigenvector_check_bw = 0
@@ -134,6 +156,9 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     argsort_bw = np.argsort(- np.real(eigenvalues_G_eff[1]))
     #argsort_bw = np.argsort(- np.real(eigenvalues_G_eff_bw))
     argsort_E = np.argsort(- eigenvalues_G_eff_E)
+    argsort_imagtime = np.argsort(- eigenvalues_imagtime)
+
+    
     #argsort_E = np.argsort(1.j*np.log(eigenvalues_G_eff_E))
 
     #eigenvalues_G_eff[0] = eigenvalues_G_eff[0,argsort_fw[:]]
@@ -144,6 +169,8 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     #print(eigenvalues_G_eff_E)
 
     M = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
+    M_imagtime = np.zeros(( 2 * nsites, 2 * nsites), dtype=np.complex_)
+
     #M_bw = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
     #M_E = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
     for i in range(nsites):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
@@ -151,11 +178,15 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         M[0, :, 2 * nsites - 1 - i] = eigenvectors_G_eff[0, :, argsort_fw[i + nsites]]
         M[1, :, i] = eigenvectors_G_eff[1, :, argsort_bw[i]]
         M[1, :, 2 * nsites - 1 - i] = eigenvectors_G_eff[1, :, argsort_bw[i + nsites]]
+
+        M_imagtime[:, i] = eigenvectors_imagtime[:, argsort_imagtime[i]]
+        M_imagtime[:, 2 * nsites - 1 - i] = eigenvectors_imagtime[:, argsort_imagtime[i + nsites]]
         #M_E[:, i] = eigenvectors_G_eff_E[:, argsort_E[i]]
         #M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
     M_E =  np.block([[eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]].conj(), eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]]],[eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]].conj(),eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]]]]) 
-
-
+    #M_imagtime = eigenvectors_imagtime
+    #print('diagonal imag_time')
+    #print(linalg.inv(M_imagtime) @ G_eff_imag_time @ M_imagtime)
     #M1_inv = linalg.inv(M[1])
     #M0_inv = linalg.inv(M[0])
 
@@ -181,6 +212,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     D_imag = np.imag(M_E[0, :nsites] + M_E[nsites,0:nsites] )
 
     D_E = M_E.T.conj() @ G_eff_E @ M_E
+
     eigenvals = np.diag(D_E)
 
     times = np.arange(0,10)
@@ -195,17 +227,24 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
             B_analyt[4*tau+2 , 4 * tauprime+2] =  2 * (np.tan(Jx)**2 ) *  np.einsum('k,k->',(D_real ** 2 + D_imag ** 2) , np.exp(-1.j * eigenvals[:nsites] * (tau - tauprime)))
             if tau == tauprime:
                 B_analyt[4*tau+2 , 4 * tauprime+2] *= 0.5
-
             B_analyt[4*tau +3, 4 * tauprime+2] = - B_analyt[4*tau+2 , 4 * tauprime+2]
             B_analyt[4*tau +2, 4 * tauprime+3] =  B_analyt[4*tau+2 , 4 * tauprime+2].conj()
             B_analyt[4*tau +3, 4 * tauprime+3] = - B_analyt[4*tau+2 , 4 * tauprime+2].conj()
+
+
+            B_analyt[4*tau , 4 * tauprime] =  -2 * (np.tan(Jy)**2 ) *  np.einsum('k,k->',(C_real ** 2 + C_imag ** 2) , np.exp(-1.j * eigenvals[:nsites] * (tau - tauprime)))
+            if tau == tauprime:
+                B_analyt[4*tau , 4 * tauprime] *= 0.5
+            B_analyt[4*tau +1, 4 * tauprime] = B_analyt[4*tau , 4 * tauprime]
+            B_analyt[4*tau, 4 * tauprime+1] =  - B_analyt[4*tau , 4 * tauprime].conj()
+            B_analyt[4*tau +1, 4 * tauprime+1] = - B_analyt[4*tau , 4 * tauprime].conj()
 
             if tau == tauprime:
                 B_analyt[4*tau , 4 * tauprime+2] = 1
                 B_analyt[4*tau+1 , 4 * tauprime+3] = -1
     B_analyt = (B_analyt - B_analyt.T)
     
-    filename = 'analytic_IM_Jx=' + str(Jx) + '_Jy='+str(Jy)+'_g=' + str(g) + '_nsites='+ str(nsites) + '_time=' + str(time_max) + '_2'
+    filename = 'analytic_IM_Jx=' + str(Jx) + '_Jy='+str(Jy)+'_g=' + str(g) + '_nsites='+ str(nsites) + '_3'
     with h5py.File(filename + ".hdf5", 'w') as f:
         #dset_IM_exponent = f.create_dataset('IM_exponent', (4 * time_max, 4 * time_max),dtype=np.complex_)
         dset_coeff_square = f.create_dataset('coeff_square', (1,nsites))
@@ -214,7 +253,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
         coeff_square = f['coeff_square']
         spectr = f['spectr']
         #IM_data[:,:] = B_analyt[:,:]
-        coeff_square[:] = 2 * (np.tan(Jx)**2 ) * (D_real ** 2 + D_imag ** 2)
+        coeff_square[:] = 2 * (np.tan(Jx)**2 + np.tan(Jy)**2 ) * (D_real ** 2 + D_imag ** 2)
         spectr[:] = eigenvals[:nsites]
 
 
@@ -230,8 +269,8 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx=0, Jy=0, g=0):
     print('B_analyt saved')
     print(B_analyt)
     exit()
+    
     """
-
     """
 
     #print(np.array(C_real[:]))
