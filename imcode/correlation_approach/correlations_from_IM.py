@@ -113,11 +113,11 @@ for iter in range(1,max_time):
     B_ad = B
     #rho_exponent_evolved = evolve_rho_T(0,(B_ad),nbr_Floquet_layers, iter)
     print(B_ad)
-    rho_exponent_evolved = evolve_rho(0,(B_ad))
+    rho_exponent_evolved,norm = evolve_rho(0,(B_ad))
     rho_evolved = np.zeros((2,2),dtype=np.complex_)
     rho_evolved[0,0] = 1
     rho_evolved[1,1] = 2 * rho_exponent_evolved[0,1]
-    rho_evolved *= 0.5
+    rho_evolved *= 0.5 * norm
     trace_vals.append(np.trace(rho_evolved))
     rho_eigvals = linalg.eigvals(rho_evolved)
     rho_eigvals_max.append(np.max(rho_eigvals))
