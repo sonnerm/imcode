@@ -9,7 +9,7 @@ from scipy.linalg import sqrtm
 import h5py
 
 
-def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state):
+def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state, G_XY_even,G_XY_odd, order):
     nsites = int (len(rho_0_exponent[0]) / 2)
 
     rho_0_single_body = 0.25*expm(- rho_0_exponent) @ expm(- rho_0_exponent)#rho_exponent = 0 corresponds to infinite temperature (factor 0.25 so it gives correct normalization 0.5 from partition function when pulled out of the square root below)
@@ -24,7 +24,11 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
         rho_0_single_body = M_E @ np.bmat([[distr_func1,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),  distr_func2] ]) @ M_E.T.conj() 
 
     # the following line assumes that rho_0_exponent is given in real space basis..
-    rho_dressed =  sqrtm(matrix_power(F_E_prime,nbr_Floquet_layers)  @ rho_0_single_body @  matrix_power( F_E_prime_dagger,nbr_Floquet_layers) )
+    dress_initial = np.identity(rho_0_single_body.shape[0])
+    if order == 2:#the dressing of the initial state must be changed when first, the even layer is applied.
+        #layer of even gates on left side
+        dress_initial = expm(1.j* G_XY_even)
+    rho_dressed =  sqrtm(matrix_power(F_E_prime,nbr_Floquet_layers)  @ dress_initial @rho_0_single_body  @ dress_initial.T.conj() @  matrix_power( F_E_prime_dagger,nbr_Floquet_layers) )
 
     #rho_dressed =  sqrtm( rho_0_single_body )#this is the quantity that Michael needs for exact calculation
 
@@ -69,7 +73,7 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
     print(corr_real_space_diag)
     corr_real_space = N_t @ corr_real_space_diag @ N_t.T.conj()
     print(corr_real_space)
-    filename_correlations =  'Jx=0.3_Jy=0.3_g=0_L=200_FermiSea_correlations'
+    filename_correlations =  'Jx=0.3_Jy=0.3_g=0_L=600_FermiSea_correlations'
     with h5py.File(filename_correlations + ".hdf5", 'a') as f:
         dset_corr = f.create_dataset('corr_realspace=', (corr_real_space.shape[0],corr_real_space.shape[1]),dtype=np.complex_)
         dset_corr[:,:] = corr_real_space[:,:]
