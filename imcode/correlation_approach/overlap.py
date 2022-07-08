@@ -14,7 +14,7 @@ from random import random
 np.set_printoptions(threshold=sys.maxsize, precision=1)
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=G_o=1_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=41_init=2'
 filename = '/Users/julianthoenniss/Documents/PhD/data/interleaved_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200InfTemp-FermiSea_my_conv'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=0_timestep=0.01_T=100'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=0_timestep=0.05_test3'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=20_init=2'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=3'
 
@@ -28,10 +28,10 @@ elif conv == 'M':
     print('using Ms convention')
 
 t = 1. # hopping between spin species
-delta_t = 0.01
+delta_t = 0.05
 
 with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
-    dset_propag_IM = f.create_dataset('propag_IM', (50,), dtype=np.complex_)
+    dset_propag_IM = f.create_dataset('propag_IM', (100,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset(
         'propag_exact', (100,), dtype=np.complex_)
 
@@ -39,7 +39,7 @@ trace_vals = []
 trace_vals_const = []
 rho_eigvals_min = []
 rho_eigvals_max = []
-for iter in range(1,99):
+for iter in range(1,29):
 
     """
     with h5py.File(filename + '.hdf5', 'r') as f:
@@ -123,9 +123,11 @@ for iter in range(1,99):
     #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
     seed(10)
     for i in range(dim_B//4-1):
-        #t = random()
-        mu_up =0# random()
-        mu_down =0# random()
+        t =  0.57*np.cos(0.42 * i)
+        mu_up = 0.3*np.sin(2.2 * i)
+        mu_down = 0.18*np.sin(1.82 * i)
+        #mu_up =0# random()
+        #mu_down =0# random()
         print(t,mu_up,mu_down)
 
         T=1+np.tan(t/2)**2
@@ -218,8 +220,8 @@ for iter in range(1,99):
     rho_evolved = np.zeros((2,2),dtype=np.complex_)
  
     rho_evolved[0,0] = 1
-    rho_evolved[1,1] = - 2 * rho_exponent_evolved[2,3] # minus sign because of sign-change-convention
-    rho_evolved *= 1./(1+np.exp(-beta_up)) 
+    rho_evolved[1,1] = - 2* rho_exponent_evolved[2,3] # minus sign because of sign-change-convention
+    rho_evolved *= 1./((1+np.exp(-beta_up)) * (1+np.exp(-beta_down))) * np.sqrt(linalg.det(A)) 
 
     trace_vals.append( np.trace(rho_evolved))
     rho_eigvals = linalg.eigvals(rho_evolved)
@@ -227,7 +229,7 @@ for iter in range(1,99):
     rho_eigvals_min.append(np.min(rho_eigvals))
 
 
-    """
+    
     # temporal boundary condition for measure
     # sign because substituted in such a way that all kernels are the same.
     #spin up
@@ -243,18 +245,20 @@ for iter in range(1,99):
 
     with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
         propag_data = f['propag_IM']
-        propag_data[iter] = exponent_inv[2*dim_B + 1,dim_B//2-1]
+        #propag_data[iter] = exponent_inv[2*dim_B + 1,dim_B//2-1]
+        propag_data[iter] = exponent_inv[2*dim_B + 1,3*dim_B-2] * 1./((1+np.exp(-beta_up)) * (1+np.exp(-beta_down))) 
 
     print(exponent_inv[2*dim_B + 1, dim_B//2-1])
-    """
-plt.plot(np.arange(1,98)*delta_t, trace_vals[:97],linewidth=2,label='Tr'+r'$(\rho)$')
-plt.plot(np.arange(1,98)*delta_t, rho_eigvals_max[:97],linewidth=2,label='max. eigenvalue of '+ r'$\rho$')
-plt.plot(np.arange(1,98)*delta_t, rho_eigvals_min[:97],linewidth=2,label='min. eigenvalue of '+ r'$\rho$')
+    
+plt.plot(np.arange(1,28)*delta_t, trace_vals[:27],linewidth=2,label='Tr'+r'$(\rho)$')
+plt.plot(np.arange(1,28)*delta_t, rho_eigvals_max[:27],linewidth=2,label='max. eigenvalue of '+ r'$\rho$')
+plt.plot(np.arange(1,28)*delta_t, rho_eigvals_min[:27],linewidth=2,label='min. eigenvalue of '+ r'$\rho$')
 #plt.plot(np.arange(2,28)*delta_t, trace_vals_const[1:27],linewidth=2,linestyle = '--',label='fixed IM at ' + r'$T=29$')
-plt.plot(np.arange(1,98)*delta_t, 97*[1.0], linestyle='--',color="grey")
+plt.plot(np.arange(1,28)*delta_t, 27*[1.0], linestyle='--',color="grey")
+plt.plot(np.arange(1,28)*delta_t, 1+np.arange(1,28)*delta_t**2*1.4, linestyle='--',color="blue")
 plt.xlabel('physical time '+r'$t$')
 #plt.ylabel('Tr'+r'$(\rho)$')
-plt.text(.1,0.6,r'$ \delta t = {},\, \rho(0) = \exp (-\beta c^\dagger c ),\,\beta = {}$'.format(delta_t,beta_up)+ '\n spinfull fermions,\n random spin-hopping interaction and random phases')
+plt.text(.1,0.6,r'$ \delta t = {},\, \rho_\sigma(0) = \exp (-\beta_\sigma c^\dagger_\sigma c_\sigma ),\,\beta_\uparrow = {}\,\beta_\downarrow = {}$'.format(delta_t,beta_up,beta_down)+ '\n spinfull fermions,\n random spin-hopping interaction and random phases')
 #plt.ylim([0.7,1.3])
 plt.legend()
-plt.savefig('/Users/julianthoenniss/Documents/PhD/data/'+ 'deltat='+str(delta_t) + '_beta=' +str(beta_up) + '_randomdynamics.pdf')
+plt.savefig('/Users/julianthoenniss/Documents/PhD/data/'+ 'deltat='+str(delta_t) + '_betaup=' +str(beta_up)+ '_betadown=' +str(beta_down) + '_randomdynamics.pdf')
