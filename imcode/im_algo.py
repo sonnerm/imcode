@@ -3,9 +3,13 @@ import numpy as np
 import math
 import itertools
 def _generator_matrices(mps):
-    if len(mps.shape)==2:
+    if isinstance(mps,tt.TensorTrainArray):
+        mps=mps.toslice()
+    elif len(mps.shape)==2:
         mps=mps[None,...,None]
-    mps=tt.slice(mps)
+        mps=tt.slice(mps)
+    else:
+        mps=tt.slice(mps)
     assert int(math.log2(mps.shape[1]))==math.log2(mps.shape[1])
     assert mps.shape[1]==mps.shape[2]
     mps=mps.recluster(((2,2),)*int(math.log2(mps.shape[1])))
@@ -64,7 +68,6 @@ def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcop
         # contract with initial
         init=next(gene)
         init=init.reshape((1,init.shape[0],4,init.shape[-1])).transpose([0,1,3,2])
-        print(init.shape)
         T=tt.frommatrices([init]+T.tomatrices_unchecked())
         # apply
         cmps=T@cmps
