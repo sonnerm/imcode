@@ -9,20 +9,23 @@ from scipy.linalg import sqrtm
 import h5py
 
 
-def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state, G_XY_even,G_XY_odd, order):
+def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state, G_XY_even,G_XY_odd, order, beta,mu):
     nsites = int (len(rho_0_exponent[0]) / 2)
 
     rho_0_single_body = 0.25*expm(- rho_0_exponent) @ expm(- rho_0_exponent)#rho_exponent = 0 corresponds to infinite temperature (factor 0.25 so it gives correct normalization 0.5 from partition function when pulled out of the square root below)
+
     if init_state == 2:
         rho_0_single_body = M_E @ np.bmat([[np.identity(nsites),np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),np.zeros((nsites,nsites))] ]) @ M_E.T.conj() 
     elif init_state == 4:
-        cutoff = int((2*nsites) //3)
-
-        distr_func1 = np.diag(np.concatenate((np.full((1, cutoff), 1), np.full((1, nsites - cutoff), .25)), axis=None))
-        distr_func2 = np.diag(np.concatenate((np.full((1, cutoff), 0), np.full((1, nsites - cutoff), .25)), axis=None))
-
-        rho_0_single_body = M_E @ np.bmat([[distr_func1,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),  distr_func2] ]) @ M_E.T.conj() 
-
+        #cutoff = int((2*nsites) //3)
+        #negative eigenvalues first..
+        diag = np.diag(np.exp(-  beta * (eigenvalues_G_eff_E[:] - mu)) / (1 + np.exp(- beta * (eigenvalues_G_eff_E[:] - mu))))
+        diag = diag @ diag #since later, we have to take the square root
+        #distr_func1 = np.diag(np.concatenate((np.full((1, cutoff), 1), np.full((1, nsites - cutoff), .25)), axis=None))
+        #distr_func2 = np.diag(np.concatenate((np.full((1, cutoff), 0), np.full((1, nsites - cutoff), .25)), axis=None))
+        #rho_0_single_body = M_E @ np.bmat([[distr_func1,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),  distr_func2] ]) @ M_E.T.conj() 
+        rho_0_single_body = M_E @ diag @ M_E.T.conj()
+    
     # the following line assumes that rho_0_exponent is given in real space basis..
     dress_initial = np.identity(rho_0_single_body.shape[0])
     if order == 2:#the dressing of the initial state must be changed when first, the even layer is applied.

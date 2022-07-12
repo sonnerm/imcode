@@ -28,11 +28,12 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 # define fixed parameters:
 # step sizes for total times t
 time_0 = 1
-max_time1 = 5
-max_time2 = 5
+max_time1 = 100
+max_time2 = 101
 stepsize1 = 1
 stepsize2 = 1
 
+order = 1 #order = 1: interaction layer/odd first, order = 2: even layer first
 time_array = np.append(np.arange(time_0, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
 
@@ -64,7 +65,7 @@ print('mu_init_state', mu_initial_state)
 if mode == 'L':
     print('g_boundary_mag', g_boundary_mag)
 
-iterator = 0 # iterator at beginning of job. If file exist and job is continued, this will be set to the appropraite value below
+iterator = 0 # iterator at beginning of job. If file exist and job is continued, this will be set to the appropriate value below
 # total_time = 0 means one floquet-layer
 
 
@@ -74,7 +75,7 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-filename = work_path + 'compmode=' + str(mode) + '_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) + '_init=' + str(init_state)
+filename = work_path + 'compmode=' + str(mode)+ '_o=' + str(order) + '_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) + '_init=' + str(init_state)
 if mode == 'L':
    filename += '_g_boundary_mag=' + str(g_boundary_mag) 
 
@@ -117,9 +118,9 @@ if mode == "C":
     N_t = np.identity(2 * nsites, dtype=np.complex_)
     # find generators and matrices which diagonalize the composite Floquet operator:
     G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
-    evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1)
+    evolution_matrix, F_E_prime, F_E_prime_dagger = evolution_matrix(nsites, G_XY_even, G_XY_odd, G_g, G_1) 
 
-    M, M_E, eigenvalues_G_eff, eigenvalues_G_eff_E= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, Jx, Jy, g)
+    M, M_E, eigenvalues_G_eff, eigenvalues_G_eff_E= matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, order, Jx, Jy, g)#order = 1: interaction layer/odd first, order = 2: even layer first
 for nbr_Floquet_layers in time_array[iterator:]:
     mode =  sys.argv[1]
     N_sites_needed_for_entr = nsites#2*nbr_Floquet_layers 
@@ -132,13 +133,13 @@ for nbr_Floquet_layers in time_array[iterator:]:
 
     if mode == "C" or mode == "G":
         if mode == "C":
-            n_expect, N_t, Lambda = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E,  eigenvalues_G_eff, eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers, init_state)
+            n_expect, N_t, Lambda = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E,  eigenvalues_G_eff, eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers, init_state, G_XY_even,G_XY_odd, order, beta, mu_initial_state)#order = 1: interaction layer/odd first, order = 2: even layer first
             B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
             
             
-            """
+            
             #for production mode, turn of ALL of the below rotation. They bring the 'C'-exponent (correlation approach) into the basis of the 'G'-exponent (Grassmann) approach). For Michael, turn them on!
-          
+            """
             S = np.zeros(B.shape,dtype=np.complex_)
             for i in range (nbr_Floquet_layers):#order plus and minus next to each other
                 S [B.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
@@ -156,13 +157,13 @@ for nbr_Floquet_layers in time_array[iterator:]:
                 rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
                 rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
             B = rot.T @ B @ rot
-
             """
+            
 
         else:
             B = gm_integral(init_state, Jx,Jy,g,mu_initial_state, beta, N_sites_needed_for_entr,nbr_Floquet_layers, filename, iterator)
             #the following block expresses B in the same basis as in the correlation approach such that the two matrices can directly be compared
-           
+            
             #the following two rotations (rot and S) bring the 'G'-exponent (Grassmann approach) into the basis of the 'C'-exponent (correlation approach). For Michael, turn them off!
             rot = np.zeros((4 * nbr_Floquet_layers,4 * nbr_Floquet_layers))
             for i in range(0,4*nbr_Floquet_layers, 2):#go from bar, nonbar to zeta, theta
@@ -190,9 +191,11 @@ for nbr_Floquet_layers in time_array[iterator:]:
             U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
             U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
         B = U @ B @ U.T 
+        filename += '_Michael_convention'
         """
         #print(B)
         
+    
         with h5py.File(filename + '.hdf5', 'a') as f:
             IM_data = f['IM_exponent']
             IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
