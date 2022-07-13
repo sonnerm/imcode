@@ -13,7 +13,7 @@ def savehdf5(obj,hdf5obj,name,legacy=False):
             hdf5obj["L"]=L
             Ms=obj.tomatrices_unchecked()
             for i,m in enumerate(Ms):
-                hdf5obj["M_%i"%i]=np.array(m).transpose([0,3,2,1])
+                hdf5obj["M_%i"%i]=np.array(m).transpose([0,2,3,1])
         else:
             raise ValueError("legacy mode only allowed for TensorTrainArray with 1 or 2 dimensions")
     else:
@@ -36,7 +36,7 @@ def loadhdf5(hdf5obj,name=None):
                 if len(m.shape)==3:
                     Ms.append(m.transpose([0,2,1]))
                 elif len(m.shape)==4:
-                    Ms.append(m.transpose([0,3,2,1]))
+                    Ms.append(m.transpose([0,2,3,1]))
                 else:
                     raise ValueError("Incompatible shape for legacy mode")
             return tt.frommatrices(Ms)

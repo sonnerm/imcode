@@ -53,7 +53,7 @@ def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcop
     '''
         Implements the light-cone growth algorithm for zoz style circuits
     '''
-    zozobim=np.ones((4,))[None,...,None]
+    zozobim=np.array([1,0,0,1])[None,...,None]
     gene=_generator_matrices(init)
     if boundary is None:
         cmps=tt.frommatrices([zozobim]) # empty ttarrays are not allowed
@@ -67,7 +67,7 @@ def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcop
             cmps=tt.frommatrices(cmps.tomatrices_unchecked()+[zozobim for _ in range(tdim-cdim)])
         # contract with initial
         init=next(gene)
-        init=init.reshape((1,init.shape[0],4,init.shape[-1])).transpose([0,1,3,2])
+        init=init.reshape((1,init.shape[0],4,init.shape[-1])).transpose([0,3,1,2])
         T=tt.frommatrices([init]+T.tomatrices_unchecked())
         # apply
         cmps=T@cmps

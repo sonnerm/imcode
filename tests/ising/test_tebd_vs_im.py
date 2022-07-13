@@ -98,13 +98,13 @@ def test_product_homhom(seed_rng):
     ch1=np.array(imcode.unitary_channel(imcode.ising_F(1,J,g,h)))
     ch2=np.array(imcode.unitary_channel(imcode.ising_F(2,J,g,h)))
     rzzl=imcode.ising_boundary_evolution(rimr[-2],ch1,init=np.outer(init[0].T.conj(),init[0]))
-    # rzzr2=imcode.ising_boundary_evolution(riml[-2],ch2,init=tt.fromproduct([np.outer(init[-1],init[-1].conj(),np.outer(init[-2],init[-2]).conj()]))
+    rzzr2=imcode.ising_boundary_evolution(riml[-2],ch2,init=tt.fromproduct([np.outer(init[-1],init[-1].conj(),np.outer(init[-2],init[-2]).conj()]))
     # rzze=imcode.ising_embedded_evolution(riml[L//2],ch1,riml[L//2-1],init=init[L//2])
     # rzze2=imcode.ising_embedded_evolution(riml[L//2],ch2,riml[L//2-2],init=tt.fromproduct([init[L//2],init[L//2+1]]).toslice())
-    assert [np.trace(SZ@np.array(imcode.unvectorize_operator(x))) for x in rzzl]==pytest.approx(dzzl)
-    # assert list(rzzr2)==pytest.approx(dzzr2)
-    # assert list(rzze)==pytest.approx(dzze)
-    # assert list(rzze2)==pytest.approx(dzze2)
+    assert [np.trace(SZ@x) for x in rzzl][::2]==pytest.approx(dzzl)
+    assert [np.trace(opr2@x) for x in rzzr2][::2]==pytest.approx(dzzr2)
+    assert [np.trace(ope@x) for x in rzze][::2]==pytest.approx(dzze)
+    assert [np.trace(ope2@x) for x in rzze2][::2]==pytest.approx(dzze2)
 
     #im lcga
     # Ts=[imcode.ising_T(t,J,g,h) for t in range(1,t+1)]

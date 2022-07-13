@@ -51,4 +51,4 @@ def unvectorize_operator(state):
         state=tt.asslice(state,cluster=((4,),)*L)
         return tt.frommatrices_slice([o.reshape((o.shape[0],2,2,o.shape[-1])) for o in state.tomatrices_unchecked()])
     else:
-        raise ValueError("Vectorized operator must either be 2d (array) or 4d (slice), but has %i dimension"%(len(op.shape)))
+        raise ValueError("Vectorized operator must either be 1d (array) or 3d (slice), but has %i dimension"%(len(state.shape)))
