@@ -32,23 +32,27 @@ def unitary_channel(F):
 def vectorize_operator(op):
     if len(op.shape)==2:
         L=int(math.log2(op.shape[0]))
-        op=tt.asarray(op,cluster=((2,2),)*L)
-        return tt.frommatrices([o.reshape((o.shape[0],4,o.shape[-1])) for o in op.tomatrices_unchecked()])
+        ret=tt.asarray(op,cluster=((2,2),)*L)
+        ret=tt.frommatrices([o.reshape((o.shape[0],4,o.shape[-1])) for o in ret.tomatrices_unchecked()])
+        return np.asarray(ret,like=op)
     if len(op.shape)==4:
         L=int(math.log2(op.shape[1]))
-        op=tt.asslice(op,cluster=((2,2),)*L)
-        return tt.frommatrices_slice([o.reshape((o.shape[0],4,o.shape[-1])) for o in op.tomatrices_unchecked()])
+        ret=tt.asslice(op,cluster=((2,2),)*L)
+        ret=tt.frommatrices_slice([o.reshape((o.shape[0],4,o.shape[-1])) for o in ret.tomatrices_unchecked()])
+        return np.asarray(ret,like=op)
     else:
         raise ValueError("Operator must either be 2d (array) or 4d (slice), but has %i dimension"%(len(op.shape)))
 
 def unvectorize_operator(state):
     if len(state.shape)==1:
         L=int(math.log2(state.shape[0]))//2
-        state=tt.asarray(state,cluster=((4,),)*L)
-        return tt.frommatrices([o.reshape((o.shape[0],2,2,o.shape[-1])) for o in state.tomatrices_unchecked()])
+        ret=tt.asarray(state,cluster=((4,),)*L)
+        ret=tt.frommatrices([o.reshape((o.shape[0],2,2,o.shape[-1])) for o in ret.tomatrices_unchecked()])
+        return np.asarray(ret,like=state)
     if len(state.shape)==3:
         L=int(math.log2(state.shape[1]))//2
-        state=tt.asslice(state,cluster=((4,),)*L)
-        return tt.frommatrices_slice([o.reshape((o.shape[0],2,2,o.shape[-1])) for o in state.tomatrices_unchecked()])
+        ret=tt.asslice(ret,cluster=((4,),)*L)
+        ret=tt.frommatrices_slice([o.reshape((o.shape[0],2,2,o.shape[-1])) for o in ret.tomatrices_unchecked()])
+        return np.asarray(ret,like=state)
     else:
         raise ValueError("Vectorized operator must either be 1d (array) or 3d (slice), but has %i dimension"%(len(state.shape)))

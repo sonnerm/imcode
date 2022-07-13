@@ -26,7 +26,8 @@ def test_unitary_channel_L4(seed_rng):
     rho/=np.trace(rho)
     rhof1=U@rho@U.T.conj()
     Ch=imcode.unitary_channel(U)
-    rhof2=imcode.unvectorize_operator(Ch@imcode.vectorize_operator(rho))
+    op=Ch@imcode.vectorize_operator(tt.asarray(rho))
+    rhof2=imcode.unvectorize_operator(op)
     assert rhof2==pytest.approx(rhof1)
 
 # def test_unitary_channel_slice(seed_rng):
