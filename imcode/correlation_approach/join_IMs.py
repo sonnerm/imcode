@@ -9,17 +9,17 @@ import h5py
 np.set_printoptions(threshold=sys.maxsize)
 np.set_printoptions(linewidth=470)
 
-conv = 'J' # 'J': my convention, 'M': Michael's convention
+conv = 'M' # 'J': my convention, 'M': Michael's convention
 conv_out = 'M' # 'J': my convention, 'M': Michael's convention
 
 B_l = []
 B_r = [] 
-filename_l = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.05_T=100_exact2_Michaels_conv'
-filename_r = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.05_T=100_exact2_Michaels_conv'
-
-filename_l = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-2.5_del_t=0.1_beta=200.0_L=200_init=4'
-filename_r = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=2.5_del_t=0.1_beta=200.0_L=200_init=4'
-filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=5.0'
+filename_l = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.05_T=200_hyb=0.05_Michaels_conv'
+filename_r = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.05_T=200_hyb=0.05_Michaels_conv'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_test_T=20'
+#filename_l = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-2.5_del_t=0.1_beta=200.0_L=200_init=4'
+#filename_r = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=2.5_del_t=0.1_beta=200.0_L=200_init=4'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=5.0'
 
 if conv_out == 'J':
     filename += '_my_conv' 
@@ -28,26 +28,23 @@ elif conv_out == 'M':
     filename += '_Michaels_conv' 
     print('storing result in Ms convention')
 
-time_0 = 1
-max_time1 = 100
-max_time2 = 101
-stepsize1 = 1
-stepsize2 = 1
-
+max_time1 = 201#maximal floquet_nbr_steps to set matrix stoage to correct size
+iterations = 4
 
 with h5py.File(filename + ".hdf5", 'w') as f:
-        dset_temp_entr = f.create_dataset('temp_entr', ((max_time1-time_0)//stepsize1 + (max_time2- max_time1)//stepsize2 + 1, max_time2 + stepsize2),dtype=np.float_)
-        dset_IM_exponent = f.create_dataset('IM_exponent', (int((max_time1-time_0)/stepsize1) + (max_time2- max_time1)//stepsize2 + 1, 4 * (max_time2 + stepsize2), 4 * (max_time2 + stepsize2)),dtype=np.complex_)
-
-for iter in range (time_0,100,1):
-    #"""
+        dset_temp_entr = f.create_dataset('temp_entr', (iterations, max_time1),dtype=np.float_)
+        dset_IM_exponent = f.create_dataset('IM_exponent', (iterations, 4 * max_time1 , 4 * max_time1),dtype=np.complex_)
+        dset_times = f.create_dataset('times', (iterations,),dtype=np.int16)
+for iter in range (0,iterations):
+    
     #if exponent B is read out
     with h5py.File(filename_l + '.hdf5', 'r') as f:
-        times_read = f['temp_entr']
-        nbr_Floquet_layers  = int(times_read[iter,0])
+        #times_read = f['temp_entr']
+        times_read = f['times']
+        nbr_Floquet_layers  = int(times_read[iter])
         print('times: ', nbr_Floquet_layers, ' iteration: ', iter )
     
-    #"""
+    
     
     #else:
     #nbr_Floquet_layers = iter
@@ -148,6 +145,8 @@ for iter in range (time_0,100,1):
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
         IM_data[iter,:B_joined_reshuf.shape[0],:B_joined_reshuf.shape[0]] = B_joined_reshuf[:,:]
+        times_data = f['times']
+        times_data[iter] = nbr_Floquet_layers
     
     correlation_block = create_correlation_block(B_joined_reshuf, nbr_Floquet_layers, filename)
     time_cuts = np.arange(1, nbr_Floquet_layers)

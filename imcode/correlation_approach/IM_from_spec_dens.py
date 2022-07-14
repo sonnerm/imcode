@@ -10,13 +10,17 @@ np.set_printoptions(suppress=False, linewidth=np.nan)
 np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 
 #create B in Michael's basis
+
+min_time=50
+max_time=201
+interval =50
 conv = 'M'
 int_lim_low = -1
 int_lim_up = 1
 
 filename_comp = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.01_beta=0.0_L=100_init=2'
 #filename_comp = '/Users/julianthoenniss/Documents/PhD/data/Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200_FermiSea'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.1_T=100_exact2'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.05_T=200_hyb=0.05'
 
 if conv == 'J':
     filename += '_my_conv' 
@@ -26,20 +30,20 @@ elif conv == 'M':
     print('using Ms convention')
 
 
-total_time = 100
 with h5py.File(filename + ".hdf5", 'w') as f:
-        dset_IM_exponent = f.create_dataset('IM_exponent', (total_time, 4 * total_time, 4 * total_time),dtype=np.complex_)
+        dset_IM_exponent = f.create_dataset('IM_exponent', ((max_time - min_time)//interval + 1, 4 * (max_time-1), 4 * (max_time-1)),dtype=np.complex_)
+        dset_times = f.create_dataset('times', ((max_time - min_time)//interval + 1,),dtype=np.int16)
 
 
 global_gamma = 1.
-delta_t = 0.1
-mu=0.2 * global_gamma
+delta_t = 0.05
+mu=-0.2 * global_gamma
 beta = 10/0.05
 def spec_dens(gamma,energy):
     e_c = 1*gamma 
     nu = 30/gamma
     #return 0.025 * 4 * gamma /((1+np.exp(nu*(energy - e_c))) * (1+np.exp(-nu*(energy + e_c))))  * 2 #factor of two from having two environments
-    return 0.05
+    return 0.05 
 
 
 def g_a_real(energy,beta,mu,t,t_prime):
@@ -57,7 +61,8 @@ def g_b_imag(energy,beta,mu,t,t_prime):
 #print(integrate.quad(lambda x: g_a(x,1./global_gamma,mu,0,0), int_lim_low, int_lim_up))
 #print(integrate.quad(lambda x: g_b(x,1./global_gamma,mu,0,0), int_lim_low, int_lim_up))
 #print(integrate.quad(lambda x: 1/(2*np.pi) * spec_dens(global_gamma,x) * g_a(x,1./global_gamma,mu,0,0), int_lim_low, int_lim_up))
-for nbr_Floquet_layers in range (1,total_time,10):
+iter = 0
+for nbr_Floquet_layers in range (min_time,max_time,interval):
 
     """
     B_comp = np.zeros((4*(nbr_Floquet_layers),4*(nbr_Floquet_layers)), dtype=np.complex_)
@@ -90,7 +95,7 @@ for nbr_Floquet_layers in range (1,total_time,10):
         U[4*i + 3, B_comp.shape[0] //2 + (2*i) + 1] = 1
     B_comp = U @ B_comp @ U.T 
     """    
-    
+    print('computing B..')
     B = np.zeros((4*nbr_Floquet_layers,4*nbr_Floquet_layers),dtype=np.complex_)
 
     for j in range (nbr_Floquet_layers):
@@ -145,9 +150,13 @@ for nbr_Floquet_layers in range (1,total_time,10):
 
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
-        IM_data[nbr_Floquet_layers ,:B.shape[0],:B.shape[0]] = B[:,:]
+        IM_data[iter ,:B.shape[0],:B.shape[0]] = B[:,:]
+        times_data = f['times']
+        times_data[iter] = nbr_Floquet_layers
 
     correlation_block = create_correlation_block(B, nbr_Floquet_layers, filename)
 
     print(np.real(linalg.eigvals(correlation_block)))
+
+    iter += 1
 #print(B)
