@@ -9,7 +9,7 @@ from scipy.linalg import sqrtm
 import h5py
 
 
-def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E,G_eff_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state, G_XY_even,G_XY_odd, order, beta,mu):
+def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eigenvalues_G_eff,  eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers,init_state, G_XY_even,G_XY_odd, order, beta,mu):
     nsites = int (len(rho_0_exponent[0]) / 2)
 
     rho_0_single_body_squared = np.zeros((2*nsites,2*nsites),dtype=np.complex_)
