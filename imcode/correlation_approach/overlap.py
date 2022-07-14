@@ -54,7 +54,6 @@ rho_eigvals_min = np.zeros(max_time,dtype=np.complex_)
 rho_eigvals_max = np.zeros(max_time,dtype=np.complex_)
 rho_00 = np.zeros(max_time,dtype=np.complex_)
 rho_11 = np.zeros(max_time,dtype=np.complex_)
-rho_11_t = np.zeros(max_time,dtype=np.complex_)
 rho_22 = np.zeros(max_time,dtype=np.complex_)
 rho_33 = np.zeros(max_time,dtype=np.complex_)
 for iter in range(1,max_time,interval):
@@ -65,9 +64,9 @@ for iter in range(1,max_time,interval):
         nbr_Floquet_layers = int(times_read[iter, 0])
         print('times: ', nbr_Floquet_layers)
     """
-    total_time = 91
+    total_time = 91#iter
 
-    nbr_Floquet_layers = total_time#iter
+    nbr_Floquet_layers = total_time
 
     #KIC:
     norm_IM = pow(np.cos(0.1),4*(nbr_Floquet_layers))
@@ -303,7 +302,7 @@ for iter in range(1,max_time,interval):
     rho_eigvals_max[iter]=(np.max(rho_eigvals))
     rho_eigvals_min[iter]=(np.min(rho_eigvals))
     rho_00[iter]=(np.real(rho_evolved[0,0]))
-    rho_11_t[iter]=(np.real(rho_evolved[1,1]))
+    rho_11[iter]=(np.real(rho_evolved[1,1]))
     rho_22[iter]=(np.real(rho_evolved[2,2]))
     rho_33[iter]=(np.real(rho_evolved[3,3]))
 
@@ -420,12 +419,12 @@ for iter in range(1,max_time,interval):
     #    DM_data[iter,:,:] = rho_evolved[:,:]
     print(exponent_inv[2*dim_B + 1, dim_B//2-1])
     
-#plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, trace_vals[1:max_time:interval],linewidth=2,label='Tr'+r'$(\rho)$')
+plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, trace_vals[1:max_time:interval],linewidth=2,label='Tr'+r'$(\rho)$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_eigvals_max[1:max_time:interval],linewidth=2,linestyle= '-',label='max. eigenvalue of '+ r'$\rho$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_eigvals_min[1:max_time:interval],linewidth=2,label='min. eigenvalue of '+ r'$\rho$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_00[1:max_time:interval],linewidth=2,linestyle= '--',label=r'$\rho_{00}$')
 plt.plot(np.arange(1,max_time,interval)*delta_t * Gamma, rho_11[1:max_time+1:interval],linewidth=2,linestyle= 'dotted',label=r'$\rho_{11}$')
-plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_11_t[1:max_time+1:interval],linewidth=2,linestyle= '--',color='black',alpha=0.8,label=r'$\rho_{22}$')
+plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_22[1:max_time+1:interval],linewidth=2,linestyle= '--',alpha=0.8,label=r'$\rho_{22}$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_33[1:max_time:interval],linewidth=2,linestyle= 'dotted',label=r'$\rho_{33}$')
 #plt.plot(np.arange(2,28)*delta_t* Gamma, trace_vals_const[1:27],linewidth=2,linestyle = '--',label='fixed IM at ' + r'$T=29$')
 #plt.plot(np.arange(1,max_time)*delta_t* Gamma, (max_time - 1) *[1.0], linestyle='--',color="grey")
