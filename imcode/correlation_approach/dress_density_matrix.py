@@ -71,8 +71,8 @@ def dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E, eige
     n_expect = np.zeros((2 * nsites))#fermi-Dirac distribution for modes (basis in which dressed density matrix is diagonal). 
     #Note that the true expectation value has an additional factor Z_over_Z0. This factor, however, does not enter the exponent of the IM and is therefore not included here.
     norm = 1
-    print(eigenvals_dressed)
-    print(eigenvalues_G_eff_E)
+    #print(eigenvals_dressed)
+    #print(eigenvalues_G_eff_E)
     if init_state == 4:#take care of Z_0 which has not been included anywhere, here
         #Z_t / Z_0
         Z_t =1
