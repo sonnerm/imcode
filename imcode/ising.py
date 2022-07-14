@@ -32,12 +32,14 @@ def ising_F(L,J,g,h):
         g=np.tile(g,L)
     if len(h.shape)==0:
         h=np.tile(h,L)
+    g,h=g[:L],h[:L]
     Wloc=[np.diag([np.exp(1.0j*hc),np.exp(-1.0j*hc)])@np.array([[np.cos(gc),1.0j*np.sin(gc)],[1.0j*np.sin(gc),np.cos(gc)]]) for hc,gc in zip(h,g)]
     mploc=tt.fromproduct(Wloc)
     if L==1:
         return mploc
     if len(J.shape)==0:
         J=np.tile(J,L-1)
+    J=J[:L]
     mpJ=brickwork.brickwork_F(L,[np.diag([np.exp(1.0j*Jc),np.exp(-1.0j*Jc),np.exp(-1.0j*Jc),np.exp(1.0j*Jc)]) for Jc in J])
     return mpJ@mploc
 def ising_zoz(J,g,h):
@@ -58,4 +60,5 @@ def ising_T(t,J,g,h):
         h=np.tile(h,t)
     if len(J.shape)==0:
         J=np.tile(J,t)
+    J,g,h=J[:t],g[:t],h[:t]
     return zoz.zoz_T(t,[ising_zoz(Jc,gc,hc) for Jc,gc,hc in zip(J,g,h)])

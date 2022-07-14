@@ -57,7 +57,7 @@ def test_product_hethom(seed_rng):
     Tsl=[imcode.ising_T(min(i+1,t),J[i],g[i],h[i]) for i in range(L-1)]
     Tsr=[imcode.ising_T(min(L-i,t),J[i-1],g[i],h[i]) for i in range(L-1,0,-1)]
     check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
-
+@pytest.mark.skip
 def test_product_hethet(seed_rng):
     L=7
     t=6
@@ -79,10 +79,12 @@ def test_product_hethet(seed_rng):
     check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
     #lcga
     Tsl=[imcode.ising_T(min(i+1,t),J[i],g[i],h[i]) for i in range(L-1)]
+    print([T.shape for T in Tsl])
     Tsr=[imcode.ising_T(min(L-i,t),J[i-1],g[i],h[i]) for i in range(L-1,0,-1)]
     check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_mps_homhom():
+
     L=7
     t=6
     J=np.random.random()-0.5
@@ -92,20 +94,21 @@ def test_mps_homhom():
     init1=np.random.random((2**L,))+np.random.random((2**L,))*1.0j
     init1/=np.sqrt(np.sum(init1.conj()*init1))
     init1=tt.frommatrices([np.einsum("abc,def->adbecf",i,i.conj()).reshape((i.shape[0]**2,2,2,i.shape[-1]**2)) for i in tt.array(init1).tomatrices()])
-    init1=init1.canonicalize()*p
-    init2=np.random.random((2**L,))+np.random.random((2**L,))*1.0j
-    init2/=np.sqrt(np.sum(init2.conj()*init2))
-    init2=init2.canonicalize()*(1-p)
-    init=init1+init2
-    init=init.canonicalize()
+    init=init1.canonicalize()
+    # init1=init1.canonicalize()*p
+    # init2=np.random.random((2**L,))+np.random.random((2**L,))*1.0j
+    # init2/=np.sqrt(np.sum(init2.conj()*init2))
+    # init2=init2.canonicalize()*(1-p)
+    # init=init1+init2
+    # init=init.canonicalize()
     #true mixed state
 
-    F=imcode.ising_F(L,J[0],g[0],h[0])
+    F=imcode.ising_F(L,J,g,h)
     Fs=[F for _ in range(t)]
-    T=imcode.ising_T(t,J[0],g[0],h[0])
+    T=imcode.ising_T(t,J,g,h)
     Ts=[T for _ in range(t)]
-    ch1=np.array(imcode.unitary_channel(imcode.ising_F(1,J[0],g[0],h[0])))
-    ch2=np.array(imcode.unitary_channel(imcode.ising_F(2,J[0],g[0],h[0])))
+    ch1=np.array(imcode.unitary_channel(imcode.ising_F(1,J,g,h)))
+    ch2=np.array(imcode.unitary_channel(imcode.ising_F(2,J,g,h)))
     #rectangle
     check_model(L,t,init,Fs,Ts,Ts,imcode.zoz_lcga,ch1,ch2,ch1,ch2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
     #lcga
