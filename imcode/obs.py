@@ -107,7 +107,7 @@ def ising_embedded_evolution(iml,chs,imr,init=np.eye(2)/2):
     if imr.shape[0]%(init.shape[3]):
         raise ValueError("Right Influence matrix length %i must be compatible with left index of init %i!"%(imr.shape[0],init.shape[3]))
     iml.recluster(((init.shape[0],),)+((4,),)*int(math.log2(iml.shape[0]//init.shape[0])/2))
-    imr.recluster(((init.shape[0],),)+((4,),)*int(math.log2(imr.shape[0]//init.shape[0])/2))
+    imr.recluster(((init.shape[-1],),)+((4,),)*int(math.log2(imr.shape[0]//init.shape[-1])/2))
     dm=np.einsum("abc,def,bge->cgf",iml.M[0],imr.M[0],vectorize_operator(init))
     pvalsl=ising_tracevalues(iml)
     pvalsr=ising_tracevalues(imr)

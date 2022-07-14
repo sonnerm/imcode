@@ -10,6 +10,7 @@ def mkron(a):
 
 def mouter(a):
     return functools.reduce(np.outer,a).ravel()
+@pytest.mark.skip
 def test_product_homhom(seed_rng):
     L=7
     t=6
@@ -19,7 +20,6 @@ def test_product_homhom(seed_rng):
     init=[np.random.random((2,))+np.random.random((2,))*1.0j-0.5-0.5j for _ in range(L)]
     init=[i.T.conj()+i for i in init]
     init=[i/np.sqrt(np.sum(i.conj()*i)) for i in init]
-    init=[init[0] for _ in init]
     init=tt.fromproduct([np.outer(i.T.conj(),i) for i in init])
     F=imcode.ising_F(L,J,g,h)
     Fs=[F for _ in range(t)]
@@ -33,8 +33,53 @@ def test_product_homhom(seed_rng):
     Ts=[imcode.ising_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
     check_model(L,t,init,Fs,Ts,Ts,imcode.zoz_lcga,ch1,ch2,ch1,ch2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
 
+def test_product_hethom(seed_rng):
+    L=7
+    t=6
+    J=np.random.random(size=(L-1,))-0.5
+    g=np.random.random(size=(L,))-0.5
+    h=np.random.random(size=(L,))-0.5
+    init=[np.random.random((2,))+np.random.random((2,))*1.0j-0.5-0.5j for _ in range(L)]
+    init=[i.T.conj()+i for i in init]
+    init=[i/np.sqrt(np.sum(i.conj()*i)) for i in init]
+    init=tt.fromproduct([np.outer(i.T.conj(),i) for i in init])
+    F=imcode.ising_F(L,J,g,h)
+    Fs=[F for _ in range(t)]
+    T=imcode.ising_T(t,J,g,h)
+    Tsl=[imcode.ising_T(t,J[i],g[i],h[i]) for i in range(L-1)]
+    Tsr=[imcode.ising_T(t,J[i-1],g[i],h[i]) for i in range(L-1,0,-1)]
+    chl=np.array(imcode.unitary_channel(imcode.ising_F(1,0,g[0],h[0])))
+    chr2=np.array(imcode.unitary_channel(imcode.ising_F(2,J[-1],g[-2:],h[-2:])))
+    che=np.array(imcode.unitary_channel(imcode.ising_F(1,0,g[L//2],h[L//2])))
+    che2=np.array(imcode.unitary_channel(imcode.ising_F(2,J[L//2],g[L//2:L//2+2],h[L//2:L//2+2])))
+    #rectangle
+    check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
+    #lcga
+    Tsl=[imcode.ising_T(min(i+1,t),J[i],g[i],h[i]) for i in range(L-1)]
+    Tsr=[imcode.ising_T(min(L-i,t),J[i-1],g[i],h[i]) for i in range(L-1,0,-1)]
+    check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
+@pytest.mark.skip
 def test_mps_hethom():
-    pass
-
-def test_mps_hethet():
-    pass
+    L=7
+    t=6
+    J=np.random.random(size=(L-1,))-0.5
+    g=np.random.random(size=(L,))-0.5
+    h=np.random.random(size=(L,))-0.5
+    init=np.random.random((2**L,))+np.random.random((2**L,))*1.0j
+    init/=np.sqrt(np.sum(init.conj()*init))
+    init=tt.frommatrices([np.einsum("abc,def->adbecf",i,i.conj()).reshape((i.shape[0]**2,2,2,i.shape[-1]**2)) for i in tt.array(init).tomatrices()])
+    init=init.canonicalize()
+    F=imcode.ising_F(L,J[0],g[0],h[0])
+    Fs=[F for _ in range(t)]
+    T=imcode.ising_T(t,J[0],g[0],h[0])
+    Ts=[T for _ in range(t)]
+    ch1=np.array(imcode.unitary_channel(imcode.ising_F(1,J[0],g[0],h[0])))
+    ch2=np.array(imcode.unitary_channel(imcode.ising_F(2,J[0],g[0],h[0])))
+    #rectangle
+    check_model(L,t,init,Fs,Ts,Ts,imcode.zoz_lcga,ch1,ch2,ch1,ch2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
+    #lcga
+    Ts=[imcode.ising_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
+    check_model(L,t,init,Fs,Ts,Ts,imcode.zoz_lcga,ch1,ch2,ch1,ch2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
+#
+# def test_mps_hethet():
+#     pass
