@@ -5,6 +5,7 @@ SZ=np.array([[1,0],[0,-1]])
 ID=np.array([[1,0],[0,1]])
 ZE=np.array([[0,0],[0,0]])
 from .ising import ising_F,ising_H,ising_T
+from .heisenberg import heisenberg_F,heisenberg_H
 from .im_algo import zoz_lcga,brickwork_lcga
 from .brickwork import brickwork_F,brickwork_H
 from .obs import ising_boundary_evolution,ising_embedded_evolution

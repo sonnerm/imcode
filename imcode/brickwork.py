@@ -24,7 +24,7 @@ def brickwork_F(L,gates,reversed=False):
     else:
         return brickwork_Fe(L,gates[::2])@brickwork_Fo(L,gates[1::2])
 def brickwork_H(L,gates):
-    pass
+    return brickwork_Fe(L,gates[::2])+brickwork_Fo(L,gates[1::2])
 def brickwork_La(t,chs=np.eye(4)):
     chs=np.asarray(chs)
     if len(chs.shape==2):

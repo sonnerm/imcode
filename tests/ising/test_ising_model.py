@@ -4,12 +4,6 @@ import ttarray as tt
 import numpy as np
 from imcode import SZ,SX,ID,ZE
 from .. import check_model
-import functools
-def mkron(a):
-    return functools.reduce(np.kron,a)
-
-def mouter(a):
-    return functools.reduce(np.outer,a).ravel()
 @pytest.mark.skip
 def test_product_homhom(seed_rng):
     L=7
@@ -117,8 +111,8 @@ def test_mps_homhom():
 #
 def test_mps_hethet():
 
-    L=7
-    t=6
+    L=20
+    t=10
     J=np.random.random(size=(L-1,t))-0.5
     g=np.random.random(size=(L,t))-0.5
     h=np.random.random(size=(L,t))-0.5

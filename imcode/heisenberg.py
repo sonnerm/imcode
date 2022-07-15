@@ -1,8 +1,13 @@
 import numpy as np
-import scipy.linalg as la
-from ...dense.brickwork import heisenberg_lop,heisenberg_gate
-from ...dense import SX,SY,SZ,ID,unitary_channel
+from . import SX,SY,SZ,ID
+from .channel import unitary_channel
 from .brickwork import brickwork_Sa,brickwork_Sb,brickwork_La,brickwork_Lb,brickwork_F,brickwork_H
+import scipy.linalg as sla
+def heisenberg_gate(Jx=0,Jy=0,Jz=0,hx1=0,hy1=0,hz1=0,hx2=0,hy2=0,hz2=0):
+    H=np.kron(SX,SX)*Jx+np.kron(SY,SY)*Jy+np.kron(SZ,SZ)*Jz
+    lop1=sla.expm(1.0j*hx1*SX+hy1*SY+hz1*SZ)
+    lop2=sla.expm(1.0j*hx2*SX+hy2*SY+hz2*SZ)
+    return np.kron(lop1,lop2)@sla.expm(1.0j*np.array(H))
 def heisenberg_F(L,Jx,Jy,Jz,hx=None,hy=None,hz=None,reversed=False):
     ogates=[heisenberg_gate(jx,jy,jz) for (jx,jy,jz) in zip(Jx[1::2],Jy[1::2],Jz[1::2])]
     egates=[heisenberg_gate(jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) for (jx,jy,jz,hxe,hye,hze,hxo,hyo,hzo) in zip(Jx[::2],Jy[::2],Jz[::2],hx[::2],hy[::2],hz[::2],hx[1::2],hy[1::2],hz[1::2])]
