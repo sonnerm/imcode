@@ -13,9 +13,9 @@ def brickwork_Fe(L,gatese):
 
 def brickwork_Fo(L,gateso):
     if L%2==0:
-        Bs=[np.eye(2)]+gateso+[np.eye(2)]
+        Bs=[np.eye(2)]+list(gateso)+[np.eye(2)]
     else:
-        Bs=[np.eye(2)]+gateso
+        Bs=[np.eye(2)]+list(gateso)
     return tt.fromproduct(Bs).recluster(((2,2),)*L)
 
 def brickwork_F(L,gates,reversed=False):
@@ -24,7 +24,20 @@ def brickwork_F(L,gates,reversed=False):
     else:
         return brickwork_Fe(L,gates[::2])@brickwork_Fo(L,gates[1::2])
 def brickwork_H(L,gates):
-    return brickwork_Fe(L,gates[::2])+brickwork_Fo(L,gates[1::2])
+    nmat=np.zeros((1,2,2,6))
+    nmat[0,:,:,:-2]=np.eye(4).reshape((2,2,4))
+    nmat[0,:,:,-2]=np.eye(2)
+    ret=[nmat]
+    for g in gates:
+        nmat=np.zeros((6,2,2,6),dtype=g.dtype)
+        nmat[-2,:,:,:-2]=np.eye(4).reshape((2,2,4))
+        nmat[-2,:,:,-2]=np.eye(2)
+        nmat[-1,:,:,-1]=np.eye(2)
+        nmat[:-2,:,:,-1]=g.reshape((2,2,2,2)).transpose((0,2,1,3)).reshape((4,2,2))
+        ret.append(nmat)
+    ret[-1]=ret[-1][:,:,:,-1:]
+    return tt.frommatrices(ret)
+
 def brickwork_La(t,chs=np.eye(4)):
     chs=np.asarray(chs)
     if len(chs.shape==2):
