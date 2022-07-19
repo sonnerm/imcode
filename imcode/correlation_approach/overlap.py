@@ -10,6 +10,10 @@ import matplotlib.pyplot as plt
 from random import seed
 from random import random
 # seed random number generator
+def zero_to_nan(values):
+    """Replace every 0 with 'nan' and return a copy."""
+    return [float('nan') if x==0 else x for x in values]
+
 
 np.set_printoptions(threshold=sys.maxsize, precision=3)
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=G_o=1_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=41_init=2'
@@ -17,7 +21,9 @@ np.set_printoptions(threshold=sys.maxsize, precision=3)
 #filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/0707/Millis_mu=0_timestep=0.01_T=100'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu0_timestep0.01_T100'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=0.2'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_test_T=20'
+filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1407/Millis_interleaved_hyb=0.05_test_T=400_deltat=0.1'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_test_T=20'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_T=200_wideband'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.1_beta=0.0_L=8_init=3'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.5_T=30'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-0.2_timestep=0.05_T=50_left'
@@ -33,10 +39,10 @@ elif conv == 'M':
     print('using Ms convention')
 
 
-max_time = 4
+max_time = 250
 interval = 1
 Gamma = 0.05
-delta_t = 0.05
+delta_t = 0.1
 t = 0*1.1 * delta_t # hopping between spin species, factor 2 to match Michael's spin convention
 
 
@@ -47,6 +53,9 @@ with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
     dset_propag_IM = f.create_dataset('propag_IM', (max_time,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset(
         'propag_exact', (max_time,), dtype=np.complex_)
+
+    dset_propag_exact = f.create_dataset(
+        'propag_times', (max_time,), dtype=int)
 
 trace_vals = np.zeros(max_time,dtype=np.complex_)
 trace_vals_const = np.zeros(max_time,dtype=np.complex_)
@@ -59,18 +68,19 @@ rho_33 = np.zeros(max_time,dtype=np.complex_)
 propag = np.zeros(max_time,dtype=np.complex_)
 times = np.zeros(max_time,dtype=np.complex_)
 
-for iter in range(0,max_time,interval):
+for iter in range(1,2,interval):
 
-    nbr_Floquet_layers = iter
+    iter_readout =  25#iter
     with h5py.File(filename + '.hdf5', 'r') as f:
         #times_read = f['temp_entr']
         times_read = f['times']
-        nbr_Floquet_layers= int(times_read[iter])
+        nbr_Floquet_layers= int(times_read[iter_readout])
         print('times: ', nbr_Floquet_layers)
-        times[iter] = nbr_Floquet_layers
 
+    times[iter] = nbr_Floquet_layers
+    intermediate_time = nbr_Floquet_layers
     total_time = nbr_Floquet_layers
-    intermediate_time = nbr_Floquet_layers#iter
+   
 
     #KIC:
     norm_IM = pow(np.cos(0.1),4*(nbr_Floquet_layers))
@@ -85,7 +95,7 @@ for iter in range(0,max_time,interval):
                  dtype=np.complex_)
     with h5py.File(filename + '.hdf5', 'r') as f:
         print(4*nbr_Floquet_layers, 4*nbr_Floquet_layers)
-        B = f['IM_exponent'][iter, :4*nbr_Floquet_layers, :4*nbr_Floquet_layers]
+        B = f['IM_exponent'][iter_readout, :4*nbr_Floquet_layers, :4*nbr_Floquet_layers]
 
     dim_B = B.shape[0]
     print('dim_b',dim_B)
@@ -125,28 +135,38 @@ for iter in range(0,max_time,interval):
 
     
     #here, the matrix B is in the Grassmann convention
-
+  
     # adjust signs that make the influence matrix a vectorized state
     for i in range (dim_B):
         for j in range (dim_B):
             if (i+j)%2 == 1:
                 B[i,j] *= -1
 
+    print(B[dim_B-12:,dim_B-12:])
+    print(linalg.inv(B)[dim_B-12:,dim_B-12:])
 
 
     exponent = np.zeros((4*dim_B, 4*dim_B), dtype=np.complex_)#this exponent will contain the exponents of both spin species as well as the impurity dynamics
     # Influence matices for both spin species
-    exponent[dim_B:2*dim_B, dim_B:2*dim_B] = B[:, :]
+    #spin down
+    #exponent[dim_B:2*dim_B, dim_B:2*dim_B] = B[:, :]
+    #spin up
     exponent[2*dim_B:3*dim_B, 2*dim_B:3*dim_B] = B[:, :]
 
     # integration measure
     # spin up
-    exponent[:dim_B, 2*dim_B:3*dim_B] = np.identity(dim_B)
-    exponent[2*dim_B:3*dim_B, :dim_B] = -np.identity(dim_B)
+    exponent[:dim_B, 2*dim_B :3*dim_B] = np.identity(dim_B)
+    exponent[2*dim_B :3*dim_B, :dim_B] = -np.identity(dim_B)
     # spin down
-    exponent[dim_B:2*dim_B, 3*dim_B:] = np.identity(dim_B)
-    exponent[3*dim_B:, dim_B:2*dim_B] = -np.identity(dim_B)
-
+    exponent[dim_B:2*dim_B, 3*dim_B:4*dim_B ] = np.identity(dim_B)
+    exponent[3*dim_B:4*dim_B , dim_B:2*dim_B] = -np.identity(dim_B)
+    """
+    exponent[1:dim_B-1, 2*dim_B +1:3*dim_B-1] = np.identity(dim_B-2)
+    exponent[2*dim_B+1 :3*dim_B-1, 1:dim_B-1] = -np.identity(dim_B-2)
+    # spin down
+    exponent[1+dim_B:2*dim_B-1, 1+3*dim_B:4*dim_B -1] = np.identity(dim_B-2)
+    exponent[1+3*dim_B:4*dim_B -1, 1+dim_B:2*dim_B-1] = -np.identity(dim_B-2)
+    """
     
     # impurity
     #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
@@ -154,7 +174,7 @@ for iter in range(0,max_time,interval):
     for i in range(dim_B//4-1):
         #t =  0.57*np.cos(0.42 * i)
         mu_up =0.3*delta_t# 0.3*np.sin(2.2 * i)
-        mu_down =0.3*delta_t# 0.18*np.sin(1.82 * i)
+        mu_down =0*delta_t# 0.18*np.sin(1.82 * i)
         #mu_up =0# random()
         #mu_down =0# random()
         #print(t,mu_up,mu_down)
@@ -214,14 +234,14 @@ for iter in range(0,max_time,interval):
     #Transpose (antisymm)
     exponent[3 * dim_B + dim_B//2, 3 * dim_B + dim_B//2 - 1] -= np.exp(- beta_down)
     
- 
+    
     exponent_check = exponent
 
    
     #for spin up/down density matrix --ONE TOTAL TIME
-
+    
     delt = 2 * (total_time - intermediate_time)
-
+    """
     A = np.bmat([[exponent_check[(delt+1):dim_B -(delt+1),(delt+1):dim_B-(delt+1)], exponent_check[(delt+1):dim_B-(delt+1),dim_B+(delt+1) :2*dim_B-(delt+1)], exponent_check[(delt+1):dim_B-(delt+1),2*dim_B +(delt+1):3*dim_B-(delt+1)], exponent_check[(delt+1):dim_B-(delt+1),3*dim_B+(delt+1):4*dim_B-(delt+1)]], 
                 [exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),(delt+1):dim_B-(delt+1)], exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),dim_B+(delt+1) :2*dim_B-(delt+1)], exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),2*dim_B +(delt+1):3*dim_B-(delt+1)], exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),3*dim_B+(delt+1):4*dim_B-(delt+1)]],
                 [exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),(delt+1):dim_B-(delt+1)], exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),dim_B+(delt+1) :2*dim_B-(delt+1)], exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),2*dim_B +(delt+1):3*dim_B-(delt+1)], exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),3*dim_B+(delt+1):4*dim_B-(delt+1)]],
@@ -310,7 +330,7 @@ for iter in range(0,max_time,interval):
     rho_22[iter]=(np.real(rho_evolved[2,2]))
     rho_33[iter]=(np.real(rho_evolved[3,3]))
 
-    
+    """
 
     """
     #for spin up/down density matrix
@@ -409,39 +429,50 @@ for iter in range(0,max_time,interval):
     exponent[3 * dim_B + dim_B - 1, 3 * dim_B] += -1
     #Transpose (antisymm)
     exponent[3 * dim_B, 3 * dim_B + dim_B - 1] -= -1
+
+    
     
     exponent_inv = linalg.inv(exponent)
-    print('Z', np.sqrt(linalg.det(exponent)))
+    #print('Z', np.sqrt(linalg.det(exponent)))
+    for iter in range (2,250):
+        #times[iter] = iter
+        delt = 2 * (total_time - iter)
+        with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
+            propag_data = f['propag_IM']
+            #propag_data[iter] = exponent_inv[2*dim_B + 1,dim_B//2-1]
+            #propag_data[iter] = exponent_inv[2*dim_B + 1,3*dim_B-2] #this is the propagator for the spin ups
+            #propag_data[iter] = exponent_inv[2*dim_B + delt,3*dim_B -1- delt] #<n(t)># works
+            #propag_data[iter] = exponent_inv[2*dim_B + delt+1, delt+1]  #<n(t)># works, used for benchmark
+            propag_data[iter] = exponent_inv[delt+1, dim_B -1 - delt-1] # works also
+            propag[iter] = propag_data[iter]
 
-    with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
-        propag_data = f['propag_IM']
-        #propag_data[iter] = exponent_inv[2*dim_B + 1,dim_B//2-1]
-        #propag_data[iter] = exponent_inv[2*dim_B + 1,3*dim_B-2] #this is the propagator for the spin ups
-        propag_data[iter] = exponent_inv[2*dim_B + delt,3*dim_B -1- delt] #<n(t)>
-
-        propag[iter] = propag_data[iter]
+            times_data = f['propag_times']
+            times_data[iter] = iter -1#nbr_Floquet_layers
+            times[iter] = times_data[iter]
     #with h5py.File(filename+'_DMs' + ".hdf5", 'a') as f:
     #    DM_data = f['density_matrix']
     #    DM_data[iter,:,:] = rho_evolved[:,:]
-    print(exponent_inv[2*dim_B + 1, dim_B//2-1])
-print(times)
+    #print(exponent_inv[2*dim_B + 1, dim_B//2-1])
+    #print(times)
+    #print(propag)
+
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, trace_vals[1:max_time:interval],linewidth=2,label='Tr'+r'$(\rho)$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_eigvals_max[1:max_time:interval],linewidth=2,linestyle= '-',label='max. eigenvalue of '+ r'$\rho$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_eigvals_min[1:max_time:interval],linewidth=2,label='min. eigenvalue of '+ r'$\rho$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_00[1:max_time:interval],linewidth=2,linestyle= '--',label=r'$\rho_{00}$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t * Gamma, rho_11[1:max_time+1:interval],linewidth=2,linestyle= 'dotted',label=r'$\rho_{11}$')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_22[1:max_time+1:interval],linewidth=2,linestyle= '--',alpha=0.8,label=r'$\rho_{22}$')
-plt.plot(times[:]*delta_t* Gamma,propag[:],linewidth=2,linestyle= '--',alpha=0.8,label=r'$\rho_{22}$')
+plt.plot(times[1::interval]*delta_t* Gamma,propag[1::interval],linewidth=2,linestyle= '--',alpha=0.8,label='Our IM result via Grassmanns')
 #plt.plot(np.arange(1,max_time,interval)*delta_t* Gamma, rho_33[1:max_time:interval],linewidth=2,linestyle= 'dotted',label=r'$\rho_{33}$')
 #plt.plot(np.arange(2,28)*delta_t* Gamma, trace_vals_const[1:27],linewidth=2,linestyle = '--',label='fixed IM at ' + r'$T=29$')
 #plt.plot(np.arange(1,max_time)*delta_t* Gamma, (max_time - 1) *[1.0], linestyle='--',color="grey")
 #plt.plot(np.arange(1,28)*delta_t* Gamma, 1+np.arange(1,28)*delta_t**2*1.4, linestyle='--',color="blue")
 Millis_IM_x = [0,0.1,0.2,0.25,0.3,0.35,0.4,0.5,0.6,0.8,1.0,1.2,1.4]
-Millis_IM_y = [0,0.0485,0.0948,0.0994, 0.102,0.106, 0.1105, 0.113, 0.116, 0.113, 0.1, 0.092, 0.085]
+Millis_IM_y = [0,0.0485,0.0948,0.0994, 0.102,0.106, 0.1105, 0.113, 0.1166, 0.113, 0.1008, 0.092, 0.085]
 plt.scatter(Millis_IM_x,Millis_IM_y,label='Millis')
 
 plt.xlabel('rescaled physical time (as in Millis) '+r'$t \Gamma$')
-#plt.ylabel('Tr'+r'$(\rho)$')
+plt.ylabel(r'$\langle n_{d,\sigma} \rangle$')
 #plt.text(.1,0.1,r'$ \delta t = {},\, \rho_\sigma(0) = \exp (-\beta_\sigma c^\dagger_\sigma c_\sigma ),\,\beta_\uparrow = {}\,\beta_\downarrow = {}$'.format(delta_t,beta_up,beta_down)+ '\n spinfull fermions')
 #plt.ylim([-1,5.1])
 plt.legend()
