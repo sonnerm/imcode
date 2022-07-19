@@ -14,12 +14,13 @@ def test_product_homhom(seed_rng):
     init=tt.fromproduct([np.outer(i.T.conj(),i) for i in init])
     F=imcode.heisenberg_F(L,Jx,Jy,Jz,hx,hy,hz)
     Fs=[F for _ in range(t)]
-    T=imcode.heisenberg_T(t,Jx,Jy,Jz,hx,hy,hz)
-    Ts=[T for _ in range(t)]
+    Te=imcode.heisenberg_Te(t,Jx,Jy,Jz,hx,hy,hz)
+    To=imcode.heisenberg_To(t,Jx,Jy,Jz)
+    Ts=[Te if t%2==0 else To for _ in range(2*t)]
     ch1=np.array(imcode.unitary_channel(imcode.heisenberg_F(1,Jx,Jy,Jz,hx,hy,hz)))
     ch2=np.array(imcode.unitary_channel(imcode.heisenberg_F(2,Jx,Jy,Jz,hx,hy,hz)))
     #rectangle
     check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution)
     #lcga
-    Ts=[imcode.heisenberg_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
-    check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution)
+    # Ts=[imcode.heisenberg_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
+    # check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution)
