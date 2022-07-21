@@ -14,9 +14,9 @@ conv_out = 'M' # 'J': my convention, 'M': Michael's convention
 
 B_l = []
 B_r = [] 
-filename_l = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.05_T=200_hyb=0.05_Michaels_conv'
-filename_r = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.05_T=200_hyb=0.05_Michaels_conv'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_test_T=20'
+filename_l = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.05_T=200_hyb=0.05_D=1_Michaels_conv'
+filename_r = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.05_T=200_hyb=0.05_D=1_Michaels_conv'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.05_hyb=0.05_T=200_D=1'
 #filename_l = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-2.5_del_t=0.1_beta=200.0_L=200_init=4'
 #filename_r = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=2.5_del_t=0.1_beta=200.0_L=200_init=4'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=5.0'
@@ -29,7 +29,7 @@ elif conv_out == 'M':
     print('storing result in Ms convention')
 
 max_time1 = 201#maximal floquet_nbr_steps to set matrix stoage to correct size
-iterations = 4
+iterations = 1
 
 with h5py.File(filename + ".hdf5", 'w') as f:
         dset_temp_entr = f.create_dataset('temp_entr', (iterations, max_time1),dtype=np.float_)
