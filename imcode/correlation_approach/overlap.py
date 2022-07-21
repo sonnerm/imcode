@@ -21,9 +21,9 @@ np.set_printoptions(threshold=sys.maxsize, precision=3)
 #filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/0707/Millis_mu=0_timestep=0.01_T=100'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu0_timestep0.01_T100'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=0.2'
-filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1407/Millis_interleaved_hyb=0.05_test_T=400_deltat=0.1'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1407/Millis_interleaved_hyb=0.05_test_T=400_deltat=0.1'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_test_T=20'
-#filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_T=200_wideband'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.05_hyb=0.05_T=200_D=1'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.1_beta=0.0_L=8_init=3'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.5_T=30'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-0.2_timestep=0.05_T=50_left'
@@ -42,7 +42,7 @@ elif conv == 'M':
 max_time = 250
 interval = 1
 Gamma = 0.05
-delta_t = 0.1
+delta_t = 0.05
 t = 0*1.1 * delta_t # hopping between spin species, factor 2 to match Michael's spin convention
 
 
@@ -70,7 +70,7 @@ times = np.zeros(max_time,dtype=np.complex_)
 
 for iter in range(1,2,interval):
 
-    iter_readout =  25#iter
+    iter_readout =  0#iter
     with h5py.File(filename + '.hdf5', 'r') as f:
         #times_read = f['temp_entr']
         times_read = f['times']
@@ -434,7 +434,7 @@ for iter in range(1,2,interval):
     
     exponent_inv = linalg.inv(exponent)
     #print('Z', np.sqrt(linalg.det(exponent)))
-    for iter in range (2,250):
+    for iter in range (2,200):
         #times[iter] = iter
         delt = 2 * (total_time - iter)
         with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
@@ -443,11 +443,12 @@ for iter in range(1,2,interval):
             #propag_data[iter] = exponent_inv[2*dim_B + 1,3*dim_B-2] #this is the propagator for the spin ups
             #propag_data[iter] = exponent_inv[2*dim_B + delt,3*dim_B -1- delt] #<n(t)># works
             #propag_data[iter] = exponent_inv[2*dim_B + delt+1, delt+1]  #<n(t)># works, used for benchmark
-            propag_data[iter] = exponent_inv[delt+1, dim_B -1 - delt-1] # works also
+            #propag_data[iter] = exponent_inv[delt+1, dim_B -1 - delt-1] # works also
+            propag_data[iter] = -exponent_inv[2*dim_B + dim_B//2 -2*iter -1 , dim_B//2 -2*iter -1]
             propag[iter] = propag_data[iter]
 
             times_data = f['propag_times']
-            times_data[iter] = iter -1#nbr_Floquet_layers
+            times_data[iter] = iter #nbr_Floquet_layers
             times[iter] = times_data[iter]
     #with h5py.File(filename+'_DMs' + ".hdf5", 'a') as f:
     #    DM_data = f['density_matrix']
