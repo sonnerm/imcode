@@ -109,11 +109,11 @@ def test_mps_homhom():
     Ts=[imcode.ising_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
     check_model(L,t,init,Fs,Ts,Ts,imcode.zoz_lcga,ch1,ch2,ch1,ch2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
 #
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_mps_hethet():
 
-    L=20
-    t=10
+    L=7
+    t=6
     J=np.random.random(size=(L-1,t))-0.5
     g=np.random.random(size=(L,t))-0.5
     h=np.random.random(size=(L,t))-0.5

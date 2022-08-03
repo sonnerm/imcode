@@ -8,10 +8,12 @@ def test_product_homhom(seed_rng):
     L=7
     t=6
     Jx,Jy,Jz,hx,hy,hz=np.random.random((6,))-0.5
+    Jx,Jy,Jz,hx,hy,hz=np.zeros((6,))
     init=[np.random.random((2,))+np.random.random((2,))*1.0j-0.5-0.5j for _ in range(L)]
     init=[i.T.conj()+i for i in init]
     init=[i/np.sqrt(np.sum(i.conj()*i)) for i in init]
     init=tt.fromproduct([np.outer(i.T.conj(),i) for i in init])
+    init=tt.fromproduct([np.eye(2) for i in range(L)])
     F=imcode.heisenberg_F(L,Jx,Jy,Jz,hx,hy,hz)
     Fs=[F for _ in range(t)]
     Te=imcode.heisenberg_Te(t,Jx,Jy,Jz,hx,hy,hz)
