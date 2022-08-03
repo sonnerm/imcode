@@ -13,10 +13,10 @@ def check_model(L,t,init,Fs,Tsl,Tsr,lcga_fun,chl,chr2,che,che2,boundary_obs_fun,
         mzze.append(calc_rdm([L//2],minit))
         mzze2.append(calc_rdm([L//2,L//2+1],minit))
         minit=(F@minit@F.T.conj())
-        minit.truncate(chi_max=32)
-    iml=list(lcga_fun(Tsl,init,boundary=tt.fromproduct([np.array([1,1,1,1])]*Tsl[0].L),chi_max=32))
+        minit.truncate(chi_max=64)
+    iml=list(lcga_fun(Tsl,init,boundary=tt.fromproduct([np.array([1,1,1,1])]*Tsl[0].L),chi_max=64))
     revinit=tt.frommatrices([i.transpose([3,1,2,0]) for i in init.tomatrices()[::-1]])
-    imr=list(lcga_fun(Tsr,revinit,boundary=tt.fromproduct([np.array([1,1,1,1])]*Tsr[0].L),chi_max=32))
+    imr=list(lcga_fun(Tsr,revinit,boundary=tt.fromproduct([np.array([1,1,1,1])]*Tsr[0].L),chi_max=64))
     if init.M[0].shape[0]==1 and init.M[0].shape[-1]==1:
         izzl=list(boundary_obs_fun(imr[L-2],chl,init=init.M[0][0,...,0]))
     else:
