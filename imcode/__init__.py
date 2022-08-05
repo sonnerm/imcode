@@ -13,3 +13,4 @@ from .obs import brickwork_boundary_evolution,brickwork_embedded_evolution
 from .obs import zoz_boundary_evolution,zoz_embedded_evolution
 from .io import savehdf5,loadhdf5
 from .channel import unitary_channel,vectorize_operator,unvectorize_operator
+from .norm import ising_norm,brickwork_norm
