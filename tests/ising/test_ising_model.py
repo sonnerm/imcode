@@ -131,9 +131,9 @@ def test_mps_hethet():
     che=[np.array(imcode.unitary_channel(imcode.ising_F(1,0,g[L//2,i],h[L//2,i]))) for i in range(t)]
     che2=[np.array(imcode.unitary_channel(imcode.ising_F(2,J[L//2,i],g[L//2:L//2+2,i],h[L//2:L//2+2,i]))) for i in range(t)]
     #rectangle
-    check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
+    check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution,np.array([1,1,1,1]))
     #lcga
     Tsl=[imcode.ising_T(min(i+1,t),J[i],g[i],h[i]) for i in range(L-1)]
     print([T.shape for T in Tsl])
     Tsr=[imcode.ising_T(min(L-i,t),J[i-1],g[i],h[i]) for i in range(L-1,0,-1)]
-    check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution)
+    check_model(L,t,init,Fs,Tsl,Tsr,imcode.zoz_lcga,chl,chr2,che,che2,imcode.ising_boundary_evolution,imcode.ising_embedded_evolution,np.array([1,1,1,1]))

@@ -4,6 +4,12 @@ import ttarray as tt
 import numpy as np
 from imcode import SZ,SX,ID,ZE
 from .. import check_model
+def test_simple(seed_rng):
+    Te=imcode.heisenberg_Te(1,0,0,0)
+    To=imcode.heisenberg_To(1,0,0,0)
+    print(Te,To)
+    print(list(imcode.brickwork_lcga([Te,To])))
+# @pytest.mark.skip
 def test_product_homhom(seed_rng):
     L=7
     t=6
@@ -22,7 +28,7 @@ def test_product_homhom(seed_rng):
     ch1=np.array(imcode.unitary_channel(imcode.heisenberg_F(1,Jx,Jy,Jz,hx,hy,hz)))
     ch2=np.array(imcode.unitary_channel(imcode.heisenberg_F(2,Jx,Jy,Jz,hx,hy,hz)))
     #rectangle
-    check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution)
+    check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution,np.eye(4).ravel())
     #lcga
     # Ts=[imcode.heisenberg_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
     # check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution)

@@ -27,9 +27,10 @@ def brickwork_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yi
     bwobim=np.eye(4).reshape((1,16,1))
     gene=_generator_matrices(init)
     if boundary is None:
-        cmps=tt.frommatrices([zozobim]) # empty ttarrays are not allowed
+        cmps=tt.fromproduct([np.array([1.0])]) # empty ttarrays are not allowed
     else:
         cmps=boundary.copy()
+    idim=1
     for T in Ts:
         # augment
         # contract with initial
@@ -37,13 +38,15 @@ def brickwork_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yi
             init=np.array(tt.frommatrices_slice([next(gene) for _ in range(int(math.log2(T.shape[0]))//2)]))
             init=init.reshape((1,init.shape[0],T.shape[0],init.shape[-1])).transpose([0,3,1,2])
             T=tt.frommatrices([init]+T.tomatrices_unchecked())
+            idim=init.shape[1]
         else:
-            T=T.frommatrices(T.tomatrices_unchecked())
-        tdim=int(math.log2(T.shape[1]//init.shape[2]))//4 #math not numpy since the dimension can be quite large
-        cdim=int(math.log2(cmps.shape[0]//init.shape[2]))//4 #math not numpy since the dimension can be quite large
+            T=tt.frommatrices([np.eye(idim)[None,...,None]]+T.tomatrices_unchecked())
+        tdim=int(math.log2(T.shape[1]//T.cluster[0][1]))//4 #math not numpy since the dimension can be quite large
+        cdim=int(math.log2(cmps.shape[0]//idim))//4 #math not numpy since the dimension can be quite large
         if tdim>cdim:
             cmps=tt.frommatrices(cmps.tomatrices_unchecked()+[bwobim for _ in range(tdim-cdim)])
         # apply
+
         cmps=T@cmps
         # truncate
         cmps.truncate(chi_max=chi_max,cutoff=cutoff)
@@ -59,7 +62,7 @@ def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcop
     zozobim=np.array([1,0,0,1])[None,...,None]
     gene=_generator_matrices(init)
     if boundary is None:
-        cmps=tt.frommatrices([zozobim]) # empty ttarrays are not allowed
+        cmps=tt.fromproduct([np.array([1.0])]) # empty ttarrays are not allowed
     else:
         cmps=boundary.copy()
     for T in Ts:
