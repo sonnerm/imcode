@@ -11,12 +11,12 @@ np.set_printoptions(linewidth=470)
 
 conv = 'M' # 'J': my convention, 'M': Michael's convention
 conv_out = 'M' # 'J': my convention, 'M': Michael's convention
-
+time_scheme = 'ct'
 B_l = []
 B_r = [] 
-filename_l = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.05_T=200_hyb=0.05_D=1_Michaels_conv'
-filename_r = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.05_T=200_hyb=0.05_D=1_Michaels_conv'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.05_hyb=0.05_T=200_D=1'
+filename_l = '/Users/julianthoenniss/Documents/PhD/data/corr_Mich/0208/delta_t=0.1/Millis_mu=-.2_timestep=0.1_T=50-200_hyb=0.05_D=1_Michaels_conv'
+filename_r = '/Users/julianthoenniss/Documents/PhD/data/corr_Mich/0208/delta_t=0.1/Millis_mu=.2_timestep=0.1_T=50-200_hyb=0.05_D=1_Michaels_conv'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.1_hyb=0.05_T=50-200_Delta=1_continuoustime'
 #filename_l = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-2.5_del_t=0.1_beta=200.0_L=200_init=4'
 #filename_r = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=2.5_del_t=0.1_beta=200.0_L=200_init=4'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=5.0'
@@ -29,7 +29,7 @@ elif conv_out == 'M':
     print('storing result in Ms convention')
 
 max_time1 = 201#maximal floquet_nbr_steps to set matrix stoage to correct size
-iterations = 1
+iterations = 4
 
 with h5py.File(filename + ".hdf5", 'w') as f:
         dset_temp_entr = f.create_dataset('temp_entr', (iterations, max_time1),dtype=np.float_)
@@ -90,6 +90,7 @@ for iter in range (0,iterations):
         B_r = U @ rot.T @ S @ B_r @ S.T @ rot @ U.T 
 
 
+    
     #matrix containing all variables not integrated over (output left and input right)
     C = np.zeros(B_l.shape,dtype=np.complex_)
     for i in range (0,dim_B//4):
@@ -135,6 +136,70 @@ for iter in range (0,iterations):
             B_joined_reshuf[4*i+2 : 4*i+4 , 4*j : 4*j+2] = B_joined[2*i +  dim_B//2: 2*i+2 +  dim_B//2, 2*j : 2*j+2]
 
     
+
+    nbr_Floquet_layers_effective = nbr_Floquet_layers
+
+
+    #for continuous time
+    if time_scheme == 'ct':
+
+        B = B_joined_reshuf
+        
+        dim_B = B.shape[0]
+
+        U = np.zeros(B.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
+        for i in range (B.shape[0] //4):
+            U[4*i, B.shape[0] //2 - (2*i) -1] = 1
+            U[4*i + 1, B.shape[0] //2 + (2*i)] = 1
+            U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
+            U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
+        B = U.T @ B @ U
+        
+        
+        print('Rotated from M basis to Grassmann basis')
+
+        #here, the matrix B is in the Grassmann convention
+        #subtract ones from overlap, these will be included in the impurity MPS, instead
+        for i in range (dim_B//2):
+            B[2*i, 2*i+1] -= 1 
+            B[2*i+1, 2*i] += 1 
+        
+        dim_B += 4#update for embedding into larger matrix
+        nbr_Floquet_layers_effective += 1
+
+        B_enlarged = np.zeros((dim_B,dim_B),dtype=np.complex_)
+        B_enlarged[1:dim_B//2-1, 1:dim_B//2-1] = 0.5 * B[:B.shape[0]//2,:B.shape[0]//2]#0.5 to avoid double couting in antisymmetrization
+        B_enlarged[dim_B//2+1:dim_B-1, 1:dim_B//2-1] = B[B.shape[0]//2:, :B.shape[0]//2]
+        B_enlarged[dim_B//2+1:dim_B-1, dim_B//2+1:dim_B-1] = 0.5 * B[B.shape[0]//2:, B.shape[0]//2:]
+        
+        #include ones from grassmann identity-resolutions (not included in conventional IM)
+        for i in range (0,dim_B//2):
+            B_enlarged[2*i, 2*i+1] += 1 
+
+        B_enlarged += - B_enlarged.T
+
+        B_enlarged_inv = linalg.inv(B_enlarged)
+
+        B = B_enlarged_inv
+
+        # adjust signs that make the influence matrix a vectorized state (in Grassmann basis)
+        for i in range (dim_B):
+            for j in range (dim_B):
+                if (i+j)%2 == 1:
+                    B[i,j] *= -1
+
+        U = np.zeros(B.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
+        for i in range (B.shape[0] //4):
+            U[4*i, B.shape[0] //2 - (2*i) -1] = 1
+            U[4*i + 1, B.shape[0] //2 + (2*i)] = 1
+            U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
+            U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
+        B = U @ B @ U.T
+        print('Rotated from Grassmann basis to Ms basis')
+        print(B)
+        B_joined_reshuf = B
+
+
     
     if conv_out == 'J':#This rotates aways from Michael's basis into theta/zeta-basis
         B_joined_reshuf = S.T @ rot @  U.T @ B_joined_reshuf @ U @ rot.T @ S
@@ -146,10 +211,10 @@ for iter in range (0,iterations):
         IM_data = f['IM_exponent']
         IM_data[iter,:B_joined_reshuf.shape[0],:B_joined_reshuf.shape[0]] = B_joined_reshuf[:,:]
         times_data = f['times']
-        times_data[iter] = nbr_Floquet_layers
+        times_data[iter] = nbr_Floquet_layers_effective
     
-    correlation_block = create_correlation_block(B_joined_reshuf, nbr_Floquet_layers, filename)
-    time_cuts = np.arange(1, nbr_Floquet_layers)
+    correlation_block = create_correlation_block(B_joined_reshuf, nbr_Floquet_layers_effective, filename)
+    time_cuts = np.arange(1, nbr_Floquet_layers_effective)
     
     #with h5py.File(filename + '.hdf5', 'a') as f:
     #    entr_data = f['temp_entr']
