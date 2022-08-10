@@ -252,6 +252,10 @@ for iter in range(0,1,interval):
     
     
     exponent_check = exponent
+
+
+
+
     
     for intermediate_time_dm in range (2,200):
         delt = 2 * (total_time - intermediate_time_dm)
@@ -299,9 +303,41 @@ for iter in range(0,1,interval):
         A_inv = linalg.inv(A)
         
         rho_exponent_evolved = 0.5*(R @ A_inv @ R.T+C )
-       
-        rho_evolved = np.zeros((4,4),dtype=np.complex_)
 
+        
+        #boundary condition for legs above 
+        rho_exponent_evolved *= 2
+
+        rho_exponent_evolved [2,3] += -1
+        rho_exponent_evolved [3,2] -= -1
+
+        rho_exponent_evolved [4,5] += -1
+        rho_exponent_evolved [5,4] -= -1
+
+        rho_exponent_evolved_A = np.zeros((4,4),dtype=np.complex_)
+        rho_exponent_evolved_R = np.zeros((4,4),dtype=np.complex_)
+        rho_exponent_evolved_C = np.zeros((4,4),dtype=np.complex_)
+        
+        rho_exponent_evolved_A[:2,:2] = 0.5 * rho_exponent_evolved[2:4,2:4]#factor 1/2 to avoid double counting in antisymmetrization
+        rho_exponent_evolved_A[2:4,2:4] = 0.5 * rho_exponent_evolved[4:6,4:6]#factor 1/2 to avoid double counting in antisymmetrization
+        rho_exponent_evolved_A[:2,2:4] = rho_exponent_evolved[2:4,4:6]
+        rho_exponent_evolved_A -= rho_exponent_evolved_A.T
+
+        rho_exponent_evolved_R[:2,:2] = rho_exponent_evolved[:2,2:4]
+        rho_exponent_evolved_R[:2,2:4] = rho_exponent_evolved[:2,4:6]
+        rho_exponent_evolved_R[2:4,:2] = rho_exponent_evolved[6:8,4:6]
+        rho_exponent_evolved_R[2:4,2:4] = rho_exponent_evolved[6:8,4:6]
+
+        rho_exponent_evolved_C[:2,:2] = 0.5*rho_exponent_evolved[:2,:2]
+        rho_exponent_evolved_C[2:4,2:4] = 0.5*rho_exponent_evolved[6:8,6:8]
+        rho_exponent_evolved_C[:2,2:4] = rho_exponent_evolved[:2,6:8]
+        rho_exponent_evolved_C -= rho_exponent_evolved_C.T
+
+        rho_exponent_evolved_A_inv = linalg.inv(rho_exponent_evolved_A)
+        rho_exponent_evolved = 0.5*(rho_exponent_evolved_R @ rho_exponent_evolved_A_inv @ rho_exponent_evolved_R.T + rho_exponent_evolved_C )
+        
+        """
+        rho_evolved = np.zeros((4,4),dtype=np.complex_)
         # no minus signs because of sign-change-convention for overlap applies only to IM and here we compute DM of system, factor 2 bc of antisymmetry
         a1 =   2 * rho_exponent_evolved[6,7]#
         a2 = +2 * rho_exponent_evolved[6,0]
@@ -309,7 +345,17 @@ for iter in range(0,1,interval):
         a4 = 2 * rho_exponent_evolved[7,0]#
         a5 = +2 * rho_exponent_evolved[7,1]
         a6 = 2 * rho_exponent_evolved[0,1]#
+        """
 
+        rho_evolved = np.zeros((4,4),dtype=np.complex_)
+        # no minus signs because of sign-change-convention for overlap applies only to IM and here we compute DM of system, factor 2 bc of antisymmetry
+        a1 =   2 * rho_exponent_evolved[2,3]#
+        a2 = +2 * rho_exponent_evolved[2,0]
+        a3 = 2 * rho_exponent_evolved[2,1]#
+        a4 = 2 * rho_exponent_evolved[3,0]#
+        a5 = +2 * rho_exponent_evolved[3,1]
+        a6 = 2 * rho_exponent_evolved[0,1]#
+        
         rho_evolved[0,0] = 1
         rho_evolved[0,3] = - a5
 
@@ -322,7 +368,7 @@ for iter in range(0,1,interval):
         rho_evolved[3,0] = a2
         rho_evolved[3,3] = a1*a6 - a2*a5 + a3*a4
        
-        rho_evolved *= np.sqrt(linalg.det(A)) * norm_IM *  1./(1+np.exp(-beta_up))#* 1./(1+np.exp(-beta_down)) #*  1./(1+np.exp(-beta_up))
+        rho_evolved *= np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A)) * norm_IM *  1./(1+np.exp(-beta_up))#* 1./(1+np.exp(-beta_down)) #*  1./(1+np.exp(-beta_up))
 
         trace_vals[intermediate_time_dm]=( np.trace(rho_evolved))
         rho_eigvals = linalg.eigvals(rho_evolved)
