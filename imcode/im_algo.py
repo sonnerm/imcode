@@ -25,6 +25,7 @@ def brickwork_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yi
         init defaults to infinite temperature
     '''
     bwobim=np.eye(4).reshape((1,16,1))
+    bwobto=np.eye(2).reshape((1,4,1))
     gene=_generator_matrices(init)
     if boundary is None:
         cmps=tt.fromproduct([np.array([1.0])]) # empty ttarrays are not allowed
@@ -45,6 +46,8 @@ def brickwork_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yi
         cdim=int(math.log2(cmps.shape[0]//idim))//4 #math not numpy since the dimension can be quite large
         if tdim>cdim:
             cmps=tt.frommatrices(cmps.tomatrices_unchecked()+[bwobim for _ in range(tdim-cdim)])
+        # if tdim<cdim:
+        #     cmps=
         # apply
 
         cmps=T@cmps

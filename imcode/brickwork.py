@@ -70,12 +70,7 @@ def brickwork_Te(t, chs):
     if len(chs.shape)==2:
         chs=[chs for _ in range(t)]
     dual=[ch.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((1,16,16,1)) for ch in chs]
-    dual[-1]=np.tensordot(dual[-1].reshape((4,4,4,4)),np.eye(2).ravel(),axes=((3,),(0,))).reshape((4,4,4))
-    dual[-1]=np.tensordot(dual[-1],np.eye(2).ravel(),axes=((1,),(0,))).reshape((1,4,4,1))
-    if t==1:
-        dual[0]=dual[0].reshape((16,1,1,1))
-    else:
-        dual[0]=dual[0].reshape((4,4,4,4)).transpose([0,2,1,3]).reshape((16,4,4,1))
+    dual[0]=dual[0].reshape((4,4,4,4)).transpose([0,2,1,3]).reshape((16,4,4,1))
     return tt.frommatrices_slice(dual)
 def brickwork_open_boundary_im(t):
     return brickwork_La(t).asarray()
