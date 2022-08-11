@@ -55,6 +55,13 @@ with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
     dset_propag_IM = f.create_dataset('propag_IM', (max_time,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset(
         'propag_exact', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('rho_00', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('rho_11', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('rho_22', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('rho_33', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('trace', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('max_eigvals', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('min_eigvals', (max_time,), dtype=np.complex_)
 
     dset_propag_exact = f.create_dataset(
         'propag_times', (max_time,), dtype=int)
@@ -68,7 +75,7 @@ rho_11 = np.zeros(max_time,dtype=np.complex_)
 rho_22 = np.zeros(max_time,dtype=np.complex_)
 rho_33 = np.zeros(max_time,dtype=np.complex_)
 propag = np.zeros(max_time,dtype=np.complex_)
-times = np.zeros(max_time,dtype=np.complex_)
+times = np.zeros(max_time,dtype=np.int_)
 
 for iter in range(0,1,interval):
 
@@ -157,58 +164,12 @@ for iter in range(0,1,interval):
 
     # integration measure
     # spin up
-    exponent[:dim_B, 2*dim_B :3*dim_B] = np.identity(dim_B)
-    exponent[2*dim_B :3*dim_B, :dim_B] = -np.identity(dim_B)
+    exponent[:dim_B, 2*dim_B :3*dim_B] += np.identity(dim_B)
+    exponent[2*dim_B :3*dim_B, :dim_B] += -np.identity(dim_B)
     # spin down
-    exponent[dim_B:2*dim_B, 3*dim_B:4*dim_B ] = np.identity(dim_B)
-    exponent[3*dim_B:4*dim_B , dim_B:2*dim_B] = -np.identity(dim_B)
-    """
-    exponent[1:dim_B-1, 2*dim_B +1:3*dim_B-1] = np.identity(dim_B-2)
-    exponent[2*dim_B+1 :3*dim_B-1, 1:dim_B-1] = -np.identity(dim_B-2)
-    # spin down
-    exponent[1+dim_B:2*dim_B-1, 1+3*dim_B:4*dim_B -1] = np.identity(dim_B-2)
-    exponent[1+3*dim_B:4*dim_B -1, 1+dim_B:2*dim_B-1] = -np.identity(dim_B-2)
-    """
-    
-    # impurity
-    #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
-    seed(10)
-    for i in range(dim_B//4-1):
-        #t =  0.57*np.cos(0.42 * i)
-        mu_up =0.3*delta_t# 0.3*np.sin(2.2 * i)
-        mu_down =0*delta_t# 0.18*np.sin(1.82 * i)
-        #mu_up =0# random()
-        #mu_down =0# random()
-        #print(t,mu_up,mu_down)
-
-        T=1+np.tan(t/2)**2
-        # forward 
-        # (matrix elements between up -> down)
-        exponent[dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1.j * np.tan(t/2) *2/T *np.exp(1.j * mu_up)
-        exponent[dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] -= 1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
-        #(matrix elements between up -> up)
-        exponent[dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_up)
-        exponent[3*dim_B + dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_down)
-
-        # forward Transpose (antisymm)
-        exponent[3*dim_B + dim_B//2 - 2 - 2*i, dim_B//2 - 3 - 2*i] += -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_up)
-        exponent[3*dim_B + dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] -= -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
-        exponent[dim_B//2 - 2 - 2*i,dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_up)
-        exponent[3*dim_B + dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_down)
-
-        # backward
-        exponent[dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
-        exponent[dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] -= - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
-        exponent[dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_up)
-        exponent[3*dim_B + dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_down)
-
-        # backward Transpose (antisymm)
-        exponent[3*dim_B + dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
-        exponent[3*dim_B + dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] -= + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
-        exponent[dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_up)
-        exponent[3*dim_B + dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_down)
-
-    
+    exponent[dim_B:2*dim_B, 3*dim_B:4*dim_B ] += np.identity(dim_B)
+    exponent[3*dim_B:4*dim_B , dim_B:2*dim_B] += -np.identity(dim_B)
+  
     
     # Initial state impurity 
 
@@ -251,15 +212,74 @@ for iter in range(0,1,interval):
     exponent[3 * dim_B, 3 * dim_B + dim_B - 1] -= -1
     
     
-    exponent_check = exponent
-
-
-
+    #exponent_check = exponent
 
     
     for intermediate_time_dm in range (2,200):
-        delt = 2 * (total_time - intermediate_time_dm)
+        print(intermediate_time_dm)
+        exponent_check = exponent.copy()
 
+        #impurity
+        #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
+        seed(10)
+        for i in range(intermediate_time_dm):
+            #t =  0.57*np.cos(0.42 * i)
+            mu_up =0.3*delta_t# 0.3*np.sin(2.2 * i)
+            mu_down =0.*delta_t# 0.18*np.sin(1.82 * i)
+            #mu_up =0# random()
+            #mu_down =0# random()
+            #print(t,mu_up,mu_down)
+
+            T=1+np.tan(t/2)**2
+            # forward 
+            # (matrix elements between up -> down)
+            exponent_check[dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1.j * np.tan(t/2) *2/T *np.exp(1.j * mu_up)
+            exponent_check[dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] -= 1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
+            #(matrix elements between up -> up)
+            exponent_check[dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_down)
+
+            # forward Transpose (antisymm)
+            exponent_check[3*dim_B + dim_B//2 - 2 - 2*i, dim_B//2 - 3 - 2*i] += -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] -= -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
+            exponent_check[dim_B//2 - 2 - 2*i,dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_down)
+
+            # backward
+            exponent_check[dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
+            exponent_check[dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] -= - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
+            exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_down)
+
+            # backward Transpose (antisymm)
+            exponent_check[3*dim_B + dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
+            exponent_check[3*dim_B + dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] -= + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
+            exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_down)
+        
+        for i in range(intermediate_time_dm, dim_B//4-1):
+            exponent_check[dim_B//2 - 3 - 2*i, dim_B//2 + 2 + 2*i] += 1
+            exponent_check[dim_B//2 - 2 - 2*i, dim_B//2 + 1 + 2*i] += 1
+
+            exponent_check[3*dim_B + dim_B//2 - 3 - 2*i,3*dim_B +  dim_B//2 + 2 + 2*i] += 1
+            exponent_check[3*dim_B + dim_B//2 - 2 - 2*i,3*dim_B +  dim_B//2 + 1 + 2*i] += 1
+
+            #antisymm. transpose
+            exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 - 3 - 2*i] += -1
+            exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 - 2 - 2*i] -= 1
+
+            exponent_check[3*dim_B +  dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1
+            exponent_check[3*dim_B +  dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += -1
+        
+        delt = 2 * (total_time - intermediate_time_dm)
+                    
+        #take out measure connecting cut legs
+        exponent_check[delt+1, 2*dim_B + delt+1] -= 1
+        exponent_check[dim_B + delt+1, 3*dim_B + delt+1] -= 1
+        exponent_check[2*dim_B + delt+1, delt+1] += 1
+        exponent_check[3*dim_B + delt+1, dim_B + delt+1] += 1
+
+       
         A= np.zeros((4*(dim_B-2),4*(dim_B-2)),dtype=np.complex_)
         R= np.zeros((8,4*(dim_B-2)),dtype=np.complex_)
         C = np.zeros((8 ,8),dtype=np.complex_)
@@ -304,6 +324,7 @@ for iter in range(0,1,interval):
         
         rho_exponent_evolved = 0.5*(R @ A_inv @ R.T+C )
 
+        
         
         #boundary condition for legs above 
         rho_exponent_evolved *= 2
@@ -368,8 +389,10 @@ for iter in range(0,1,interval):
         rho_evolved[3,0] = a2
         rho_evolved[3,3] = a1*a6 - a2*a5 + a3*a4
        
-        rho_evolved *= np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A)) * norm_IM *  1./(1+np.exp(-beta_up))#* 1./(1+np.exp(-beta_down)) #*  1./(1+np.exp(-beta_up))
-
+        print(abs(np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A))))
+        rho_evolved *=  np.power(0.5,delt//2-2) *abs(np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A))) * norm_IM *  1./(1+np.exp(-beta_up))#* 1./(1+np.exp(-beta_down)) #*  1./(1+np.exp(-beta_up))
+       
+        #np.power(0.5,delt//2-2) *
         trace_vals[intermediate_time_dm]=( np.trace(rho_evolved))
         rho_eigvals = linalg.eigvals(rho_evolved)
         rho_eigvals_max[intermediate_time_dm]=(np.max(rho_eigvals))
@@ -378,11 +401,13 @@ for iter in range(0,1,interval):
         rho_11[intermediate_time_dm]=(np.real(rho_evolved[1,1]))
         rho_22[intermediate_time_dm]=(np.real(rho_evolved[2,2]))
         rho_33[intermediate_time_dm]=(np.real(rho_evolved[3,3]))
+        times[intermediate_time_dm]=intermediate_time_dm
         
+
     
-    
+
+
     """
-    
     iterator = 0
     for intermediate_time_dm in range (50,200,50):
         delt = 2 * (total_time - intermediate_time_dm)
@@ -584,10 +609,24 @@ for iter in range(0,1,interval):
             #propag_data[iter] =  exponent_inv[2*dim_B + dim_B//2 -2*iter -2 , dim_B//2 -2*iter -2]  -  exponent_inv[2*dim_B + dim_B//2 -2*iter -1 , dim_B//2 -2*iter -1]#current 
             #propag_data[iter] = -exponent_inv[2*dim_B + dim_B//2 -2*iter -1 , dim_B//2 -2*iter -1]# this is what I take to compare with cont. time
             propag[iter] = propag_data[iter]
+            data = f['rho_00'] 
+            data[iter] = rho_00[iter]
+            data = f['rho_11'] 
+            data[iter] = rho_11[iter]
+            data = f['rho_22'] 
+            data[iter] = rho_22[iter]
+            data = f['rho_33'] 
+            data[iter] = rho_33[iter]
+            data = f['trace'] 
+            data[iter] = trace_vals[iter]
+            data = f['max_eigvals'] 
+            data[iter] = rho_eigvals_max[iter]
+            data = f['min_eigvals'] 
+            data[iter] = rho_eigvals_min[iter]
 
             times_data = f['propag_times']
-            times_data[iter] = iter  #nbr_Floquet_layers
-            times[iter] = times_data[iter]
+            #times_data[iter] = iter  #nbr_Floquet_layers
+            times_data[iter] = times[iter]
 
     #with h5py.File(filename+'_DMs' + ".hdf5", 'a') as f:
     #    DM_data = f['density_matrix']
