@@ -62,6 +62,7 @@ with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
     dset_propag_exact = f.create_dataset('trace', (max_time,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset('max_eigvals', (max_time,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset('min_eigvals', (max_time,), dtype=np.complex_)
+    dset_propag_exact = f.create_dataset('rho_full', (max_time,4,4), dtype=np.complex_)
 
     dset_propag_exact = f.create_dataset(
         'propag_times', (max_time,), dtype=int)
@@ -74,12 +75,13 @@ rho_00 = np.zeros(max_time,dtype=np.complex_)
 rho_11 = np.zeros(max_time,dtype=np.complex_)
 rho_22 = np.zeros(max_time,dtype=np.complex_)
 rho_33 = np.zeros(max_time,dtype=np.complex_)
+rho_full = np.zeros((max_time,4,4),dtype=np.complex_)
 propag = np.zeros(max_time,dtype=np.complex_)
 times = np.zeros(max_time,dtype=np.int_)
 
 for iter in range(0,1,interval):
 
-    iter_readout =  3#iter
+    iter_readout =  2#iter
     with h5py.File(filename + '.hdf5', 'r') as f:
         #times_read = f['temp_entr']
         times_read = f['times']
@@ -158,7 +160,7 @@ for iter in range(0,1,interval):
     exponent = np.zeros((4*dim_B, 4*dim_B), dtype=np.complex_)#this exponent will contain the exponents of both spin species as well as the impurity dynamics
     # Influence matices for both spin species
     #spin down
-    #exponent[dim_B:2*dim_B, dim_B:2*dim_B] = B[:, :]
+    exponent[dim_B:2*dim_B, dim_B:2*dim_B] = B[:, :]
     #spin up
     exponent[2*dim_B:3*dim_B, 2*dim_B:3*dim_B] = B[:, :]
 
@@ -187,7 +189,7 @@ for iter in range(0,1,interval):
 
     # (thermal with temperature beta)
     beta_up = -10#-10
-    beta_down = 0#-10
+    beta_down = -10#-10
     #spin up
     exponent[dim_B//2 - 1, dim_B//2 ] += np.exp(- beta_up)
     #Transpose (antisymm)
@@ -215,7 +217,7 @@ for iter in range(0,1,interval):
     #exponent_check = exponent
 
     
-    for intermediate_time_dm in range (2,200):
+    for intermediate_time_dm in range (2,100,10):
         print(intermediate_time_dm)
         exponent_check = exponent.copy()
 
@@ -224,8 +226,9 @@ for iter in range(0,1,interval):
         seed(10)
         for i in range(intermediate_time_dm):
             #t =  0.57*np.cos(0.42 * i)
+      
             mu_up =0.3*delta_t# 0.3*np.sin(2.2 * i)
-            mu_down =0.*delta_t# 0.18*np.sin(1.82 * i)
+            mu_down =0.3*delta_t# 0.18*np.sin(1.82 * i)
             #mu_up =0# random()
             #mu_down =0# random()
             #print(t,mu_up,mu_down)
@@ -266,7 +269,7 @@ for iter in range(0,1,interval):
 
             #antisymm. transpose
             exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 - 3 - 2*i] += -1
-            exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 - 2 - 2*i] -= 1
+            exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 - 2 - 2*i] += -1
 
             exponent_check[3*dim_B +  dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1
             exponent_check[3*dim_B +  dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += -1
@@ -274,8 +277,11 @@ for iter in range(0,1,interval):
         delt = 2 * (total_time - intermediate_time_dm)
                     
         #take out measure connecting cut legs
+        #spin up
         exponent_check[delt+1, 2*dim_B + delt+1] -= 1
+        #spin down
         exponent_check[dim_B + delt+1, 3*dim_B + delt+1] -= 1
+        #antisymm
         exponent_check[2*dim_B + delt+1, delt+1] += 1
         exponent_check[3*dim_B + delt+1, dim_B + delt+1] += 1
 
@@ -287,29 +293,26 @@ for iter in range(0,1,interval):
 
         for i in range (4):
             for j in range (4):
-                prefac_1 = 1
-                prefac_2 = 1
-                if i == j:
-                    prefac_1 = 1#0.5
-                    prefac_2 = 1
+   
                 #for spin up/down density matrix --ONE TOTAL TIME --upper part integrated
-                A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2):j * (dim_B-2) + delt+1] = prefac_1 * exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B:j * dim_B+delt+1]#factor of 1/2 to avoid double counting when antisymmetrizing
+                A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B:j * dim_B+delt+1]
                 A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
                 A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
 
-                A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2):j * (dim_B-2) + delt+1 ] =  prefac_2 * exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B:j * dim_B+delt+1]
-                A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = prefac_1 *exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
+                A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2):j * (dim_B-2) + delt+1 ] =  exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B:j * dim_B+delt+1]
+                A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
                 A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] = exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
 
-                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2):j * (dim_B-2) + delt+1] =   prefac_2 *exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B:j * dim_B+delt+1]
-                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2))] =  prefac_2 *exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
-                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] = prefac_1 * exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
+                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2):j * (dim_B-2) + delt+1] =   exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B:j * dim_B+delt+1]
+                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2))] = exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
+                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] =  exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
 
 
-                C[2*i,2*j] = prefac_1* exponent_check[i*dim_B + delt+1,j * dim_B + delt+1]
+                C[2*i,2*j] = exponent_check[i*dim_B + delt+1,j * dim_B + delt+1]
                 C[2*i,2*j+1] = exponent_check[i*dim_B + delt+1,j * dim_B + dim_B-(delt+2)]
                 C[2*i+1,2*j] = exponent_check[i * dim_B + dim_B-(delt+2),j*dim_B + delt+1]
-                C[2*i+1,2*j+1] = prefac_1* exponent_check[i*dim_B + dim_B-(delt+2),j * dim_B +dim_B-(delt+2)]
+                C[2*i+1,2*j+1] = exponent_check[i*dim_B + dim_B-(delt+2),j * dim_B +dim_B-(delt+2)]
+                
 
                 R[2*i,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B+delt+1,j * dim_B:j * dim_B+delt+1]
                 R[2*i,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+delt+1,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
@@ -318,7 +321,7 @@ for iter in range(0,1,interval):
                 R[2*i+1,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B:j * dim_B+delt+1]
                 R[2*i+1,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
                 R[2*i+1,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2 ] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
-        
+
 
         A_inv = linalg.inv(A)
         
@@ -326,7 +329,7 @@ for iter in range(0,1,interval):
 
         
         
-        #boundary condition for legs above 
+        #boundary condition for legs above cut
         rho_exponent_evolved *= 2
 
         rho_exponent_evolved [2,3] += -1
@@ -389,8 +392,8 @@ for iter in range(0,1,interval):
         rho_evolved[3,0] = a2
         rho_evolved[3,3] = a1*a6 - a2*a5 + a3*a4
        
-        print(abs(np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A))))
-        rho_evolved *=  np.power(0.5,delt//2-2) *abs(np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A))) * norm_IM *  1./(1+np.exp(-beta_up))#* 1./(1+np.exp(-beta_down)) #*  1./(1+np.exp(-beta_up))
+        #print(abs(np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A))))
+        rho_evolved *= np.power(0.5,delt) * abs(np.sqrt(linalg.det(rho_exponent_evolved_A)) *np.sqrt(linalg.det(A))) * norm_IM * 1./(1+np.exp(-beta_down)) *  1./(1+np.exp(-beta_up))
        
         #np.power(0.5,delt//2-2) *
         trace_vals[intermediate_time_dm]=( np.trace(rho_evolved))
@@ -401,6 +404,7 @@ for iter in range(0,1,interval):
         rho_11[intermediate_time_dm]=(np.real(rho_evolved[1,1]))
         rho_22[intermediate_time_dm]=(np.real(rho_evolved[2,2]))
         rho_33[intermediate_time_dm]=(np.real(rho_evolved[3,3]))
+        rho_full[intermediate_time_dm,:,:]=np.real(rho_evolved[:,:])
         times[intermediate_time_dm]=intermediate_time_dm
         
 
@@ -623,6 +627,8 @@ for iter in range(0,1,interval):
             data[iter] = rho_eigvals_max[iter]
             data = f['min_eigvals'] 
             data[iter] = rho_eigvals_min[iter]
+            data = f['rho_full'] 
+            data[iter,:,:] = rho_full[iter,:,:]
 
             times_data = f['propag_times']
             #times_data[iter] = iter  #nbr_Floquet_layers
