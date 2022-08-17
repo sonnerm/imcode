@@ -15,12 +15,13 @@ min_time=50
 max_time=201
 interval =50
 conv = 'M'
-int_lim_low = -1
-int_lim_up = 1
+time_scheme = ''#'ct'#'ct' is only needed for a single environment. Otherwise , the ct-convention is adopted be the join-method.
+int_lim_low = -20
+int_lim_up = 20
 
 filename_comp = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.01_beta=0.0_L=100_init=2'
 #filename_comp = '/Users/julianthoenniss/Documents/PhD/data/Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200_FermiSea'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.05_T=200_hyb=0.05'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.1_T=50-200_hyb=0.05_D=10'
 
 if conv == 'J':
     filename += '_my_conv' 
@@ -29,6 +30,10 @@ elif conv == 'M':
     filename += '_Michaels_conv' 
     print('using Ms convention')
 
+if time_scheme == 'ct':
+    filename += '_continuoustime' 
+    print('using continuous time convention')
+
 
 with h5py.File(filename + ".hdf5", 'w') as f:
         dset_IM_exponent = f.create_dataset('IM_exponent', ((max_time - min_time)//interval + 1, 4 * (max_time-1), 4 * (max_time-1)),dtype=np.complex_)
@@ -36,13 +41,13 @@ with h5py.File(filename + ".hdf5", 'w') as f:
 
 
 global_gamma = 1.
-delta_t = 0.05
+delta_t = 0.1
 mu=-0.2 * global_gamma
 beta = 10/0.05
 def spec_dens(gamma,energy):
     e_c = 1*gamma 
-    nu = 30/gamma
-    #return 0.025 * 4 * gamma /((1+np.exp(nu*(energy - e_c))) * (1+np.exp(-nu*(energy + e_c))))  * 2 #factor of two from having two environments
+    nu = 10/gamma
+    #return 0.05  * gamma /((1+np.exp(nu*(energy - e_c))) * (1+np.exp(-nu*(energy + e_c)))) 
     return 0.05 
 
 
@@ -145,16 +150,72 @@ for nbr_Floquet_layers in range (min_time,max_time,interval):
     #B=B_comp
     anti_sym_check(B)
 
-    #print(B_comp[:16,:16])
-    #print(B[:16,:16])
+
+
+    #for continuous time
+    if time_scheme == 'ct':
+        dim_B = B.shape[0]
+
+        U = np.zeros(B.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
+        for i in range (B.shape[0] //4):
+            U[4*i, B.shape[0] //2 - (2*i) -1] = 1
+            U[4*i + 1, B.shape[0] //2 + (2*i)] = 1
+            U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
+            U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
+        B = U.T @ B @ U
+        
+        
+        print('Rotated from M basis to Grassmann basis')
+
+        #here, the matrix B is in the Grassmann convention
+        #subtract ones from overlap, these will be included in the impurity MPS, instead
+        for i in range (dim_B//2):
+            B[2*i, 2*i+1] -= 1 
+            B[2*i+1, 2*i] += 1 
+        
+        dim_B += 4#update for embedding into larger matrix
+        B_enlarged = np.zeros((dim_B,dim_B),dtype=np.complex_)
+        B_enlarged[1:dim_B//2-1, 1:dim_B//2-1] = 0.5 * B[:B.shape[0]//2,:B.shape[0]//2]#0.5 to avoid double couting in antisymmetrization
+        B_enlarged[dim_B//2+1:dim_B-1, 1:dim_B//2-1] = B[B.shape[0]//2:, :B.shape[0]//2]
+        B_enlarged[dim_B//2+1:dim_B-1, dim_B//2+1:dim_B-1] = 0.5 * B[B.shape[0]//2:, B.shape[0]//2:]
+        
+        #include ones from grassmann identity-resolutions (not included in conventional IM)
+        for i in range (0,dim_B//2):
+            B_enlarged[2*i, 2*i+1] += 1 
+
+        B_enlarged += - B_enlarged.T
+
+        B_enlarged_inv = linalg.inv(B_enlarged)
+
+        B = B_enlarged
+
+        # adjust signs that make the influence matrix a vectorized state (in Grassmann basis)
+        for i in range (dim_B):
+            for j in range (dim_B):
+                if (i+j)%2 == 1:
+                    B[i,j] *= -1
+
+        U = np.zeros(B.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
+        for i in range (B.shape[0] //4):
+            U[4*i, B.shape[0] //2 - (2*i) -1] = 1
+            U[4*i + 1, B.shape[0] //2 + (2*i)] = 1
+            U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
+            U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
+        B = U @ B @ U.T
+        print('Rotated from Grassmann basis to Ms basis')
+
+    nbr_Floquet_layers_effective = nbr_Floquet_layers
+
+    if time_scheme == 'ct':
+        nbr_Floquet_layers_effective += 1
 
     with h5py.File(filename + '.hdf5', 'a') as f:
         IM_data = f['IM_exponent']
         IM_data[iter ,:B.shape[0],:B.shape[0]] = B[:,:]
         times_data = f['times']
-        times_data[iter] = nbr_Floquet_layers
+        times_data[iter] = nbr_Floquet_layers_effective
 
-    correlation_block = create_correlation_block(B, nbr_Floquet_layers, filename)
+    correlation_block = create_correlation_block(B, nbr_Floquet_layers_effective, filename)
 
     print(np.real(linalg.eigvals(correlation_block)))
 
