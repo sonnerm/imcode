@@ -1,7 +1,9 @@
 import numpy as np
+import math 
 def ising_norm(im,initbc=None):
     if initbc is None:
-        initbc=np.ones(im.cluster[0][0])
+        initbc=np.array([1.0])
+    im=im.recluster(((initbc.shape[0],),)+((4,),)*(int(math.log2(im.shape[0]//initbc.shape[0]))//2))
     ms=im.tomatrices()
     cvec=np.tensordot(ms[0],initbc,axes=((1,),(0,)))[0]
     for m in ms[1:]:
@@ -15,7 +17,8 @@ def zoz_norm(im,initbc=None):
 
 def brickwork_norm(im,initbc=None):
     if initbc is None:
-        initbc=np.ones(im.cluster[0][0])
+        initbc=np.array([1.0])
+    im=im.recluster(((initbc.shape[0],),)+((16,),)*(int(math.log2(im.shape[0]//initbc.shape[0]))//4))
     ms=im.tomatrices()
     cvec=np.tensordot(ms[0],initbc,axes=((1,),(0,)))[0]
     for m in ms[1:]:

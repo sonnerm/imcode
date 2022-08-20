@@ -24,7 +24,7 @@ def test_product_homhom(seed_rng):
     Fs=[F for _ in range(t)]
     Te=imcode.heisenberg_Te(t,Jx,Jy,Jz,hx,hy,hz)
     To=imcode.heisenberg_To(t,Jx,Jy,Jz)
-    Ts=[Te if t%2==0 else To for _ in range(2*t)]
+    Ts=[Te if ti%2==0 else To for ti in range(2*t)]
     ch1=np.array(imcode.unitary_channel(imcode.heisenberg_F(1,Jx,Jy,Jz,hx,hy,hz)))
     ch2=np.array(imcode.unitary_channel(imcode.heisenberg_F(2,Jx,Jy,Jz,hx,hy,hz)))
     #rectangle
