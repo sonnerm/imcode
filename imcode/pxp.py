@@ -7,5 +7,7 @@ def pxp_H(L,taus):
     pass
 def pxp_F(L,taus):
     pass
-def pxp_T(t,taus):
+def pxp_Te(t,taus):
+    pass
+def pxp_To(t,taus):
     pass

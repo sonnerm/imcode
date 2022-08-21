@@ -37,8 +37,6 @@ def zoz_Fo(L,zozso,oz=ID_OZ,zo=ID_ZO):
     if len(zozso.shape)==4:
         zozso=np.array([zozso]*(L//2))
 
-
-
 def zoz_T(t,zozs):
     zozs=np.array(zozs)
     if len(zozs.shape)==4:

@@ -14,7 +14,6 @@ def test_product_homhom(seed_rng):
     L=7
     t=6
     Jx,Jy,Jz,hx,hy,hz=np.random.random((6,))-0.5
-    Jx,Jy,Jz,hx,hy,hz=np.zeros((6,))
     init=[np.random.random((2,))+np.random.random((2,))*1.0j-0.5-0.5j for _ in range(L)]
     init=[i.T.conj()+i for i in init]
     init=[i/np.sqrt(np.sum(i.conj()*i)) for i in init]
@@ -30,5 +29,5 @@ def test_product_homhom(seed_rng):
     #rectangle
     check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution,np.eye(4).ravel())
     #lcga
-    # Ts=[imcode.heisenberg_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
-    # check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution)
+    Ts=[imcode.heisenberg_T(t,J,g,h) for t in range(1,t+1)]+[T]*(L-t)
+    check_model(L,t,init,Fs,Ts,Ts,imcode.brickwork_lcga,ch1,ch2,ch1,ch2,imcode.brickwork_boundary_evolution,imcode.brickwork_embedded_evolution)
