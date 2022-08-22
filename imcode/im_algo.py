@@ -46,7 +46,6 @@ def brickwork_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yi
         if tdim>cdim:
             cmps=tt.frommatrices(cmps.tomatrices_unchecked()+[bwobim for _ in range((tdim-cdim)//2)])
         # apply
-        T.recluster((T.cluster[0],)+((16,16),)*(tdim//2))#manual recluster probably best for performance
         cmps=T@cmps
         # truncate
         cmps.truncate(chi_max=chi_max,cutoff=cutoff)
@@ -77,7 +76,6 @@ def zoz_lcga(Ts,init=np.eye(2)/2,boundary=None,chi_max=128,cutoff=1e-12,yieldcop
         if tdim>cdim:
             cmps=tt.frommatrices(cmps.tomatrices_unchecked()+[zozobim for _ in range(tdim-cdim)])
         # apply
-        T.recluster((T.cluster[0],)+((4,4),)*(tdim))#manual recluster probably best for performance
         cmps=T@cmps
         # truncate
         cmps.truncate(chi_max=chi_max,cutoff=cutoff)

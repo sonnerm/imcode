@@ -2,7 +2,7 @@ import numpy as np
 import ttarray as tt
 from . import SX,SY,SZ,ID
 from .channel import unitary_channel
-from .brickwork import brickwork_Te,brickwork_To,brickwork_La,brickwork_Lb,brickwork_F,brickwork_H
+from .brickwork import brickwork_Te,brickwork_To,brickwork_F,brickwork_H
 import scipy.linalg as sla
 '''
     Order: first local gates, then even gates, then odd gates
@@ -54,7 +54,7 @@ def heisenberg_Te(t,Jx,Jy,Jz,hx=0,hy=0,hz=0):
     return brickwork_Te(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz,0.0,0.0,0.0,hx,hy,hz)))
 def heisenberg_To(t,Jx,Jy,Jz,hx=0,hy=0,hz=0):
     return brickwork_To(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz,0.0,0.0,0.0,hx,hy,hz)))
-def heisenberg_La(t):
-    return brickwork_La(t)
-def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2)/2,final=np.eye(2)):
-    return brickwork_Lb(t,unitary_channel(heisenberg_lop(hx,hy,hz)),init,final)
+# def heisenberg_La(t):
+#     return brickwork_La(t)
+# def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2)/2,final=np.eye(2)):
+#     return brickwork_Lb(t,unitary_channel(heisenberg_lop(hx,hy,hz)),init,final)
