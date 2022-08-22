@@ -62,8 +62,8 @@ def brickwork_To(t, chs):
     dual=[np.eye(4).reshape((4,1,4,1))]+[ch.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((1,16,16,1)) for ch in chs]
     dual[-1]=np.tensordot(dual[-1].reshape((1,16,4,4,1)),np.eye(2).ravel(),axes=((2,),(0,)))
     To=tt.frommatrices_slice(dual)
-    To.recluster(((4,1),(1,4))*(2*len(dual)-2))
-    To.recluster(((16,16),)*(len(dual)-1))
+    To=To.recluster(((4,1),(1,4))*(2*len(dual)-2))
+    To=To.recluster(((16,16),)*(len(dual)-1))
     return To
 
 def brickwork_Te(t, chs):
@@ -77,8 +77,8 @@ def brickwork_Te(t, chs):
     dual[0]=dual[0].reshape((4,4,4,4)).transpose([2,0,1,3]).reshape((4,16,4,1))
     dual.append(np.eye(2).reshape((1,1,4,1)))
     Te=tt.frommatrices_slice(dual)
-    Te.recluster(((1,4),(4,1))*(2*len(dual)-2))
-    Te.recluster(((16,16),)*(len(dual)-1))
+    Te=Te.recluster(((1,4),(4,1))*(2*len(dual)-2))
+    Te=Te.recluster(((16,16),)*(len(dual)-1))
     return Te
 def brickwork_open_boundary_im(t):
     return brickwork_La(t).asarray()
