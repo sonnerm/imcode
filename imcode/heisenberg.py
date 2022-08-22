@@ -51,9 +51,9 @@ def heisenberg_H(L,Jx,Jy,Jz,hx=0.0,hy=0.0,hz=0.0):
     return brickwork_H(L,gates)
 
 def heisenberg_Te(t,Jx,Jy,Jz,hx=0,hy=0,hz=0):
-    return brickwork_Te(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz,hx,hy,hz)))
-def heisenberg_To(t,Jx,Jy,Jz):
-    return brickwork_To(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz)))
+    return brickwork_Te(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz,0.0,0.0,0.0,hx,hy,hz)))
+def heisenberg_To(t,Jx,Jy,Jz,hx=0,hy=0,hz=0):
+    return brickwork_To(t,unitary_channel(heisenberg_gate(Jx,Jy,Jz,0.0,0.0,0.0,hx,hy,hz)))
 def heisenberg_La(t):
     return brickwork_La(t)
 def heisenberg_Lb(t,hx,hy,hz,init=np.eye(2)/2,final=np.eye(2)):
