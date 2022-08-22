@@ -77,7 +77,7 @@ def brickwork_Te(t, chs):
     dual[0]=dual[0].reshape((4,4,4,4)).transpose([2,0,1,3]).reshape((4,16,4,1))
     dual.append(np.eye(2).reshape((1,1,4,1)))
     Te=tt.frommatrices_slice(dual)
-    Te=Te.recluster(((1,4),(4,1))*(2*len(dual)-2))
+    Te=Te.recluster(((4,1),(1,4))*(2*len(dual)-2))
     Te=Te.recluster(((16,16),)*(len(dual)-1))
     return Te
 def brickwork_open_boundary_im(t):
