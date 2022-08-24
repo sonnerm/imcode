@@ -38,38 +38,19 @@ def brickwork_H(L,gates):
     ret[-1]=ret[-1][:,:,:,-1:]
     return tt.frommatrices(ret)
 
-# def brickwork_La(t,chs=np.eye(4)):
-#     chs=np.asarray(chs)
-#     if len(chs.shape)==2:
-#         chs=(chs for _ in range(t))
-#     return tt.fromproduct_slice([ch.T for ch in chs])
-# def brickwork_Lb(t,chs):
-#     chs=np.asarray(chs)
-#     if len(chs.shape)==2:
-#         chs=(chs for _ in range(t))
-#     chs=[ch.T.reshape((1,4,4,1)) for ch in chs]
-#     chs[-1]=np.tensordot(chs[-1],np.eye(2).ravel(),axes=((1,),(0,))).reshape((1,4,1))
-#     chs[0]=chs[0].transpose([1,0])
-#     return tt.frommatrices_slice([ch.T for ch in chs])
 
 def brickwork_To(t, chs):
-    '''
-        dual layer of the brickwork transfer matrix without boundary states ('odd' layer)
-    '''
     chs=np.asarray(chs)
     if len(chs.shape)==2:
         chs=[chs for _ in range(t)]
     dual=[np.eye(4).reshape((4,1,4,1))]+[ch.reshape((4,4,4,4)).transpose([2,0,3,1]).reshape((1,16,16,1)) for ch in chs]
-    dual[-1]=np.tensordot(dual[-1].reshape((1,16,4,4,1)),np.eye(2).ravel(),axes=((2,),(0,)))
+    dual[-1]=np.tensordot(dual[-1].reshape((1,16,4,4,1)),np.eye(2).ravel(),axes=((3,),(0,)))
     To=tt.frommatrices_slice(dual)
-    To=To.recluster(((4,1),(1,4))*(2*len(dual)-2))
+    To=To.recluster(((4,1),(1,4))*(2*len(dual)-2)) #TODO: fix in ttarray
     To=To.recluster(((16,16),)*(len(dual)-1))
     return To
 
 def brickwork_Te(t, chs):
-    '''
-        dual layer of the brickwork transfer matrix with boundary states ('even layer')
-    '''
     chs=np.asarray(chs)
     if len(chs.shape)==2:
         chs=[chs for _ in range(t)]
@@ -77,12 +58,11 @@ def brickwork_Te(t, chs):
     dual[0]=dual[0].reshape((4,4,4,4)).transpose([2,0,1,3]).reshape((4,16,4,1))
     dual.append(np.eye(2).reshape((1,1,4,1)))
     Te=tt.frommatrices_slice(dual)
-    Te=Te.recluster(((4,1),(1,4))*(2*len(dual)-2))
+    Te=Te.recluster(((4,1),(1,4))*(2*len(dual)-2)) #TODO: fix in ttarray
     Te=Te.recluster(((16,16),)*(len(dual)-1))
     return Te
 def brickwork_open_boundary_im(t):
     return brickwork_La(t).asarray()
-
 def interleave_brickwork(ima,imb):
     res=[]
     for l,r in zip(lhs,rhs):
