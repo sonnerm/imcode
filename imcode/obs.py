@@ -122,6 +122,11 @@ def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2,fermionic=False,no
     tr=int(math.log2(imr.shape[0]//init.shape[-1])/4)
     iml.recluster(((init.shape[0],),)+((16,),)*tl)
     imr.recluster(((init.shape[-1],),)+((16,),)*tr)
+    if fermionic:
+        Ompsl=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tl*2-1)+[_FERMI_B[...,0][...,None]])
+        iml=Ompsl*iml
+        Ompsr=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tr*2-1)+[_FERMI_B[...,0][...,None]])
+        imr=Ompsr*imr
     dm=np.einsum("abc,def,bge->cgf",iml.M[0],imr.M[0],vectorize_operator(init),optimize=True)
     pvalsl=brickwork_tracevalues(iml)
     pvalsr=brickwork_tracevalues(imr)
@@ -129,12 +134,6 @@ def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2,fermionic=False,no
         dm/=brickwork_norm(iml)
         dm/=brickwork_norm(imr)
     yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvalsl[0],pvalsr[0],optimize=True))
-    if fermionic:
-        Ompsl=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tl*2-1)+[_FERMI_B[...,0][...,None]])
-        iml=Ompsl*iml
-        Ompsr=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tr*2-1)+[_FERMI_B[...,0][...,None]])
-        imr=Ompsr*imr
-
     imml=iml.tomatrices_unchecked()[1:]
     immr=imr.tomatrices_unchecked()[1:]
     if isinstance(chs,np.ndarray) and len(chs.shape)==2:
