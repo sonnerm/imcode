@@ -5,11 +5,11 @@ import math
 def unitary_channel(F):
     if len(F.shape)==2:
         L=int(math.log2(F.shape[0]))
-        F=tt.asarray(F,cluster=((2,2),)*L)
-        Ws=[np.einsum("abcd,efgh->aebfcgdh",W,W.conj()) for W in F.tomatrices_unchecked()]
+        Ft=tt.asarray(F,cluster=((2,2),)*L)
+        Ws=[np.einsum("abcd,efgh->aebfcgdh",W,W.conj()) for W in Ft.tomatrices_unchecked()]
         Ws=[W.reshape((W.shape[0]**2,4,4,W.shape[-1]**2)) for W in Ws]
-        return tt.frommatrices(Ws)
-    if len(F.shape)==4:
+        return np.array(tt.frommatrices(Ws),like=F)
+    if len(F.shape)==4 and isinstance(F,tt.TensorTrainSlice):
         #not sure if that is necessary, but ...
         L=int(math.log2(F.shape[1]))
         F=tt.asslice(F,cluster=((2,2),)*L)
