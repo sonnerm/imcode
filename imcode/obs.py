@@ -2,6 +2,18 @@ import ttarray as tt
 import math
 import numpy as np
 from .channel import vectorize_operator,unvectorize_operator
+from .norm import brickwork_norm
+
+def _get_mat(even,odd):
+    ret=np.zeros((2,2,2))
+    ret[1,0,1]=odd[0]
+    ret[1,1,0]=odd[1]
+    ret[0,0,0]=even[0]
+    ret[0,1,1]=even[1]
+    return ret
+_FERMI_A=_get_mat([1,1],[1,1])
+_FERMI_B=_get_mat([1,-1],[1,1])
+
 
 def zoz_tracevalues(im):
     return ising_tracevalues(im) # i think that is correct
@@ -20,7 +32,7 @@ def brickwork_tracevalues(im):
         postval.append(np.einsum("d,abcd,b,c->a",postval[-1],m.reshape((m.shape[0],4,4,m.shape[-1])),[0.5,0,0,0.5],[1,0,0,1],optimize=True))
     return postval[::-1]
 
-def brickwork_boundary_evolution(im,chs,init=np.eye(2)/2):
+def brickwork_boundary_evolution(im,chs,init=np.eye(2)/2,fermionic=False,normalize=False):
     '''
         Picture: IM - Local evolution
     '''
@@ -31,8 +43,14 @@ def brickwork_boundary_evolution(im,chs,init=np.eye(2)/2):
         raise ValueError("Influence matrix must be 1D but has has shape %s!"%im.shape)
     if im.shape[0]%init.shape[0]:
         raise ValueError("Influence matrix length %i must be compatible with left index of init %i!"%(im.shape[0],init.shape[0]))
-    im.recluster(((init.shape[0],),)+((16,),)*int(math.log2(im.shape[0]//init.shape[0])/4))
+    t=int(math.log2(im.shape[0]//init.shape[0])/4)
+    im.recluster(((init.shape[0],),)+((16,),)*t)
+    if fermionic:
+        Omps=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(t*2-1)+[_FERMI_B[...,0][...,None]])
+        im=im*Omps
     dm=np.tensordot(im.M[0],vectorize_operator(init),axes=((1,),(0,)))[0,:,:,0]
+    if normalize:
+        dm/=brickwork_norm(im)
     pvals=brickwork_tracevalues(im)
     yield unvectorize_operator(np.einsum("ba,b->a",dm,pvals[0],optimize=True))
     imm=im.tomatrices_unchecked()[1:]
@@ -85,7 +103,7 @@ def zoz_boundary_evolution(im,ozs,init=np.eye(2)/2):
         dm=np.einsum("ab,bcd,eac->ed",dm,m,ch,optimize=True)
         yield np.array(unvectorize_operator(np.einsum("ab,b->a",dm,pv,optimize=True)))
 
-def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2):
+def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2,fermionic=False,normalize=False):
     '''
         Picture IML - local evolution - IMR
     '''
@@ -100,12 +118,23 @@ def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2):
         raise ValueError("Left Influence matrix length %i must be compatible with left index of init %i!"%(iml.shape[0],init.shape[0]))
     if imr.shape[0]%(init.shape[3]):
         raise ValueError("Right Influence matrix length %i must be compatible with left index of init %i!"%(imr.shape[0],init.shape[3]))
-    iml.recluster(((init.shape[0],),)+((16,),)*int(math.log2(iml.shape[0]//init.shape[0])/4))
-    imr.recluster(((init.shape[-1],),)+((16,),)*int(math.log2(imr.shape[0]//init.shape[-1])/4))
+    tl=int(math.log2(iml.shape[0]//init.shape[0])/4)
+    tr=int(math.log2(imr.shape[0]//init.shape[-1])/4)
+    iml.recluster(((init.shape[0],),)+((16,),)*tl)
+    imr.recluster(((init.shape[-1],),)+((16,),)*tr)
     dm=np.einsum("abc,def,bge->cgf",iml.M[0],imr.M[0],vectorize_operator(init),optimize=True)
     pvalsl=brickwork_tracevalues(iml)
     pvalsr=brickwork_tracevalues(imr)
+    if normalize:
+        dm/=brickwork_norm(iml)
+        dm/=brickwork_norm(imr)
     yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvalsl[0],pvalsr[0],optimize=True))
+    if fermionic:
+        Ompsl=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tl*2-1)+[_FERMI_B[...,0][...,None]])
+        iml=Omps*iml
+        Ompsr=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tr*2-1)+[_FERMI_B[...,0][...,None]])
+        imr=Omps*imr
+
     imml=iml.tomatrices_unchecked()[1:]
     immr=imr.tomatrices_unchecked()[1:]
     if isinstance(chs,np.ndarray) and len(chs.shape)==2:
