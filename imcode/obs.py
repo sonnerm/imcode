@@ -131,9 +131,9 @@ def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2,fermionic=False,no
     yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvalsl[0],pvalsr[0],optimize=True))
     if fermionic:
         Ompsl=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tl*2-1)+[_FERMI_B[...,0][...,None]])
-        iml=Omps*iml
+        iml=Ompsl*iml
         Ompsr=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tr*2-1)+[_FERMI_B[...,0][...,None]])
-        imr=Omps*imr
+        imr=Ompsr*imr
 
     imml=iml.tomatrices_unchecked()[1:]
     immr=imr.tomatrices_unchecked()[1:]
