@@ -47,10 +47,7 @@ def brickwork_boundary_evolution(im,chs,init=np.eye(2)/2,fermionic=False,normali
     im.recluster(((init.shape[0],),)+((16,),)*t)
     if fermionic:
         Omps=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(t*2-1)+[_FERMI_B[...,0][...,None]])
-        mchi=max(im.chi)
         im=im*Omps
-        im.truncate(chi_max=mchi)
-
     dm=np.tensordot(im.M[0],vectorize_operator(init),axes=((1,),(0,)))[0,:,:,0]
     if normalize:
         dm/=brickwork_norm(im)
@@ -127,13 +124,9 @@ def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2,fermionic=False,no
     imr.recluster(((init.shape[-1],),)+((16,),)*tr)
     if fermionic:
         Ompsl=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tl*2-1)+[_FERMI_B[...,0][...,None]])
-        mchi=max(iml.chi)
         iml=Ompsl*iml
-        iml.truncate(mchi)
         Ompsr=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(tr*2-1)+[_FERMI_B[...,0][...,None]])
-        mchi=max(imr.chi)
         imr=Ompsr*imr
-        imr.truncate(mchi)
     dm=np.einsum("abc,def,bge->cgf",iml.M[0],imr.M[0],vectorize_operator(init),optimize=True)
     pvalsl=brickwork_tracevalues(iml)
     pvalsr=brickwork_tracevalues(imr)
