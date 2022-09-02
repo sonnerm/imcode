@@ -4,7 +4,6 @@ import numpy as np
 from scipy import linalg
 import sys
 from create_correlation_block import create_correlation_block
-from entropy import entropy
 import h5py
 import matplotlib.pyplot as plt
 # seed the pseudorandom number generator
@@ -22,16 +21,18 @@ np.set_printoptions(threshold=sys.maxsize, precision=3)
 #filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/0707/Millis_mu=0_timestep=0.01_T=100'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu0_timestep0.01_T100'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=0.2'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.1_hyb=0.05_T=50-200_Delta=1_ct'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.1_hyb=0.05_T=50-200_Delta=1'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.075_hyb=0.05_T=50-200_Delta=1'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_test_T=20'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_hyb=0.05_test_T=400_deltat=0.035_Delta=1'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.1_beta=0.0_L=8_init=3'
 #filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=.2_timestep=0.5_T=30'
-#filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-0.2_timestep=0.05_T=50_left'
-#filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=3'
+filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1808/Millis_interleaved_timestep=0.05_hyb=0.05_T=500-2000_Delta=1'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1407/chain/XX_deltamu=0.0_deltat=0.1'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=0.2_beta=50.0_deltat=-0.1_coupling=0.5'
 
 conv = 'M'
+mode = 1 #1: one full-time IM where legs above evolution time are contracted and intergated, 2: for each evolution time, use individual IM, 3: compute propagator, not density matrix (automatically normalized)
 
 if conv == 'J':
     #filename += '_my_conv' 
@@ -41,15 +42,13 @@ elif conv == 'M':
     print('using Ms convention')
 
 
-max_time = 200
+max_time = 1001
 interval = 1
 Gamma = 0.05
-delta_t = 0.1
-t = 0*1.1 * delta_t # hopping between spin species, factor 2 to match Michael's spin convention
+delta_t = -0.05
+t =0#-3*0.5*delta_t#-100#4 * delta_t # hopping between spin species, factor 2 to match Michael's spin convention
 
 
-with h5py.File(filename+'_DMs' + ".hdf5", 'w') as f:
-    dset_DM = f.create_dataset('density_matrix', (max_time,4,4), dtype=np.complex_)
 
 with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
     dset_propag_IM = f.create_dataset('propag_IM', (max_time,), dtype=np.complex_)
@@ -63,7 +62,7 @@ with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
     dset_propag_exact = f.create_dataset('max_eigvals', (max_time,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset('min_eigvals', (max_time,), dtype=np.complex_)
     dset_propag_exact = f.create_dataset('rho_full', (max_time,4,4), dtype=np.complex_)
-
+  
     dset_propag_exact = f.create_dataset(
         'propag_times', (max_time,), dtype=int)
 
@@ -79,13 +78,13 @@ rho_full = np.zeros((max_time,4,4),dtype=np.complex_)
 propag = np.zeros(max_time,dtype=np.complex_)
 times = np.zeros(max_time,dtype=np.int_)
 
-for iter in range(0,1,interval):
+for iter in range(1,2,interval):
 
-    iter_readout =  2#iter
+    iter_readout = 1#iter
     with h5py.File(filename + '.hdf5', 'r') as f:
-        #times_read = f['temp_entr']
         times_read = f['times']
         nbr_Floquet_layers= int(times_read[iter_readout])
+        #nbr_Floquet_layers = iter_readout + 1
         print('times: ', nbr_Floquet_layers)
 
     times[iter] = nbr_Floquet_layers
@@ -107,8 +106,9 @@ for iter in range(0,1,interval):
     with h5py.File(filename + '.hdf5', 'r') as f:
         print(4*nbr_Floquet_layers, 4*nbr_Floquet_layers)
         B = f['IM_exponent'][iter_readout, :4*nbr_Floquet_layers, :4*nbr_Floquet_layers]
-
+    
     dim_B = B.shape[0]
+    print(B[dim_B-4:dim_B,dim_B-4:dim_B])
     print('dim_b',dim_B)
     # rotate into Grassmann basis with input/output variables
 
@@ -188,8 +188,8 @@ for iter in range(0,1,interval):
     """
 
     # (thermal with temperature beta)
-    beta_up = -10#-10
-    beta_down = -10#-10
+    beta_up = -100#-100#-10
+    beta_down = -100#100#-10
     #spin up
     exponent[dim_B//2 - 1, dim_B//2 ] += np.exp(- beta_up)
     #Transpose (antisymm)
@@ -214,19 +214,224 @@ for iter in range(0,1,interval):
     exponent[3 * dim_B, 3 * dim_B + dim_B - 1] -= -1
     
     
-    #exponent_check = exponent
-
+    if mode == 1: #one final-time IM for all evolution times
     
-    for intermediate_time_dm in range (2,100,10):
-        print(intermediate_time_dm)
-        exponent_check = exponent.copy()
+        for intermediate_time_dm in range (800,1000,50):
+            print(intermediate_time_dm)
+            exponent_check = exponent.copy()
 
+            #impurity
+            #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
+            seed(10)
+            for i in range(intermediate_time_dm):
+                #t =  0.57*np.cos(0.42 * i)
+        
+                mu_up =-0.3*delta_t#0.3*delta_t# 0.3*np.sin(2.2 * i)
+                mu_down =-0.3*delta_t#0.3*delta_t# 0.18*np.sin(1.82 * i)
+                #mu_up =0# random()
+                #mu_down =0# random()
+                #print(t,mu_up,mu_down)
+
+                T=1+np.tan(t/2)**2
+                # forward 
+                # (matrix elements between up -> down)
+                exponent_check[dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1.j * np.tan(t/2) *2/T *np.exp(1.j * mu_up)
+                exponent_check[dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] -= 1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
+                #(matrix elements between up -> up)
+                exponent_check[dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_up)
+                exponent_check[3*dim_B + dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_down)
+
+                # forward Transpose (antisymm)
+                exponent_check[3*dim_B + dim_B//2 - 2 - 2*i, dim_B//2 - 3 - 2*i] += -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_up)
+                exponent_check[3*dim_B + dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] -= -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
+                exponent_check[dim_B//2 - 2 - 2*i,dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_up)
+                exponent_check[3*dim_B + dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_down)
+
+                # backward
+                exponent_check[dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
+                exponent_check[dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] -= - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
+                exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_up)
+                exponent_check[3*dim_B + dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_down)
+
+                # backward Transpose (antisymm)
+                exponent_check[3*dim_B + dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
+                exponent_check[3*dim_B + dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] -= + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
+                exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_up)
+                exponent_check[3*dim_B + dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_down)
+            
+            for i in range(intermediate_time_dm, dim_B//4-1):
+                exponent_check[dim_B//2 - 3 - 2*i, dim_B//2 + 2 + 2*i] += 1
+                exponent_check[dim_B//2 - 2 - 2*i, dim_B//2 + 1 + 2*i] += 1
+
+                exponent_check[3*dim_B + dim_B//2 - 3 - 2*i,3*dim_B +  dim_B//2 + 2 + 2*i] += 1
+                exponent_check[3*dim_B + dim_B//2 - 2 - 2*i,3*dim_B +  dim_B//2 + 1 + 2*i] += 1
+
+                #antisymm. transpose
+                exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 - 3 - 2*i] += -1
+                exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 - 2 - 2*i] += -1
+
+                exponent_check[3*dim_B +  dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1
+                exponent_check[3*dim_B +  dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += -1
+            
+            delt = 2 * (total_time - intermediate_time_dm)
+                        
+            #take out measure connecting cut legs
+            #spin up
+            exponent_check[delt+1, 2*dim_B + delt+1] -= 1
+            #spin down
+            exponent_check[dim_B + delt+1, 3*dim_B + delt+1] -= 1
+            #antisymm
+            exponent_check[2*dim_B + delt+1, delt+1] += 1
+            exponent_check[3*dim_B + delt+1, dim_B + delt+1] += 1
+
+        
+            A= np.zeros((4*(dim_B-2),4*(dim_B-2)),dtype=np.complex_)
+            R= np.zeros((8,4*(dim_B-2)),dtype=np.complex_)
+            C = np.zeros((8 ,8),dtype=np.complex_)
+
+
+            for i in range (4):
+                for j in range (4):
+    
+                    #for spin up/down density matrix --ONE TOTAL TIME --upper part integrated
+                    A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B:j * dim_B+delt+1]
+                    A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
+                    A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
+
+                    A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2):j * (dim_B-2) + delt+1 ] =  exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B:j * dim_B+delt+1]
+                    A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
+                    A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] = exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
+
+                    A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2):j * (dim_B-2) + delt+1] =   exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B:j * dim_B+delt+1]
+                    A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2))] = exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
+                    A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] =  exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
+
+
+                    C[2*i,2*j] = exponent_check[i*dim_B + delt+1,j * dim_B + delt+1]
+                    C[2*i,2*j+1] = exponent_check[i*dim_B + delt+1,j * dim_B + dim_B-(delt+2)]
+                    C[2*i+1,2*j] = exponent_check[i * dim_B + dim_B-(delt+2),j*dim_B + delt+1]
+                    C[2*i+1,2*j+1] = exponent_check[i*dim_B + dim_B-(delt+2),j * dim_B +dim_B-(delt+2)]
+                    
+
+                    R[2*i,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B+delt+1,j * dim_B:j * dim_B+delt+1]
+                    R[2*i,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+delt+1,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
+                    R[2*i,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2 ] = exponent_check[i * dim_B+delt+1,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
+
+                    R[2*i+1,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B:j * dim_B+delt+1]
+                    R[2*i+1,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
+                    R[2*i+1,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2 ] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
+
+
+            A_inv = linalg.inv(A)
+            
+            rho_exponent_evolved = 0.5*(R @ A_inv @ R.T+C )
+
+            
+            
+            #boundary condition for legs above cut
+            rho_exponent_evolved *= 2
+
+            rho_exponent_evolved [2,3] += -1
+            rho_exponent_evolved [3,2] -= -1
+
+            rho_exponent_evolved [4,5] += -1
+            rho_exponent_evolved [5,4] -= -1
+
+            rho_exponent_evolved_A = np.zeros((4,4),dtype=np.complex_)
+            rho_exponent_evolved_R = np.zeros((4,4),dtype=np.complex_)
+            rho_exponent_evolved_C = np.zeros((4,4),dtype=np.complex_)
+            
+            rho_exponent_evolved_A[:2,:2] = 0.5 * rho_exponent_evolved[2:4,2:4]#factor 1/2 to avoid double counting in antisymmetrization
+            rho_exponent_evolved_A[2:4,2:4] = 0.5 * rho_exponent_evolved[4:6,4:6]#factor 1/2 to avoid double counting in antisymmetrization
+            rho_exponent_evolved_A[:2,2:4] = rho_exponent_evolved[2:4,4:6]
+            rho_exponent_evolved_A -= rho_exponent_evolved_A.T
+
+            rho_exponent_evolved_R[:2,:2] = rho_exponent_evolved[:2,2:4]
+            rho_exponent_evolved_R[:2,2:4] = rho_exponent_evolved[:2,4:6]
+            rho_exponent_evolved_R[2:4,:2] = rho_exponent_evolved[6:8,4:6]
+            rho_exponent_evolved_R[2:4,2:4] = rho_exponent_evolved[6:8,4:6]
+
+            rho_exponent_evolved_C[:2,:2] = 0.5*rho_exponent_evolved[:2,:2]
+            rho_exponent_evolved_C[2:4,2:4] = 0.5*rho_exponent_evolved[6:8,6:8]
+            rho_exponent_evolved_C[:2,2:4] = rho_exponent_evolved[:2,6:8]
+            rho_exponent_evolved_C -= rho_exponent_evolved_C.T
+
+            rho_exponent_evolved_A_inv = linalg.inv(rho_exponent_evolved_A)
+            rho_exponent_evolved = 0.5*(rho_exponent_evolved_R @ rho_exponent_evolved_A_inv @ rho_exponent_evolved_R.T + rho_exponent_evolved_C )
+            
+
+            rho_evolved = np.zeros((4,4),dtype=np.complex_)
+            # no minus signs because of sign-change-convention for overlap applies only to IM and here we compute DM of system, factor 2 bc of antisymmetry
+            a1 =   2 * rho_exponent_evolved[2,3]#
+            a2 = +2 * rho_exponent_evolved[2,0]
+            a3 = 2 * rho_exponent_evolved[2,1]#
+            a4 = 2 * rho_exponent_evolved[3,0]#
+            a5 = +2 * rho_exponent_evolved[3,1]
+            a6 = 2 * rho_exponent_evolved[0,1]#
+            
+            rho_evolved[0,0] = 1
+            rho_evolved[0,3] = - a5
+
+            rho_evolved[1,1] = a6
+            rho_evolved[1,2] = - a4
+
+            rho_evolved[2,1] = a3
+            rho_evolved[2,2] = a1
+
+            rho_evolved[3,0] = a2
+            rho_evolved[3,3] = a1*a6 - a2*a5 + a3*a4
+        
+                
+            #print(abs(np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A))))
+            rho_evolved *= np.power(0.5,delt) * abs(np.sqrt(linalg.det(rho_exponent_evolved_A)) *np.sqrt(linalg.det(A))) * norm_IM**2 * 1./(1+np.exp(-beta_down)) *  1./(1+np.exp(-beta_up))#norm squared because of two environments
+            #np.power(0.5,delt//2-2) *
+            trace_vals[intermediate_time_dm]=( np.trace(rho_evolved))
+            #rho_eigvals = linalg.eigvals(rho_evolved)
+            #rho_eigvals_max[intermediate_time_dm]=(np.max(rho_eigvals))
+            #rho_eigvals_min[intermediate_time_dm]=(np.min(rho_eigvals))
+            rho_00[intermediate_time_dm]=(np.real(rho_evolved[0,0]))
+            rho_11[intermediate_time_dm]=(np.real(rho_evolved[1,1]))
+            rho_22[intermediate_time_dm]=(np.real(rho_evolved[2,2]))
+            rho_33[intermediate_time_dm]=(np.real(rho_evolved[3,3]))
+            rho_full[intermediate_time_dm,:,:]=np.real(rho_evolved[:,:])
+            times[intermediate_time_dm]=intermediate_time_dm
+
+        
+            with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
+                propag_data = f['propag_IM']
+            
+                propag_data[intermediate_time_dm] = rho_00[intermediate_time_dm]#this is used when comparing to Michael (from DM)
+                propag[intermediate_time_dm] = propag_data[intermediate_time_dm]
+                data = f['rho_00'] 
+                data[intermediate_time_dm] = rho_00[intermediate_time_dm]
+                data = f['rho_11'] 
+                data[intermediate_time_dm] = rho_11[intermediate_time_dm]
+                data = f['rho_22'] 
+                data[intermediate_time_dm] = rho_22[intermediate_time_dm]
+                data = f['rho_33'] 
+                data[intermediate_time_dm] = rho_33[intermediate_time_dm]
+                data = f['trace'] 
+                data[intermediate_time_dm] = trace_vals[intermediate_time_dm]
+                data = f['max_eigvals'] 
+                data[intermediate_time_dm] = rho_eigvals_max[intermediate_time_dm]
+                data = f['min_eigvals'] 
+                data[intermediate_time_dm] = rho_eigvals_min[intermediate_time_dm]
+                data = f['rho_full'] 
+                data[intermediate_time_dm,:,:] = rho_full[intermediate_time_dm,:,:]
+
+                times_data = f['propag_times']
+                times_data[intermediate_time_dm] = times[intermediate_time_dm]
+            
+
+    elif mode == 2:#individual final-time IM for each evolution time:
+
+        exponent_check = exponent.copy()
         #impurity
         #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
         seed(10)
-        for i in range(intermediate_time_dm):
+        for i in range(dim_B//4-1):
             #t =  0.57*np.cos(0.42 * i)
-      
+        
             mu_up =0.3*delta_t# 0.3*np.sin(2.2 * i)
             mu_down =0.3*delta_t# 0.18*np.sin(1.82 * i)
             #mu_up =0# random()
@@ -260,211 +465,51 @@ for iter in range(0,1,interval):
             exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_up)
             exponent_check[3*dim_B + dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_down)
         
-        for i in range(intermediate_time_dm, dim_B//4-1):
-            exponent_check[dim_B//2 - 3 - 2*i, dim_B//2 + 2 + 2*i] += 1
-            exponent_check[dim_B//2 - 2 - 2*i, dim_B//2 + 1 + 2*i] += 1
-
-            exponent_check[3*dim_B + dim_B//2 - 3 - 2*i,3*dim_B +  dim_B//2 + 2 + 2*i] += 1
-            exponent_check[3*dim_B + dim_B//2 - 2 - 2*i,3*dim_B +  dim_B//2 + 1 + 2*i] += 1
-
-            #antisymm. transpose
-            exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 - 3 - 2*i] += -1
-            exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 - 2 - 2*i] += -1
-
-            exponent_check[3*dim_B +  dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1
-            exponent_check[3*dim_B +  dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += -1
         
-        delt = 2 * (total_time - intermediate_time_dm)
-                    
-        #take out measure connecting cut legs
-        #spin up
-        exponent_check[delt+1, 2*dim_B + delt+1] -= 1
-        #spin down
-        exponent_check[dim_B + delt+1, 3*dim_B + delt+1] -= 1
-        #antisymm
-        exponent_check[2*dim_B + delt+1, delt+1] += 1
-        exponent_check[3*dim_B + delt+1, dim_B + delt+1] += 1
-
-       
-        A= np.zeros((4*(dim_B-2),4*(dim_B-2)),dtype=np.complex_)
-        R= np.zeros((8,4*(dim_B-2)),dtype=np.complex_)
-        C = np.zeros((8 ,8),dtype=np.complex_)
-
-
-        for i in range (4):
-            for j in range (4):
-   
-                #for spin up/down density matrix --ONE TOTAL TIME --upper part integrated
-                A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B:j * dim_B+delt+1]
-                A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
-                A[i * (dim_B-2):i * (dim_B-2)+delt+1,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] = exponent_check[i * dim_B:i * dim_B+delt+1,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
-
-                A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2):j * (dim_B-2) + delt+1 ] =  exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B:j * dim_B+delt+1]
-                A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
-                A[i * (dim_B-2) +delt + 1 :i * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] = exponent_check[i * dim_B+(delt+2) :i * dim_B+dim_B-(delt+2),j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
-
-                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2):j * (dim_B-2) + delt+1] =   exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B:j * dim_B+delt+1]
-                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2))] = exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
-                A[i * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):i * (dim_B-2) +dim_B-2,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2] =  exponent_check[i * dim_B+dim_B -(delt+1):i * dim_B+dim_B,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
-
-
-                C[2*i,2*j] = exponent_check[i*dim_B + delt+1,j * dim_B + delt+1]
-                C[2*i,2*j+1] = exponent_check[i*dim_B + delt+1,j * dim_B + dim_B-(delt+2)]
-                C[2*i+1,2*j] = exponent_check[i * dim_B + dim_B-(delt+2),j*dim_B + delt+1]
-                C[2*i+1,2*j+1] = exponent_check[i*dim_B + dim_B-(delt+2),j * dim_B +dim_B-(delt+2)]
-                
-
-                R[2*i,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B+delt+1,j * dim_B:j * dim_B+delt+1]
-                R[2*i,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+delt+1,j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
-                R[2*i,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2 ] = exponent_check[i * dim_B+delt+1,j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
-
-                R[2*i+1,j * (dim_B-2):j * (dim_B-2) + delt+1] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B:j * dim_B+delt+1]
-                R[2*i+1,j * (dim_B-2) +delt + 1 :j * (dim_B-2) + delt+1 +(dim_B -2*(delt+2)) ] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B+(delt+2) :j * dim_B+dim_B-(delt+2)]
-                R[2*i+1,j * (dim_B-2) +delt+1 +(dim_B -2*(delt+2)):j * (dim_B-2) +dim_B-2 ] = exponent_check[i * dim_B+dim_B-(delt+2),j * dim_B+dim_B -(delt+1):j * dim_B+dim_B]
-
-
-        A_inv = linalg.inv(A)
-        
-        rho_exponent_evolved = 0.5*(R @ A_inv @ R.T+C )
-
-        
-        
-        #boundary condition for legs above cut
-        rho_exponent_evolved *= 2
-
-        rho_exponent_evolved [2,3] += -1
-        rho_exponent_evolved [3,2] -= -1
-
-        rho_exponent_evolved [4,5] += -1
-        rho_exponent_evolved [5,4] -= -1
-
-        rho_exponent_evolved_A = np.zeros((4,4),dtype=np.complex_)
-        rho_exponent_evolved_R = np.zeros((4,4),dtype=np.complex_)
-        rho_exponent_evolved_C = np.zeros((4,4),dtype=np.complex_)
-        
-        rho_exponent_evolved_A[:2,:2] = 0.5 * rho_exponent_evolved[2:4,2:4]#factor 1/2 to avoid double counting in antisymmetrization
-        rho_exponent_evolved_A[2:4,2:4] = 0.5 * rho_exponent_evolved[4:6,4:6]#factor 1/2 to avoid double counting in antisymmetrization
-        rho_exponent_evolved_A[:2,2:4] = rho_exponent_evolved[2:4,4:6]
-        rho_exponent_evolved_A -= rho_exponent_evolved_A.T
-
-        rho_exponent_evolved_R[:2,:2] = rho_exponent_evolved[:2,2:4]
-        rho_exponent_evolved_R[:2,2:4] = rho_exponent_evolved[:2,4:6]
-        rho_exponent_evolved_R[2:4,:2] = rho_exponent_evolved[6:8,4:6]
-        rho_exponent_evolved_R[2:4,2:4] = rho_exponent_evolved[6:8,4:6]
-
-        rho_exponent_evolved_C[:2,:2] = 0.5*rho_exponent_evolved[:2,:2]
-        rho_exponent_evolved_C[2:4,2:4] = 0.5*rho_exponent_evolved[6:8,6:8]
-        rho_exponent_evolved_C[:2,2:4] = rho_exponent_evolved[:2,6:8]
-        rho_exponent_evolved_C -= rho_exponent_evolved_C.T
-
-        rho_exponent_evolved_A_inv = linalg.inv(rho_exponent_evolved_A)
-        rho_exponent_evolved = 0.5*(rho_exponent_evolved_R @ rho_exponent_evolved_A_inv @ rho_exponent_evolved_R.T + rho_exponent_evolved_C )
-        
-        """
-        rho_evolved = np.zeros((4,4),dtype=np.complex_)
-        # no minus signs because of sign-change-convention for overlap applies only to IM and here we compute DM of system, factor 2 bc of antisymmetry
-        a1 =   2 * rho_exponent_evolved[6,7]#
-        a2 = +2 * rho_exponent_evolved[6,0]
-        a3 = 2 * rho_exponent_evolved[6,1]#
-        a4 = 2 * rho_exponent_evolved[7,0]#
-        a5 = +2 * rho_exponent_evolved[7,1]
-        a6 = 2 * rho_exponent_evolved[0,1]#
-        """
-
-        rho_evolved = np.zeros((4,4),dtype=np.complex_)
-        # no minus signs because of sign-change-convention for overlap applies only to IM and here we compute DM of system, factor 2 bc of antisymmetry
-        a1 =   2 * rho_exponent_evolved[2,3]#
-        a2 = +2 * rho_exponent_evolved[2,0]
-        a3 = 2 * rho_exponent_evolved[2,1]#
-        a4 = 2 * rho_exponent_evolved[3,0]#
-        a5 = +2 * rho_exponent_evolved[3,1]
-        a6 = 2 * rho_exponent_evolved[0,1]#
-        
-        rho_evolved[0,0] = 1
-        rho_evolved[0,3] = - a5
-
-        rho_evolved[1,1] = a6
-        rho_evolved[1,2] = - a4
-
-        rho_evolved[2,1] = a3
-        rho_evolved[2,2] = a1
-
-        rho_evolved[3,0] = a2
-        rho_evolved[3,3] = a1*a6 - a2*a5 + a3*a4
-       
-        #print(abs(np.sqrt(linalg.det(rho_exponent_evolved_A_inv)) *np.sqrt(linalg.det(A))))
-        rho_evolved *= np.power(0.5,delt) * abs(np.sqrt(linalg.det(rho_exponent_evolved_A)) *np.sqrt(linalg.det(A))) * norm_IM * 1./(1+np.exp(-beta_down)) *  1./(1+np.exp(-beta_up))
-       
-        #np.power(0.5,delt//2-2) *
-        trace_vals[intermediate_time_dm]=( np.trace(rho_evolved))
-        rho_eigvals = linalg.eigvals(rho_evolved)
-        rho_eigvals_max[intermediate_time_dm]=(np.max(rho_eigvals))
-        rho_eigvals_min[intermediate_time_dm]=(np.min(rho_eigvals))
-        rho_00[intermediate_time_dm]=(np.real(rho_evolved[0,0]))
-        rho_11[intermediate_time_dm]=(np.real(rho_evolved[1,1]))
-        rho_22[intermediate_time_dm]=(np.real(rho_evolved[2,2]))
-        rho_33[intermediate_time_dm]=(np.real(rho_evolved[3,3]))
-        rho_full[intermediate_time_dm,:,:]=np.real(rho_evolved[:,:])
-        times[intermediate_time_dm]=intermediate_time_dm
-        
+        #for spin up/down density matrix
+        A = np.bmat([[exponent_check[1:dim_B-1,1:dim_B-1], exponent_check[1:dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[1:dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[1:dim_B-1,3*dim_B+1:4*dim_B-1]], 
+                    [exponent_check[dim_B+1 :2*dim_B-1,1:dim_B-1], exponent_check[dim_B+1 :2*dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[dim_B+1 :2*dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[dim_B+1 :2*dim_B-1,3*dim_B+1:4*dim_B-1]],
+                    [exponent_check[2*dim_B +1:3*dim_B-1,1:dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,3*dim_B+1:4*dim_B-1]],
+                    [exponent_check[3*dim_B+1:4*dim_B-1,1:dim_B-1], exponent_check[3*dim_B+1:4*dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[3*dim_B+1:4*dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[3*dim_B+1:4*dim_B-1,3*dim_B+1:4*dim_B-1]]])
 
     
-
-
-    """
-    iterator = 0
-    for intermediate_time_dm in range (50,200,50):
-        delt = 2 * (total_time - intermediate_time_dm)
         
-        #for spin up/down density matrix --ONE TOTAL TIME
-        A = np.bmat([[exponent_check[(delt+1):dim_B -(delt+1),(delt+1):dim_B-(delt+1)], exponent_check[(delt+1):dim_B-(delt+1),dim_B+(delt+1) :2*dim_B-(delt+1)], exponent_check[(delt+1):dim_B-(delt+1),2*dim_B +(delt+1):3*dim_B-(delt+1)], exponent_check[(delt+1):dim_B-(delt+1),3*dim_B+(delt+1):4*dim_B-(delt+1)]], 
-                    [exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),(delt+1):dim_B-(delt+1)], exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),dim_B+(delt+1) :2*dim_B-(delt+1)], exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),2*dim_B +(delt+1):3*dim_B-(delt+1)], exponent_check[dim_B+(delt+1) :2*dim_B-(delt+1),3*dim_B+(delt+1):4*dim_B-(delt+1)]],
-                    [exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),(delt+1):dim_B-(delt+1)], exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),dim_B+(delt+1) :2*dim_B-(delt+1)], exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),2*dim_B +(delt+1):3*dim_B-(delt+1)], exponent_check[2*dim_B +(delt+1):3*dim_B-(delt+1),3*dim_B+(delt+1):4*dim_B-(delt+1)]],
-                    [exponent_check[3*dim_B+(delt+1):4*dim_B-(delt+1),(delt+1):dim_B-(delt+1)], exponent_check[3*dim_B+(delt+1):4*dim_B-(delt+1),dim_B+(delt+1) :2*dim_B-(delt+1)], exponent_check[3*dim_B+(delt+1):4*dim_B-(delt+1),2*dim_B +(delt+1):3*dim_B-(delt+1)], exponent_check[3*dim_B+(delt+1):4*dim_B-(delt+1),3*dim_B+(delt+1):4*dim_B-(delt+1)]]])
+        R = np.bmat([exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],1:dim_B-1] ,exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],dim_B+1:2*dim_B-1],exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],2*dim_B+1:3*dim_B-1],exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],3*dim_B+1:4*dim_B-1] ])
+        C = np.zeros((8,8),dtype=np.complex_)
+        C[0,1] = exponent_check[0,dim_B-1]
+        C[0,2] = exponent_check[0,dim_B]
+        C[0,3] = exponent_check[0,2*dim_B-1]
+        C[0,4] = exponent_check[0,2*dim_B]
+        C[0,5] = exponent_check[0,3*dim_B-1]
+        C[0,6] = exponent_check[0,3*dim_B]
+        C[0,7] = exponent_check[0,4*dim_B-1]
 
+        C[1,2] = exponent_check[dim_B-1,dim_B]
+        C[1,3] = exponent_check[dim_B-1,2*dim_B-1]
+        C[1,4] = exponent_check[dim_B-1,2*dim_B]
+        C[1,5] = exponent_check[dim_B-1,3*dim_B-1]
+        C[1,6] = exponent_check[dim_B-1,3*dim_B]
+        C[1,7] = exponent_check[dim_B-1,4*dim_B-1]
 
-        R = np.bmat([[exponent_check[:delt+1, (delt+1):dim_B -(delt+1) ],exponent_check[:delt+1, dim_B+(delt+1) :2*dim_B-(delt+1)],exponent_check[:delt+1, 2*dim_B+(delt+1) :3*dim_B-(delt+1)],exponent_check[:delt+1, 3*dim_B+(delt+1) :4*dim_B-(delt+1)]],
-                    [exponent_check[dim_B-(delt+1) :dim_B+delt+1, (delt+1):dim_B -(delt+1) ],exponent_check[dim_B-(delt+1) :dim_B+delt+1,  dim_B+(delt+1) :2*dim_B-(delt+1)],exponent_check[dim_B-(delt+1) :dim_B+delt+1, 2*dim_B+(delt+1) :3*dim_B-(delt+1)],exponent_check[dim_B-(delt+1) :dim_B+delt+1, 3*dim_B+(delt+1) :4*dim_B-(delt+1)]],
-                    [exponent_check[2*dim_B -(delt+1):2*dim_B+delt+1, (delt+1):dim_B -(delt+1) ],exponent_check[2*dim_B -(delt+1):2*dim_B+delt+1,  dim_B+(delt+1) :2*dim_B-(delt+1)],exponent_check[2*dim_B -(delt+1):2*dim_B+delt+1, 2*dim_B+(delt+1) :3*dim_B-(delt+1)],exponent_check[2*dim_B -(delt+1):2*dim_B+delt+1, 3*dim_B+(delt+1) :4*dim_B-(delt+1)]],
-                    [exponent_check[3*dim_B -(delt+1):3*dim_B+delt+1, (delt+1):dim_B -(delt+1) ],exponent_check[3*dim_B -(delt+1):3*dim_B+delt+1,  dim_B+(delt+1) :2*dim_B-(delt+1)],exponent_check[3*dim_B -(delt+1):3*dim_B+delt+1,2*dim_B+(delt+1) :3*dim_B-(delt+1)],exponent_check[3*dim_B -(delt+1):3*dim_B+delt+1, 3*dim_B+(delt+1) :4*dim_B-(delt+1)]],
-                    [exponent_check[4*dim_B -(delt+1):4*dim_B, (delt+1):dim_B -(delt+1) ],exponent_check[4*dim_B -(delt+1):4*dim_B,  dim_B+(delt+1) :2*dim_B-(delt+1)],exponent_check[4*dim_B -(delt+1):4*dim_B, 2*dim_B+(delt+1) :3*dim_B-(delt+1)],exponent_check[4*dim_B -(delt+1):4*dim_B, 3*dim_B+(delt+1) :4*dim_B-(delt+1)]]])
+        C[2,3] = exponent_check[dim_B,2*dim_B-1]
+        C[2,4] = exponent_check[dim_B,2*dim_B]
+        C[2,5] = exponent_check[dim_B,3*dim_B-1]
+        C[2,6] = exponent_check[dim_B,3*dim_B]
+        C[2,7] = exponent_check[dim_B,4*dim_B-1]
 
-        C = np.zeros((8 *(1+delt),8*(1+delt)),dtype=np.complex_)
+        C[3,4] = exponent_check[2*dim_B-1,2*dim_B]
+        C[3,5] = exponent_check[2*dim_B-1,3*dim_B-1]
+        C[3,6] = exponent_check[2*dim_B-1,3*dim_B]
+        C[3,7] = exponent_check[2*dim_B-1,4*dim_B-1]
 
-        C[:delt+1,delt+1:2*(delt+1)] = exponent_check[:delt+1,dim_B-(delt+1) :dim_B]
-        C[:delt+1,2*(delt+1):3*(delt+1)] = exponent_check[:delt+1,dim_B:dim_B+delt+1]
-        C[:delt+1,3*(delt+1):4*(delt+1)] = exponent_check[:delt+1,2*dim_B -(delt+1):2*dim_B]
-        C[:delt+1,4*(delt+1):5*(delt+1)] = exponent_check[:delt+1,2*dim_B:2*dim_B+delt+1]
-        C[:delt+1,5*(delt+1):6*(delt+1)] = exponent_check[:delt+1,3*dim_B -(delt+1):3*dim_B]
-        C[:delt+1,6*(delt+1):7*(delt+1)] = exponent_check[:delt+1,3*dim_B:3*dim_B+delt+1]
-        C[:delt+1,7*(delt+1):8*(delt+1)] = exponent_check[:delt+1,4*dim_B -(delt+1):4*dim_B]
+        C[4,5] = exponent_check[2*dim_B,3*dim_B-1]
+        C[4,6] = exponent_check[2*dim_B,3*dim_B]
+        C[4,7] = exponent_check[2*dim_B,4*dim_B-1]
 
-        C[1*(delt+1):2*(delt+1),2*(delt+1):3*(delt+1)] = exponent_check[dim_B-(delt+1) :dim_B,dim_B:dim_B+delt+1]
-        C[1*(delt+1):2*(delt+1),3*(delt+1):4*(delt+1)] = exponent_check[dim_B-(delt+1) :dim_B,2*dim_B -(delt+1):2*dim_B]
-        C[1*(delt+1):2*(delt+1),4*(delt+1):5*(delt+1)] = exponent_check[dim_B-(delt+1) :dim_B,2*dim_B:2*dim_B+delt+1]
-        C[1*(delt+1):2*(delt+1),5*(delt+1):6*(delt+1)] = exponent_check[dim_B-(delt+1) :dim_B,3*dim_B -(delt+1):3*dim_B]
-        C[1*(delt+1):2*(delt+1),6*(delt+1):7*(delt+1)] = exponent_check[dim_B-(delt+1) :dim_B,3*dim_B:3*dim_B+delt+1]
-        C[1*(delt+1):2*(delt+1),7*(delt+1):8*(delt+1)] = exponent_check[dim_B-(delt+1) :dim_B,4*dim_B -(delt+1):4*dim_B]
+        C[5,6] = exponent_check[3*dim_B-1,3*dim_B]
+        C[5,7] = exponent_check[3*dim_B-1,4*dim_B-1]
 
-        C[2*(delt+1):3*(delt+1),3*(delt+1):4*(delt+1)] = exponent_check[dim_B:dim_B+delt+1,2*dim_B -(delt+1):2*dim_B]
-        C[2*(delt+1):3*(delt+1),4*(delt+1):5*(delt+1)] = exponent_check[dim_B:dim_B+delt+1,2*dim_B:2*dim_B+delt+1]
-        C[2*(delt+1):3*(delt+1),5*(delt+1):6*(delt+1)] = exponent_check[dim_B:dim_B+delt+1,3*dim_B -(delt+1):3*dim_B]
-        C[2*(delt+1):3*(delt+1),6*(delt+1):7*(delt+1)] = exponent_check[dim_B:dim_B+delt+1,3*dim_B:3*dim_B+delt+1]
-        C[2*(delt+1):3*(delt+1),7*(delt+1):8*(delt+1)] = exponent_check[dim_B:dim_B+delt+1,4*dim_B -(delt+1):4*dim_B]
-
-        C[3*(delt+1):4*(delt+1),4*(delt+1):5*(delt+1)] = exponent_check[2*dim_B -(delt+1):2*dim_B,2*dim_B+delt+1]
-        C[3*(delt+1):4*(delt+1),5*(delt+1):6*(delt+1)] = exponent_check[2*dim_B -(delt+1):2*dim_B,3*dim_B -(delt+1):3*dim_B]
-        C[3*(delt+1):4*(delt+1),6*(delt+1):7*(delt+1)] = exponent_check[2*dim_B -(delt+1):2*dim_B,3*dim_B:3*dim_B+delt+1]
-        C[3*(delt+1):4*(delt+1),7*(delt+1):8*(delt+1)] = exponent_check[2*dim_B -(delt+1):2*dim_B,4*dim_B -(delt+1):4*dim_B]
-
-        C[4*(delt+1):5*(delt+1),5*(delt+1):6*(delt+1)] = exponent_check[2*dim_B:2*dim_B+delt+1,3*dim_B -(delt+1):3*dim_B]
-        C[4*(delt+1):5*(delt+1),6*(delt+1):7*(delt+1)] = exponent_check[2*dim_B:2*dim_B+delt+1,3*dim_B:3*dim_B+delt+1]
-        C[4*(delt+1):5*(delt+1),7*(delt+1):8*(delt+1)] = exponent_check[2*dim_B:2*dim_B+delt+1,4*dim_B -(delt+1):4*dim_B]
-
-        C[5*(delt+1):6*(delt+1),6*(delt+1):7*(delt+1)] = exponent_check[3*dim_B -(delt+1):3*dim_B,3*dim_B:3*dim_B+delt+1]
-        C[5*(delt+1):6*(delt+1),7*(delt+1):8*(delt+1)] = exponent_check[3*dim_B -(delt+1):3*dim_B,4*dim_B -(delt+1):4*dim_B]
-
-        C[6*(delt+1):7*(delt+1),7*(delt+1):8*(delt+1)] = exponent_check[3*dim_B:3*dim_B+delt+1,4*dim_B -(delt+1):4*dim_B]
+        C[6,7] = exponent_check[3*dim_B,4*dim_B-1]
 
         C -= C.T
 
@@ -475,12 +520,12 @@ for iter in range(0,1,interval):
         rho_evolved = np.zeros((4,4),dtype=np.complex_)
 
         # minus signs because of sign-change-convention, factor 2 bc of antisymmetry
-        a1 =  - 2 * rho_exponent_evolved[2*(1+delt) +delt ,2*(1+delt) +delt+1]
-        a2 = +2 * rho_exponent_evolved[2*(1+delt) +delt,4*(1+delt) +delt]
-        a3 = -2 * rho_exponent_evolved[2*(1+delt) +delt,4*(1+delt) +delt+1]
-        a4 = -2 * rho_exponent_evolved[2*(1+delt) +delt+1,4*(1+delt) +delt]
-        a5 = +2 * rho_exponent_evolved[2*(1+delt) +delt+1,4*(1+delt) +delt+1]
-        a6 = -2 * rho_exponent_evolved[4*(1+delt) +delt,4*(1+delt) +delt+1]
+        a1 =  - 2 * rho_exponent_evolved[2,3]
+        a2 = +2 * rho_exponent_evolved[2,4]
+        a3 = -2 * rho_exponent_evolved[2,5]
+        a4 = -2 * rho_exponent_evolved[3,4]
+        a5 = +2 * rho_exponent_evolved[3,5]
+        a6 = -2 * rho_exponent_evolved[4,5]
 
         rho_evolved[0,0] = 1
         rho_evolved[0,3] = - a5
@@ -494,152 +539,106 @@ for iter in range(0,1,interval):
         rho_evolved[3,0] = a2
         rho_evolved[3,3] = a1*a6 - a2*a5 + a3*a4
 
-        rho_evolved *= 1./((1+np.exp(-beta_up)))  * np.sqrt(linalg.det(A)) * norm_IM #* 1./(1+np.exp(-beta_down))
+        rho_evolved *= 1./((1+np.exp(-beta_up))) *1./((1+np.exp(-beta_down))) * np.sqrt(linalg.det(A)) * norm_IM**2#norm squared because of two environments
 
-        trace_vals[iterator]=( np.trace(rho_evolved))
+        trace_vals[iter]=( np.trace(rho_evolved))
         rho_eigvals = linalg.eigvals(rho_evolved)
-        rho_eigvals_max[iterator]=(np.max(rho_eigvals))
-        rho_eigvals_min[iterator]=(np.min(rho_eigvals))
-        rho_00[iterator]=(np.real(rho_evolved[0,0]))
-        rho_11[iterator]=(np.real(rho_evolved[1,1]))
-        rho_22[iterator]=(np.real(rho_evolved[2,2]))
-        rho_33[iterator]=(np.real(rho_evolved[3,3]))
+        rho_eigvals_max[iter]=(np.max(rho_eigvals))
+        rho_eigvals_min[iter]=(np.min(rho_eigvals))
+        rho_00[iter]=(np.real(rho_evolved[0,0]))
+        rho_11[iter]=(np.real(rho_evolved[1,1]))
+        rho_22[iter]=(np.real(rho_evolved[2,2]))
+        rho_33[iter]=(np.real(rho_evolved[3,3]))
+        rho_full[iter,:,:]=np.real(rho_evolved[:,:])
+        times[iter]= iter + 1
+        
 
-    
-        iterator += 1
-    """
-    """
-    
-    #for spin up/down density matrix
-    A = np.bmat([[exponent_check[1:dim_B-1,1:dim_B-1], exponent_check[1:dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[1:dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[1:dim_B-1,3*dim_B+1:4*dim_B-1]], 
-                [exponent_check[dim_B+1 :2*dim_B-1,1:dim_B-1], exponent_check[dim_B+1 :2*dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[dim_B+1 :2*dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[dim_B+1 :2*dim_B-1,3*dim_B+1:4*dim_B-1]],
-                [exponent_check[2*dim_B +1:3*dim_B-1,1:dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[2*dim_B +1:3*dim_B-1,3*dim_B+1:4*dim_B-1]],
-                [exponent_check[3*dim_B+1:4*dim_B-1,1:dim_B-1], exponent_check[3*dim_B+1:4*dim_B-1,dim_B+1 :2*dim_B-1], exponent_check[3*dim_B+1:4*dim_B-1,2*dim_B +1:3*dim_B-1], exponent_check[3*dim_B+1:4*dim_B-1,3*dim_B+1:4*dim_B-1]]])
+        with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
+                propag_data = f['propag_IM']
+            
+                propag_data[iter] = rho_00[iter]#this is used when comparing to Michael (from DM)
+                propag[iter] = propag_data[iter]
+                data = f['rho_00'] 
+                data[iter] = rho_00[iter]
+                data = f['rho_11'] 
+                data[iter] = rho_11[iter]
+                data = f['rho_22'] 
+                data[iter] = rho_22[iter]
+                data = f['rho_33'] 
+                data[iter] = rho_33[iter]
+                data = f['trace'] 
+                data[iter] = trace_vals[iter]
+                data = f['max_eigvals'] 
+                data[iter] = rho_eigvals_max[iter]
+                data = f['min_eigvals'] 
+                data[iter] = rho_eigvals_min[iter]
+                data = f['rho_full'] 
+                data[iter,:,:] = rho_full[iter,:,:]
 
-   
-    
-    R = np.bmat([exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],1:dim_B-1] ,exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],dim_B+1:2*dim_B-1],exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],2*dim_B+1:3*dim_B-1],exponent_check[[0,dim_B -1,dim_B,2*dim_B -1, 2*dim_B, 3*dim_B -1,3*dim_B, 4*dim_B -1],3*dim_B+1:4*dim_B-1] ])
-    C = np.zeros((8,8),dtype=np.complex_)
-    C[0,1] = exponent_check[0,dim_B-1]
-    C[0,2] = exponent_check[0,dim_B]
-    C[0,3] = exponent_check[0,2*dim_B-1]
-    C[0,4] = exponent_check[0,2*dim_B]
-    C[0,5] = exponent_check[0,3*dim_B-1]
-    C[0,6] = exponent_check[0,3*dim_B]
-    C[0,7] = exponent_check[0,4*dim_B-1]
+                times_data = f['propag_times']
+                times_data[iter] = times[iter]
 
-    C[1,2] = exponent_check[dim_B-1,dim_B]
-    C[1,3] = exponent_check[dim_B-1,2*dim_B-1]
-    C[1,4] = exponent_check[dim_B-1,2*dim_B]
-    C[1,5] = exponent_check[dim_B-1,3*dim_B-1]
-    C[1,6] = exponent_check[dim_B-1,3*dim_B]
-    C[1,7] = exponent_check[dim_B-1,4*dim_B-1]
 
-    C[2,3] = exponent_check[dim_B,2*dim_B-1]
-    C[2,4] = exponent_check[dim_B,2*dim_B]
-    C[2,5] = exponent_check[dim_B,3*dim_B-1]
-    C[2,6] = exponent_check[dim_B,3*dim_B]
-    C[2,7] = exponent_check[dim_B,4*dim_B-1]
+    elif mode == 3:#compute propagator, not density matrix
+        exponent_check = exponent.copy()
+        #impurity
+        #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
+        seed(10)
+        for i in range(dim_B//4-1):
+            #t =  0.57*np.cos(0.42 * i)
+        
+            mu_up =0#4*delta_t#0.3*delta_t# 0.3*np.sin(2.2 * i)
+            mu_down =0#4*delta_t#0.3*delta_t# 0.18*np.sin(1.82 * i)
+            #mu_up =0# random()
+            #mu_down =0# random()
+            #print(t,mu_up,mu_down)
 
-    C[3,4] = exponent_check[2*dim_B-1,2*dim_B]
-    C[3,5] = exponent_check[2*dim_B-1,3*dim_B-1]
-    C[3,6] = exponent_check[2*dim_B-1,3*dim_B]
-    C[3,7] = exponent_check[2*dim_B-1,4*dim_B-1]
+            T=1+np.tan(t/2)**2
+            # forward 
+            # (matrix elements between up -> down)
+            exponent_check[dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1.j * np.tan(t/2) *2/T *np.exp(1.j * mu_up)
+            exponent_check[dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] -= 1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
+            #(matrix elements between up -> up)
+            exponent_check[dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 - 3 - 2*i, 3*dim_B + dim_B//2 - 2 - 2*i] += 1 *np.cos(t) *np.exp(1.j * mu_down)
 
-    C[4,5] = exponent_check[2*dim_B,3*dim_B-1]
-    C[4,6] = exponent_check[2*dim_B,3*dim_B]
-    C[4,7] = exponent_check[2*dim_B,4*dim_B-1]
+            # forward Transpose (antisymm)
+            exponent_check[3*dim_B + dim_B//2 - 2 - 2*i, dim_B//2 - 3 - 2*i] += -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 - 3 - 2*i, dim_B//2 - 2 - 2*i] -= -1.j * np.tan(t/2)*2/T *np.exp(1.j * mu_down)
+            exponent_check[dim_B//2 - 2 - 2*i,dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 - 2 - 2*i, 3*dim_B + dim_B//2 - 3 - 2*i] += -1 *np.cos(t) *np.exp(1.j * mu_down)
 
-    C[5,6] = exponent_check[3*dim_B-1,3*dim_B]
-    C[5,7] = exponent_check[3*dim_B-1,4*dim_B-1]
+            # backward
+            exponent_check[dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
+            exponent_check[dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] -= - 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
+            exponent_check[dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 + 1 + 2*i, 3*dim_B + dim_B//2 + 2 + 2*i] += 1 *np.cos(t) * np.exp(-1.j * mu_down)
 
-    C[6,7] = exponent_check[3*dim_B,4*dim_B-1]
+            # backward Transpose (antisymm)
+            exponent_check[3*dim_B + dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_down)
+            exponent_check[3*dim_B + dim_B//2 + 1 + 2*i, dim_B//2 + 2 + 2*i] -= + 1.j * np.tan(t/2)*2/T *np.exp(-1.j * mu_up)
+            exponent_check[dim_B//2 + 2 + 2*i, dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_up)
+            exponent_check[3*dim_B + dim_B//2 + 2 + 2*i, 3*dim_B + dim_B//2 + 1 + 2*i] += -1 *np.cos(t) * np.exp(-1.j * mu_down)
+        
+        
+        exponent_inv = linalg.inv(exponent_check)
 
-    C -= C.T
 
-    A_inv = linalg.inv(A)
-    
-    rho_exponent_evolved = 0.5*(R @ A_inv @ R.T + C)
-
-    rho_evolved = np.zeros((4,4),dtype=np.complex_)
-
-    # minus signs because of sign-change-convention, factor 2 bc of antisymmetry
-    a1 =  - 2 * rho_exponent_evolved[2,3]
-    a2 = +2 * rho_exponent_evolved[2,4]
-    a3 = -2 * rho_exponent_evolved[2,5]
-    a4 = -2 * rho_exponent_evolved[3,4]
-    a5 = +2 * rho_exponent_evolved[3,5]
-    a6 = -2 * rho_exponent_evolved[4,5]
-
-    rho_evolved[0,0] = 1
-    rho_evolved[0,3] = - a5
-
-    rho_evolved[1,1] = a6
-    rho_evolved[1,2] = - a4
-
-    rho_evolved[2,1] = a3
-    rho_evolved[2,2] = a1
-
-    rho_evolved[3,0] = a2
-    rho_evolved[3,3] = a1*a6 - a2*a5 + a3*a4
-
-    rho_evolved *= 1./((1+np.exp(-beta_up)))  * np.sqrt(linalg.det(A)) * norm_IM
-
-    trace_vals[iter]=( np.trace(rho_evolved))
-    rho_eigvals = linalg.eigvals(rho_evolved)
-    rho_eigvals_max[iter]=(np.max(rho_eigvals))
-    rho_eigvals_min[iter]=(np.min(rho_eigvals))
-    rho_00[iter]=(np.real(rho_evolved[0,0]))
-    rho_11[iter]=(np.real(rho_evolved[1,1]))
-    rho_22[iter]=(np.real(rho_evolved[2,2]))
-    rho_33[iter]=(np.real(rho_evolved[3,3]))
-    
-   
-    """
-    print(rho_00)
-    
-    exponent_inv = linalg.inv(exponent)
-    #print('Z', np.sqrt(linalg.det(exponent)))
-    for iter in range (2,200):
-        #times[iter] = iter
         with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
             propag_data = f['propag_IM']
-            #propag_data[iter] = exponent_inv[2*dim_B + 1,dim_B//2-1]
-            #propag_data[iter] = exponent_inv[2*dim_B + 1,3*dim_B-2] #this is the propagator for the spin ups
-            #propag_data[iter] = exponent_inv[2*dim_B + delt,3*dim_B -1- delt] #<n(t)># works
-            #propag_data[iter] = exponent_inv[2*dim_B + delt+1, delt+1]  #<n(t)># works, used for benchmark
-            #propag_data[iter] = -exponent_inv[dim_B//2 -2*(iter-1) -3 , dim_B//2 +2*(iter-1) + 2 ] 
-            propag_data[iter] = rho_00[iter]#this is used when comparing to Michael (from DM)
-            #propag_data[iter] =  exponent_inv[2*dim_B + dim_B//2 -2*iter -2 , dim_B//2 -2*iter -2]  -  exponent_inv[2*dim_B + dim_B//2 -2*iter -1 , dim_B//2 -2*iter -1]#current 
-            #propag_data[iter] = -exponent_inv[2*dim_B + dim_B//2 -2*iter -1 , dim_B//2 -2*iter -1]# this is what I take to compare with cont. time
-            propag[iter] = propag_data[iter]
-            data = f['rho_00'] 
-            data[iter] = rho_00[iter]
-            data = f['rho_11'] 
-            data[iter] = rho_11[iter]
-            data = f['rho_22'] 
-            data[iter] = rho_22[iter]
-            data = f['rho_33'] 
-            data[iter] = rho_33[iter]
-            data = f['trace'] 
-            data[iter] = trace_vals[iter]
-            data = f['max_eigvals'] 
-            data[iter] = rho_eigvals_max[iter]
-            data = f['min_eigvals'] 
-            data[iter] = rho_eigvals_min[iter]
-            data = f['rho_full'] 
-            data[iter,:,:] = rho_full[iter,:,:]
+            for tau in range (nbr_Floquet_layers):
+                delt = 2 * (total_time - tau)
 
-            times_data = f['propag_times']
-            #times_data[iter] = iter  #nbr_Floquet_layers
-            times_data[iter] = times[iter]
+                propag_data[iter] = exponent_inv[2*dim_B + 1,dim_B//2-1]#this is the propagator for the spin up (use this when comparing to analytical calculation from scratch!)
+                #propag_data[tau] = exponent_inv[2*dim_B + delt,3*dim_B -1- delt] + exponent_inv[dim_B + delt,1*dim_B -1- delt] #<n(t)># works
+                #propag_data[iter] = exponent_inv[2*dim_B + delt+1, delt+1]  #<n(t)># works, used for benchmark
+                #propag_data[iter] =  exponent_inv[2*dim_B + dim_B//2 -2*iter -2 , dim_B//2 -2*iter -2]  -  exponent_inv[2*dim_B + dim_B//2 -2*iter -1 , dim_B//2 -2*iter -1]#current 
+                #propag_data[iter] = -exponent_inv[2*dim_B + dim_B//2 -2*iter -1 , dim_B//2 -2*iter -1]# this is what I take to compare with cont. time
+                times_data = f['propag_times']
+                times_data[iter] = iter + 1  #nbr_Floquet_layers
 
-    #with h5py.File(filename+'_DMs' + ".hdf5", 'a') as f:
-    #    DM_data = f['density_matrix']
-    #    DM_data[iter,:,:] = rho_evolved[:,:]
-    #print(exponent_inv[2*dim_B + 1, dim_B//2-1])
-    #print(times)
-    #print(propag)
+
+
 
 plt.plot(np.arange(2,200)*delta_t* Gamma, trace_vals[2:200],linewidth=2,label='Tr'+r'$(\rho)$')
 plt.plot(np.arange(2,200)*delta_t* Gamma, rho_eigvals_max[2:200],linewidth=2,linestyle= '-',label='max. eigenvalue of '+ r'$\rho$')
