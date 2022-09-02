@@ -49,9 +49,17 @@ Jy =float(sys.argv[6])* del_t# * np.pi/2#np.pi/4+0.3#np.pi/4
 g =float(sys.argv[7])* del_t #* np.pi/2#np.pi/4+0.3
 init_state = int(sys.argv[8])#0: thermal e^{-\beta XX}, 1: Bell pairs, 2: BCS_GS, 3: Inf. Temp.. Invalied entries will be set to Inf. Temp. (=3)
 beta = float(sys.argv[9])#0.4  # temperature
-mu_initial_state = float(sys.argv[10])
-if mode == 'L':
-    g_boundary_mag = float(sys.argv[11])
+mu_initial_state_left = float(sys.argv[10])
+mu_initial_state_right = float(sys.argv[11])
+
+Jx_coupling = Jx * 0.5
+Jy_coupling = Jy * 0.5
+
+Jp = (Jx + Jy)
+Jm = (Jy - Jx)
+
+Jp_coupling = (Jx_coupling + Jy_coupling)
+Jm_coupling = (Jy_coupling - Jx_coupling)
 
 print('mode', mode)
 print('write_mode', write_mode)
@@ -62,9 +70,11 @@ print('Jy', Jy)
 print('g', g)
 print('beta', beta)
 print('init_state', init_state)
-print('mu_init_state', mu_initial_state)
+print('mu_init_state_left', mu_initial_state_left)
+print('mu_init_state_right', mu_initial_state_right)
 if mode == 'L':
     print('g_boundary_mag', g_boundary_mag)
+
 
 iterator = 0 # iterator at beginning of job. If file exist and job is continued, this will be set to the appropraite value below
 # total_time = 0 means one floquet-layer
@@ -116,11 +126,18 @@ Lambda_left = np.diag(n_k_left)
 Lambda_right = np.diag(n_k_right)
 
 if init_state == 2:
-    n_k_left[:nsites_left] = 1
-    n_k_left[nsites_left:] = 0
-    n_k_right[:nsites_right] = 1
-    n_k_right[nsites_right:] = 0
+    print('creating finite temperature/voltage data')
+    for k in range (nsites_left):
+        n_k_left[k] =  1./(1. + np.exp(beta * (eigenvals_dressed_left[k] - eigenvals_dressed_left[k+nsites_left] - mu_initial_state_left  ))) 
+        n_k_left[nsites_left+k] = 1./(1. + np.exp(-beta * (eigenvals_dressed_left[k] - eigenvals_dressed_left[k+nsites_left] - mu_initial_state_left ))) 
+    for k in range (nsites_right):
+        n_k_right[k] = 1./(1. + np.exp(beta * (eigenvals_dressed_right[k] - eigenvals_dressed_right[k+nsites_right] - mu_initial_state_right ))) 
+        n_k_right[nsites_right+k] =1./(1. + np.exp(-beta * (eigenvals_dressed_right[k] - eigenvals_dressed_right[k+nsites_right] - mu_initial_state_right ))) 
 
+    #n_k_left[:nsites_left] = 1
+    #n_k_left[nsites_left:] = 0
+    #n_k_right[:nsites_right] = 1
+    #n_k_right[nsites_right:] = 0
     Lambda_left = N_left @ np.diag(n_k_left) @ N_left.T.conj()
     Lambda_right = N_right @ np.diag(n_k_right) @ N_right.T.conj()
 Lambda_imp = np.empty(2) 
@@ -137,11 +154,31 @@ Lambda[nsites_left+1:nsites,nsites+nsites_left+1:] = Lambda_right[:nsites_right,
 
 #single-species evolution
 G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
+#adapt coupling to impurity
+G_XY_even[nsites//2, nsites//2 + 1] =  +Jp_coupling
+G_XY_even[nsites//2 + 1, nsites//2] =  +Jp_coupling
+G_XY_even[nsites//2, nsites//2 + nsites + 1] =  - Jm_coupling
+G_XY_even[nsites//2 + 1, nsites//2 + nsites] = + Jm_coupling
+G_XY_even[nsites//2 + nsites, nsites//2 + 1] = + Jm_coupling
+G_XY_even[nsites//2 + nsites + 1, nsites//2] = - Jm_coupling
+G_XY_even[nsites//2 + nsites, nsites//2 + nsites + 1] = - Jp_coupling
+G_XY_even[nsites//2 + nsites + 1, nsites//2 + nsites] = - Jp_coupling
+
+G_XY_odd[(nsites//2-1), (nsites//2-1) + 1] = + Jp_coupling
+G_XY_odd[(nsites//2-1) + 1, (nsites//2-1)] = + Jp_coupling
+G_XY_odd[(nsites//2-1), (nsites//2-1) + nsites + 1] = - Jm_coupling
+G_XY_odd[(nsites//2-1) + 1, (nsites//2-1) + nsites] = + Jm_coupling
+G_XY_odd[(nsites//2-1) + nsites, (nsites//2-1) + 1] = + Jm_coupling
+G_XY_odd[(nsites//2-1) + nsites + 1, (nsites//2-1)] = - Jm_coupling
+G_XY_odd[(nsites//2-1) + nsites, (nsites//2-1) + nsites + 1] = - Jp_coupling
+G_XY_odd[(nsites//2-1) + nsites + 1, (nsites//2-1) + nsites] = - Jp_coupling
+
+
 
 evol = (expm(1.j*G_XY_odd) @ expm(1.j*G_XY_even))
 
 #hopping on impurity between two spin species
-t=0.1
+t=0# -3 * 0.5 * del_t
 
 G_hop = np.zeros((4 * nsites,4 * nsites))
 G_hop[nsites_left, 2*nsites + nsites_left] = t
@@ -155,9 +192,14 @@ evol_tot = expm(1.j * G_hop) @ evol_tot
 
 print('max',(expm(1.j * G_hop) @ evol_tot - evol_tot @ expm(1.j * G_hop) ).max())
 
-filename = '/Users/julianthoenniss/Documents/PhD/data/interleaved_Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200InfTemp-FermiSea_my_conv'
+filename = '/Users/julianthoenniss/Documents/PhD/data/interleaved_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.1_L=200bbFermiSea_my_conv'
+
+with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
+        dset_propag_IM = f.create_dataset('propag_exact', (50,),dtype=np.complex_)
+
+
 print (evol.shape,Lambda.shape)
-for i in range (0,49):
+for i in range (0,25):
     t_2=i
     t_1=0
     value = (matrix_power(evol_tot,t_2) @ Lambda_tot @ matrix_power(evol_tot.T.conj(),t_1))[nsites_left,nsites_left]
