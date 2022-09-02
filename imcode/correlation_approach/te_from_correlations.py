@@ -27,13 +27,13 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-time_0 = 1
-max_time1 = 100
-max_time2 = 101
-stepsize1 = 1
+time_0 = 300
+max_time1 = 1000
+max_time2 = 1001
+stepsize1 = 200
 stepsize2 = 1
 
-order = 1 #order = 1: interaction layer/odd first, order = 2: even layer first
+order = 1#order = 1: interaction layer/odd first, order = 2: even layer first
 time_array = np.append(np.arange(time_0, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
 print(time_array)
 
@@ -65,6 +65,10 @@ print('mu_init_state', mu_initial_state)
 if mode == 'L':
     print('g_boundary_mag', g_boundary_mag)
 
+coupling_strength = 0.3
+Jx_coupling = Jx * coupling_strength
+Jy_coupling = Jy * coupling_strength
+
 iterator = 0 # iterator at beginning of job. If file exist and job is continued, this will be set to the appropriate value below
 # total_time = 0 means one floquet-layer
 
@@ -75,7 +79,7 @@ work_path = '/Users/julianthoenniss/Documents/PhD/data/'
 fiteo1_path = '/home/thoennis/data/correlation_approach/'
 baobab_path = '/home/users/t/thoennis/scratch/'
 
-filename = work_path + 'compmode=' + str(mode)+ '_o=' + str(order) + '_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) + '_init=' + str(init_state)
+filename = work_path + 'compmode=' + str(mode)+ '_o=' + str(order) + '_Jx=' + str(Jx/del_t) + '_Jy=' + str(Jy/del_t) + '_g=' + str(g/del_t) + 'mu=' + str(mu_initial_state) +'_del_t=' + str(del_t)+ '_beta=' + str(beta)+ '_L=' + str(nsites) + '_init=' + str(init_state) +  '_coupling=' + str(coupling_strength)
 if mode == 'L':
    filename += '_g_boundary_mag=' + str(g_boundary_mag) 
 
@@ -108,7 +112,7 @@ if mode == "C":
     if (abs((abs(Jx-Jy)*2/np.pi)%2 - 1)< 1.e-8):#if difference between Jx and Jy is close to multiples of pi/2
         beta_tilde = 0
     else:
-        beta_tilde = 0.5 * np.log( (1 + np.tan(Jx) * np.tan(Jy) ) / (1 - np.tan(Jx) * np.tan(Jy) ) + 0.j) 
+        beta_tilde = 0.5 * np.log( (1 + np.tan(Jx_coupling) * np.tan(Jy_coupling) ) / (1 - np.tan(Jx_coupling) * np.tan(Jy_coupling) ) + 0.j) 
         #beta_tilde = - 0.5 * np.log( (1 + np.tan(Jx-np.pi/2) * np.tan(Jy) ) / (1 - np.tan(Jx-np.pi/2) * np.tan(Jy) ) + 0.j) 
     #print('beta_tilde', beta_tilde, beta_tilde_comp, np.exp(beta_tilde))
     # define initial density matrix and determine matrix which diagonalizes it:
@@ -134,7 +138,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
     if mode == "C" or mode == "G":
         if mode == "C":
             n_expect, N_t, Lambda = dress_density_matrix(rho_0_exponent, F_E_prime, F_E_prime_dagger,M,M_E,  eigenvalues_G_eff, eigenvalues_G_eff_E, beta_tilde, nbr_Floquet_layers, init_state, G_XY_even,G_XY_odd, order, beta, mu_initial_state)#order = 1: interaction layer/odd first, order = 2: even layer first
-            B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx, Jy, beta_tilde, n_expect)
+            B = IM_exponent(evolution_matrix, N_t, nsites,nbr_Floquet_layers, Jx_coupling, Jy_coupling, beta_tilde, n_expect)
             
             
             
@@ -182,8 +186,32 @@ for nbr_Floquet_layers in time_array[iterator:]:
             B = S.T @ B @ S
             mode = 'C'
             
-        """
+        with h5py.File(filename + '.hdf5', 'a') as f:
+            IM_data = f['IM_exponent']
+            IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
+        print('Finished writing data at iteration', iterator)
+
+
         #for Michael:
+        #for production mode, turn of ALL of the below rotation. They bring the 'C'-exponent (correlation approach) into the basis of the 'G'-exponent (Grassmann) approach). For Michael, turn them on!
+        S = np.zeros(B.shape,dtype=np.complex_)
+        for i in range (nbr_Floquet_layers):#order plus and minus next to each other
+            S [B.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
+            S [B.shape[0] // 2 - (2 * i) - 1,4 * i + 2] = 1
+            S [B.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
+            S [B.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
+        
+        B = S @ B @ S.T
+
+        #the following two transformation bring it into in/out- basis (not theta, zeta)
+        rot = np.zeros((4 * nbr_Floquet_layers,4 * nbr_Floquet_layers))
+        for i in range(0,4*nbr_Floquet_layers, 2):#go from bar, nonbar to zeta, theta
+            rot[i,i] = 1./np.sqrt(2)
+            rot[i,i+1] = 1./np.sqrt(2)
+            rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
+            rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
+        B = rot.T @ B @ rot
+        
         U = np.zeros(B.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
         for i in range (nbr_Floquet_layers):
             U[4*i, B.shape[0] //2 - (2*i) -1] = 1
@@ -191,28 +219,25 @@ for nbr_Floquet_layers in time_array[iterator:]:
             U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
             U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
         B = U @ B @ U.T 
-        filename += '_Michael_convention'
-        """
-        #print(B)
-        
-    
-        with h5py.File(filename + '.hdf5', 'a') as f:
-            IM_data = f['IM_exponent']
-            IM_data[iterator,:B.shape[0],:B.shape[0]] = B[:,:]
+        filename_corr = filename + '_Michael_convention'
 
-
-        correlation_block = create_correlation_block(B, nbr_Floquet_layers, filename)
+        correlation_block = create_correlation_block(B, nbr_Floquet_layers, filename_corr)
+        eigs = linalg.eigvals(np.real(correlation_block))
+        for element in eigs:
+            if abs(1- element) > 1.e-8 and abs(element) > 1.e-8:
+                print('found elemens of value, ', element)
+        print(linalg.eigvals(correlation_block))
         time_cuts = np.arange(1, nbr_Floquet_layers)
-
+        """
         print('Starting to write data at iteration', iterator)
         with h5py.File(filename + '.hdf5', 'a') as f:
             entr_data = f['temp_entr']
             for cut in time_cuts:
                 #print('calculating entropy at time cut:', cut)
                 entr_data[iterator,cut] = float(entropy(mode, correlation_block, nbr_Floquet_layers, cut, iterator, filename))
-        
-        print('Finished writing data at iteration', iterator)
+        """
 
+        
 
     elif mode == 'L':
         Lohschmidt(init_state, Jx, Jy,g,beta, mu_initial_state,g_boundary_mag, nsites, nbr_Floquet_layers, filename, iterator)
