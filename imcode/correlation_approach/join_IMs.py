@@ -9,27 +9,27 @@ import h5py
 np.set_printoptions(threshold=sys.maxsize)
 np.set_printoptions(linewidth=470)
 
-conv = 'M' # 'J': my convention, 'M': Michael's convention
+conv = 'J' # 'J': my convention, 'M': Michael's convention
 conv_out = 'M' # 'J': my convention, 'M': Michael's convention
-time_scheme = 'ct'
+time_scheme = ''#'ct'
 B_l = []
 B_r = [] 
-filename_l = '/Users/julianthoenniss/Documents/PhD/data/corr_Mich/0208/delta_t=0.1/Millis_mu=-.2_timestep=0.1_T=50-200_hyb=0.05_D=1_Michaels_conv'
-filename_r = '/Users/julianthoenniss/Documents/PhD/data/corr_Mich/0208/delta_t=0.1/Millis_mu=.2_timestep=0.1_T=50-200_hyb=0.05_D=1_Michaels_conv'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_interleaved_timestep=0.1_hyb=0.05_T=50-200_Delta=1_continuoustime'
-#filename_l = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-2.5_del_t=0.1_beta=200.0_L=200_init=4'
-#filename_r = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=2.5_del_t=0.1_beta=200.0_L=200_init=4'
-#filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=5.0'
+#filename_l = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1008/Millis_mu=-.2_timestep=0.05_T=400_hyb=0.05_Delta=1_Michaels_conv'
+#filename_r = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1008/Millis_mu=.2_timestep=0.05_T=400_hyb=0.05_Delta=1_Michaels_conv'
+#filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1008/Millis_interleaved_timestep=0.05_hyb=0.05_T=400_Delta=1_ct'
+filename_l = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-0.1_del_t=-0.1_beta=1.0_L=200_init=4_coupling=0.3'
+filename_r = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.1_del_t=-0.1_beta=1.0_L=200_init=4_coupling=0.3'
+filename = '/Users/julianthoenniss/Documents/PhD/data/XX_deltamu=0.2_beta=1.0_deltat=-0.1_coupling=0.3'
 
 if conv_out == 'J':
-    filename += '_my_conv' 
+    #filename += '_my_conv' 
     print('storing result in Js convention')
 elif conv_out == 'M':
     filename += '_Michaels_conv' 
     print('storing result in Ms convention')
 
 max_time1 = 201#maximal floquet_nbr_steps to set matrix stoage to correct size
-iterations = 4
+iterations = 2
 
 with h5py.File(filename + ".hdf5", 'w') as f:
         dset_temp_entr = f.create_dataset('temp_entr', (iterations, max_time1),dtype=np.float_)
@@ -39,9 +39,9 @@ for iter in range (0,iterations):
     
     #if exponent B is read out
     with h5py.File(filename_l + '.hdf5', 'r') as f:
-        #times_read = f['temp_entr']
-        times_read = f['times']
-        nbr_Floquet_layers  = int(times_read[iter])
+        times_read = f['temp_entr']
+        #times_read = f['times']
+        nbr_Floquet_layers  = int(times_read[iter,0])#iter + 1
         print('times: ', nbr_Floquet_layers, ' iteration: ', iter )
     
     
@@ -52,7 +52,7 @@ for iter in range (0,iterations):
     with h5py.File(filename_l + '.hdf5', 'r') as f:
         print(4*nbr_Floquet_layers,4*nbr_Floquet_layers)
         B_l = f['IM_exponent'][iter,:4*nbr_Floquet_layers,:4*nbr_Floquet_layers]
-        #print(f['IM_exponent'][iter,:4*(nbr_Floquet_layers+1),:4*(nbr_Floquet_layers+1)])
+        print(f['IM_exponent'][iter,4*(nbr_Floquet_layers)-4:4*(nbr_Floquet_layers),4*(nbr_Floquet_layers)-4:4*(nbr_Floquet_layers)])
     with h5py.File(filename_r + '.hdf5', 'r') as f:
         print(4*nbr_Floquet_layers,4*nbr_Floquet_layers)
         B_r = f['IM_exponent'][iter,:4*nbr_Floquet_layers,:4*nbr_Floquet_layers]
@@ -214,6 +214,12 @@ for iter in range (0,iterations):
         times_data[iter] = nbr_Floquet_layers_effective
     
     correlation_block = create_correlation_block(B_joined_reshuf, nbr_Floquet_layers_effective, filename)
+    eigs = linalg.eigvals(np.real(correlation_block))
+    for element in eigs:
+        if abs(1- element) > 1.e-8 and abs(element) > 1.e-8:
+            print('found elemens of value, ', element)
+    eigs[abs(eigs) < 1.e-12] = 0
+    print(eigs)
     time_cuts = np.arange(1, nbr_Floquet_layers_effective)
     
     #with h5py.File(filename + '.hdf5', 'a') as f:
