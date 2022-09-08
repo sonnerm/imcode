@@ -27,10 +27,10 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-time_0 = 300
-max_time1 = 1000
-max_time2 = 1001
-stepsize1 = 200
+time_0 = 3
+max_time1 = 4
+max_time2 = 4
+stepsize1 = 1
 stepsize2 = 1
 
 order = 1#order = 1: interaction layer/odd first, order = 2: even layer first
@@ -65,7 +65,7 @@ print('mu_init_state', mu_initial_state)
 if mode == 'L':
     print('g_boundary_mag', g_boundary_mag)
 
-coupling_strength = 0.3
+coupling_strength = 0.3162
 Jx_coupling = Jx * coupling_strength
 Jy_coupling = Jy * coupling_strength
 
@@ -193,6 +193,7 @@ for nbr_Floquet_layers in time_array[iterator:]:
 
 
         #for Michael:
+        filename_corr = filename + '_Michael_convention'
         #for production mode, turn of ALL of the below rotation. They bring the 'C'-exponent (correlation approach) into the basis of the 'G'-exponent (Grassmann) approach). For Michael, turn them on!
         S = np.zeros(B.shape,dtype=np.complex_)
         for i in range (nbr_Floquet_layers):#order plus and minus next to each other
@@ -211,6 +212,14 @@ for nbr_Floquet_layers in time_array[iterator:]:
             rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
             rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
         B = rot.T @ B @ rot
+
+        #here, the matrix B is in the Grassmann convention
+        # adjust signs that make the influence matrix a vectorized state
+        #for i in range (B.shape[0]):
+        #    for j in range (B.shape[0]):
+        #        if (i+j)%2 == 1:
+        #            B[i,j] *= -1
+        #filename_corr += '_SIGNCHANGED'
         
         U = np.zeros(B.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
         for i in range (nbr_Floquet_layers):
@@ -219,14 +228,14 @@ for nbr_Floquet_layers in time_array[iterator:]:
             U[4*i + 2, B.shape[0] //2 - (2*i) -2] = 1
             U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
         B = U @ B @ U.T 
-        filename_corr = filename + '_Michael_convention'
+        
 
         correlation_block = create_correlation_block(B, nbr_Floquet_layers, filename_corr)
-        eigs = linalg.eigvals(np.real(correlation_block))
+        eigs = linalg.eigvalsh(np.real(correlation_block))
         for element in eigs:
             if abs(1- element) > 1.e-8 and abs(element) > 1.e-8:
                 print('found elemens of value, ', element)
-        print(linalg.eigvals(correlation_block))
+        #print(linalg.eigvalsh(correlation_block))
         time_cuts = np.arange(1, nbr_Floquet_layers)
         """
         print('Starting to write data at iteration', iterator)
