@@ -11,17 +11,17 @@ np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 
 #create B in Michael's basis
 
-min_time=50
-max_time=201
-interval =50
+min_time=300
+max_time=1201
+interval =300
 conv = 'M'
 time_scheme = ''#'ct'#'ct' is only needed for a single environment. Otherwise , the ct-convention is adopted be the join-method.
-int_lim_low = -20
-int_lim_up = 20
+int_lim_low = -12
+int_lim_up = 12
 
 filename_comp = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.01_beta=0.0_L=100_init=2'
 #filename_comp = '/Users/julianthoenniss/Documents/PhD/data/Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200_FermiSea'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Millis_mu=-.2_timestep=0.1_T=50-200_hyb=0.05_D=10'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Cohen2015_inchworm_deltat=0.01_shorttime_doublhyb_300-1200'
 
 if conv == 'J':
     filename += '_my_conv' 
@@ -41,14 +41,14 @@ with h5py.File(filename + ".hdf5", 'w') as f:
 
 
 global_gamma = 1.
-delta_t = 0.1
-mu=-0.2 * global_gamma
-beta = 10/0.05
+delta_t = 0.01
+mu=0#-0.2 * global_gamma
+beta = 50./global_gamma
 def spec_dens(gamma,energy):
-    e_c = 1*gamma 
-    nu = 10/gamma
-    #return 0.05  * gamma /((1+np.exp(nu*(energy - e_c))) * (1+np.exp(-nu*(energy + e_c)))) 
-    return 0.05 
+    e_c = 10.*gamma 
+    nu = 10./gamma
+    return  2 * gamma /((1+np.exp(nu*(energy - e_c))) * (1+np.exp(-nu*(energy + e_c)))) 
+    #return 0.05 
 
 
 def g_a_real(energy,beta,mu,t,t_prime):
