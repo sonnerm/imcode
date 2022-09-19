@@ -9,8 +9,9 @@ from .heisenberg import heisenberg_F,heisenberg_H, heisenberg_Te,heisenberg_To
 from .im_algo import zoz_lcga,brickwork_lcga
 from .brickwork import brickwork_F,brickwork_H, brickwork_Te,brickwork_To
 from .obs import ising_boundary_evolution,ising_embedded_evolution
-from .obs import brickwork_boundary_evolution,brickwork_embedded_evolution
+from .obs import brickwork_boundary_evolution,brickwork_embedded_evolution,brickwork_multi_evolution
 from .obs import zoz_boundary_evolution,zoz_embedded_evolution
 from .io import savehdf5,loadhdf5
 from .channel import unitary_channel,vectorize_operator,unvectorize_operator
 from .norm import ising_norm,brickwork_norm
+from .fermions import brickwork_fermi_to_spin

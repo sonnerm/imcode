@@ -25,11 +25,13 @@ def ising_tracevalues(im):
         postval.append(np.einsum("c,abc,b->a",postval[-1],m,[0.5,0.0,0.0,0.5],optimize=True))
     return postval[::-1]
 
-def brickwork_tracevalues(im):
+def brickwork_tracevalues(im,dim=2):
     im=im.tomatrices_unchecked()[1:]
+    itens=vectorize_operator(np.eye(dim)/dim)
+    trens=vectorize_operator(np.eye(dim))
     postval=[np.array([1.0])]
     for m in im[::-1]:
-        postval.append(np.einsum("d,abcd,b,c->a",postval[-1],m.reshape((m.shape[0],4,4,m.shape[-1])),[0.5,0,0,0.5],[1,0,0,1],optimize=True))
+        postval.append(np.einsum("d,abcd,b,c->a",postval[-1],m.reshape((m.shape[0],dim**2,dim**2,m.shape[-1])),itens,trens,optimize=True))
     return postval[::-1]
 
 def brickwork_boundary_evolution(im,chs,init=np.eye(2)/2,fermionic=False,normalize=False):
@@ -147,6 +149,53 @@ def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2,fermionic=False,no
         dm=np.einsum("bxac,cane->bxne",dm,mr.reshape((mr.shape[0],4,4,mr.shape[-1])),optimize=True)
         dm=dm.reshape((dm.shape[0],dm.shape[1]*4,dm.shape[3]))
         yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvlb,pvrb,optimize=True))
+
+def brickwork_multi_evolution(init,ims):
+    init=np.array(init)
+    if len(init.shape)!=2:
+        raise NotImplementedError("entangled initial states not yet implemented for multi-terminal setups")
+    Li=int(math.log2(init.shape[0]))
+    pvals=[]
+    dm=vectorize_operator(init)
+    tmin=0
+    for i,imind in enumerate(ims):
+        if len(imind[0].shape)!=1:
+            raise ValueError("Influence matrix %i must be 1D but has has shape %s!"%(i,imind[0].shape))
+        if len(imind)==3:
+            ldim=imind[2]
+        else:
+            ldim=2
+        t=int(round(math.log2(imind[0].shape[0])/math.log2(ldim**4)))
+        if tmin:
+            tmin=min(tmin,t)
+        else:
+            tmin=t
+        imind[0].recluster(((1,),)+((ldim**4,),)*t)
+        pvals.append(brickwork_tracevalues(imind[0],dim=ldim))
+    dm=np.expand_dims(dm,tuple(range(1,len(ims)+1)))
+    cpvals=[p[0] for p in pvals]
+    def _calc_imp_dm(dm,pvals):
+        dmr=np.copy(dm)
+        for pv in pvals:
+            dmr=np.tensordot(dmr,pv,((1,),(0,)))
+        return unvectorize_operator(dmr)
+    yield _calc_imp_dm(dm,cpvals)
+    for ct in range(tmin):
+        for i,imind in enumerate(ims):
+            im=imind[0]
+            pdim=imind[1]
+            if len(imind)==3:
+                ldim=imind[2]
+            else:
+                ldim=2
+            dm=dm.reshape((pdim**2,ldim**2,4**(Li)//(pdim**2*ldim**2))+dm.shape[1:])
+            imm=im.M[ct+1]
+            imm=imm.reshape((imm.shape[0],ldim**2,ldim**2,imm.shape[-1]))
+            dm=np.tensordot(dm,imm,((i+3,1),(0,1)))
+            dm=dm.transpose((0,len(dm.shape)-2,1)+tuple(range(2,i+2))+(len(dm.shape)-1,)+tuple(range(i+2,len(ims)+1)))
+            dm=dm.reshape((4**Li,)+dm.shape[3:])
+            cpvals[i]=pvals[i][ct+1]
+            yield _calc_imp_dm(dm,cpvals)
 
 def ising_embedded_evolution(iml,chs,imr,init=np.eye(2)/2):
     '''

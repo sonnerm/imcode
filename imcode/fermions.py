@@ -1,4 +1,6 @@
 import numpy as np
+import math
+import ttarray as tt
 def _get_mat(even,odd):
     ret=np.zeros((2,2,2))
     ret[1,0,1]=odd[0]
@@ -9,7 +11,7 @@ def _get_mat(even,odd):
 _FERMI_A=_get_mat([1,1],[1,1])
 _FERMI_B=_get_mat([1,-1],[1,1])
 def brickwork_fermi_to_spin(im,truncate=True):
-    t=int(math.log2(im.shape[0]/4))
+    t=int(math.log2(im.shape[0])/4)
     Omps=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(t*2-1)+[_FERMI_B[...,0][...,None]])
     cprev=im.chi
     im=im*Omps
