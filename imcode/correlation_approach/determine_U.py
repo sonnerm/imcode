@@ -48,11 +48,13 @@ def determine_U(sub_corr,eigvec, lower, upper, total_dim):
                 G_theta[2 + j,0 + j] = -np.sin(theta) 
 
             U_sub_new = np.bmat([[np.identity(sub_dim - 4-i), np.zeros((sub_dim - 4-i,4 + i))],[np.zeros((4,sub_dim - 4 - i)), G_theta @ D_phi, np.zeros((4, i))],[np.zeros((i, sub_dim -i)),np.identity(i)]])
-            eigvec_temp = np.einsum('ij,j->i',U_sub_new,eigvec_temp)
-            print(eigvec_temp)
+            eigvec_temp = np.einsum('ij,j->i',U_sub_new,eigvec_temp, optimize=True)
+
+            
+            #print(eigvec_temp)
             U_sub = U_sub_new @ U_sub
 
-    #print(np.einsum('ij,j->i',U_sub,eigvec))
+    #print(np.einsum('ij,j->i',U_sub,eigvec), optimize=True)
     last_gate_type = 1# 1:Givens, 2:Bog
     if abs(eigvec_temp[0]) > abs(eigvec_temp[1]):#Givens like above
         print('last layer: Givens')
@@ -79,7 +81,7 @@ def determine_U(sub_corr,eigvec, lower, upper, total_dim):
 
         U_sub_new = np.bmat([[ G_theta @ D_phi, np.zeros((4, sub_dim - 4))],[np.zeros((sub_dim - 4, 4)),np.identity(sub_dim - 4)]])
 
-        eigvec_temp = np.einsum('ij,j->i',U_sub_new,eigvec_temp)
+        eigvec_temp = np.einsum('ij,j->i',U_sub_new,eigvec_temp, optimize=True)
 
         U_sub = U_sub_new @ U_sub
 
@@ -108,12 +110,14 @@ def determine_U(sub_corr,eigvec, lower, upper, total_dim):
             G_theta[3 - j, j] = np.sin(theta) 
 
         U_sub_new = np.bmat([[ G_theta @ D_phi, np.zeros((4, sub_dim - 4))],[np.zeros((sub_dim - 4, 4)),np.identity(sub_dim - 4)]])
-        eigvec_temp = np.einsum('ij,j->i',U_sub_new,eigvec_temp)
+        eigvec_temp = np.einsum('ij,j->i',U_sub_new,eigvec_temp, optimize=True)
 
         U_sub = U_sub_new @ U_sub
 
 
-    print(np.einsum('ij,j->i',U_sub,eigvec))
+    #test_vec = np.einsum('ij,j->i',U_sub,eigvec, optimize=True)
+    #print('test0',abs(test_vec[0]),test_vec[1])
+    #print('test',abs(test_vec[0]),abs(test_vec[1]))
     #print('U-befire',U_sub)
         
     U_sub_full_dim = sparse.csr_matrix(np.block([[np.identity(lower), np.zeros((lower,total_dim - lower))],[np.zeros((sub_dim,lower)), U_sub, np.zeros((sub_dim, total_dim-upper))],[np.zeros((total_dim-upper,upper)),np.identity(total_dim-upper)]]))

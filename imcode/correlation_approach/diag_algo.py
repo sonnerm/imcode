@@ -9,20 +9,22 @@ import h5py
 np.set_printoptions(linewidth=np.nan, precision=2, suppress=True)
 
 ntimes = 2
-epsilon = 1.e-4
+epsilon = 1.e-10
 
 
 
 B = [] 
 filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/longtime_papermode=C_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=400_init=2'
 #filename = '/Users/julianthoenniss/Documents/PhD/papers/correlations_paper/data/scaling_backup/papermode=G_Jx=0.3_Jy=0.3_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=200_init=3'
-filename = '/Users/julianthoenniss/Documents/PhD/code/imcode/imcode/correlation_approach/analytic_IM_Jx=0.3_Jy=0.0_g=0.3_nsites=1000_2'
+filename = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/1409/Arrigoni_Jx0.5_Jy0.5_g0.0mu0.0_del_t-0.05_betainf_L2000_coupling0.3162_correlations'
 
 
 max_block_sizes = []
 times = []
 max_block_individual = 0
 iter = 0
+
+nbr_gates = 0
 
 """
 #if exponent B is read out
@@ -37,6 +39,7 @@ for nbr_Floquet_layers in times:
         B = f['IM_exponent'][iter,:4*nbr_Floquet_layers,:4*nbr_Floquet_layers]
 """
 
+"""
 #if exponent B is constructed analytically for KIC¨
 spectr = []
 coeff_square = []
@@ -46,17 +49,22 @@ with h5py.File(filename + '.hdf5', 'r') as f:
         spectr = spectr_read[:]
         coeff_square = coeff_square_read[:]
         print(len(spectr[0,:]))
-        print(len(coeff_square[0,:]))
+        print(len(coeff_square[0,:]))"""
+
 times = np.concatenate((np.arange(1,100,10), np.arange(100,500,50),np.arange(500,100,100)))
-times = np.arange(10,100,10)
+times = np.arange(400,401)
 
 
 with h5py.File(filename + "blockscaling_eps=" + str(epsilon) + ".hdf5", 'w') as f:
-    dset_blocks = f.create_dataset('block_scaling', (3,len(times)),dtype=np.int_)
+    dset_blocks = f.create_dataset('block_scaling', (4,len(times)),dtype=np.int_)
+    dset_blocks = f.create_dataset('block_sizes', (len(times),4*times[-1]),dtype=np.int_)
+    dset_blocks = f.create_dataset('last_gates', (len(times),4*times[-1]),dtype=np.int_)#1:Givens, 2:Bog
+    dset_blocks = f.create_dataset('init_states', (len(times),4*times[-1]),dtype=np.int_)
       
 
 
 for nbr_Floquet_layers in times: 
+    """
     B = np.zeros((4*nbr_Floquet_layers, 4*nbr_Floquet_layers),dtype=np.complex_)
     #create B
     for tauprime in range (nbr_Floquet_layers):
@@ -106,8 +114,15 @@ for nbr_Floquet_layers in times:
     B = U @ B @ U.T 
     print(B.shape)
     print(B*0.5)
-    corr_read = create_correlation_block(B, nbr_Floquet_layers, filename)
+    corr_read = create_correlation_block(B, nbr_Floquet_layers, filename)"""
         
+
+    with h5py.File(filename + '.hdf5', 'r') as f:
+        corr_data  = f['corr_t=400']
+        corr_read = corr_data[:,:]
+    times_read = 400#f['temp_entr']
+    #times = np.trim_zeros(times_read[:,0].astype(int))
+    print('times: ', times)    
 
     tol = 1.e-15
     corr_read[abs(corr_read) < tol] = 0.0
@@ -118,7 +133,7 @@ for nbr_Floquet_layers in times:
     dim_corr = corr_read.shape[0]
     print(dim_corr)
     corr = np.zeros(corr_read.shape,dtype=np.complex_)
-    #U_total = np.identity(dim_corr, dtype=np.complex_)
+    U_total = np.identity(dim_corr, dtype=np.complex_)#can be commented out if only interested in gates
     U_temp = np.identity(dim_corr, dtype=np.complex_)
 
     corr [0:dim_corr:2,0:dim_corr:2] = corr_read [0:dim_corr//2,0:dim_corr//2]
@@ -139,6 +154,9 @@ for nbr_Floquet_layers in times:
 
     average_blocksize = 0
     nbr_iterations = 0
+
+    blocksizes = []
+    lastgates = []
     for lower in range(0,dim_corr-2,2):
         nbr_iterations += 1
         upper = lower + 2
@@ -162,8 +180,14 @@ for nbr_Floquet_layers in times:
                 max_block_individual = max(max_block_individual,(upper-lower)/2)
                 average_blocksize += (upper - lower)/2
 
+                blocksizes.append((upper - lower)/2)
+                nbr_gates += ((upper - lower)/2 -1 ) * 2
 
-        U_temp = determine_U(sub_corr, eigvecs.T[arg_list[0]], lower, upper, dim_corr)
+
+        U_temp, last_gate_type = determine_U(sub_corr, eigvecs.T[arg_list[0]], lower, upper, dim_corr)
+        lastgates.append(last_gate_type)
+        print(U_temp.shape)
+        print(corr.shape)
         corr = U_temp @ corr @ U_temp.T.conj()
       
         tol = 1.e-15
@@ -171,9 +195,14 @@ for nbr_Floquet_layers in times:
         diag1[abs(diag1) < tol] = 0.0
         print('diag',diag1)
 
-        #U_total = U_temp @ U_total 
+        #this can be commented out if just interested in gates
+        U_total = U_temp @ U_total 
 
-    #print(np.diag(U_total @ corr_init @ U_total.T.conj()))
+    #this stores the initial state
+    U_total[abs(U_total) < tol] = 0.0
+    diag = np.round(abs(np.diag(U_total @ corr_init @ U_total.T.conj())))
+    init_state = diag[0::2]
+
     max_block_sizes = np.append(max_block_sizes,max_block_individual)
 
     average_blocksize = average_blocksize / nbr_iterations #divide by number of iterations in correlation matrix
@@ -183,6 +212,15 @@ for nbr_Floquet_layers in times:
             hdf5_data[0,iter] = nbr_Floquet_layers
             hdf5_data[1,iter] = max_block_individual 
             hdf5_data[2,iter] = average_blocksize
+            hdf5_data[3,iter] = nbr_gates
+
+            hdf5_data = f['block_sizes']
+            hdf5_data[iter,:len(blocksizes)] = blocksizes[:]
+            hdf5_data = f['last_gates']
+            hdf5_data[iter,:len(lastgates)] = lastgates[:]
+            hdf5_data = f['init_states']
+            hdf5_data[iter,:len(init_state)] = init_state[:]
+
     print('Iteration ', iter+1,' stored (time =', nbr_Floquet_layers,', max_blocksize=', max_block_individual,', aver_blocksize=', average_blocksize, '). Code terminating after ', len(times) - iter -1,' more steps.')
 
     iter += 1
