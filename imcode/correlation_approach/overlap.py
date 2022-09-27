@@ -78,7 +78,7 @@ rho_full = np.zeros((max_time,4,4),dtype=np.clongdouble)
 propag = np.zeros(max_time,dtype=np.clongdouble)
 times = np.zeros(max_time,dtype=np.int_)
 
-for iter in range(0,1,interval):
+for iter in range(2,3,interval):
 
     iter_readout = iter
     with h5py.File(filename + '.hdf5', 'r') as f:
@@ -222,7 +222,7 @@ for iter in range(0,1,interval):
     
     if mode == 1: #one final-time IM for all evolution times
     
-        for intermediate_time_dm in range (5,66,20):
+        for intermediate_time_dm in range (1,900,99):
             print(intermediate_time_dm)
             exponent_check = exponent.copy()
 

@@ -12,14 +12,14 @@ from compute_generators import compute_generators
 from matrix_diag import matrix_diag
 from determine_U import determine_U
 
-
+beta = 100
 Jx=0.3
 Jy=0.3
 g=0
 beta_tilde = 0
 epsilon = 1.e-6
-L_max = 51
-L_min = 10
+L_max = 5
+L_min = 4
 
 filename = 'H_XX_'
 with h5py.File(filename + "blockscaling_eps=" + str(epsilon) + ".hdf5", 'w') as f:
@@ -37,18 +37,16 @@ for nsites in range(L_min,L_max):
 
     H_XX = 0.5 * (G_XY_even + G_XY_odd)
 
-    eigenvals,eigenvectors_H_xx = linalg.eigh(H_XX)
+    eigenvals, eigenvecs_dressed1 = linalg.eigh(H_XX[:nsites,:nsites])
 
-    argsort = np.argsort(- eigenvals)
+    N_E = np.bmat([[eigenvecs_dressed1,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)), eigenvecs_dressed1.conj()]])
 
-    M_E =  np.block([[eigenvectors_H_xx[nsites:2*nsites,argsort[:nsites]].conj(), eigenvectors_H_xx[0:nsites,argsort[:nsites]]],[eigenvectors_H_xx[0:nsites,argsort[:nsites]].conj(),eigenvectors_H_xx[nsites:2*nsites,argsort[:nsites]]]]) 
-    
-    diag = M_E.T.conj() @ H_XX @ M_E
+    Lambda_diag = np.zeros(H_XX.shape)
+    for i in range (2*nsites):
+        Lambda_diag[i,i] = 1./(1+np.exp(-beta * eigenvals[i]))
+        Lambda_diag[i+nsites,i+nsites] = 1./(1+np.exp(beta * eigenvals[i]))
 
-
-    Lambda = M_E @ np.bmat([[np.identity(nsites),np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)),np.zeros((nsites,nsites))] ]) @ M_E.T.conj() 
-
-
+    Lambda = N_E @ Lambda_diag @ N_E.T.conj() 
 
     dim_corr = Lambda.shape[0]
     corr = np.zeros(Lambda.shape,dtype=np.complex_)
@@ -68,7 +66,7 @@ for nsites in range(L_min,L_max):
 
     corr[abs(corr) < tol] = 0.0
 
-    print(np.real(corr))
+    #print(np.real(corr))
 
 
     sub_corr = []
@@ -111,18 +109,18 @@ for nsites in range(L_min,L_max):
         tol = 1.e-15
         diag1 = corr
         diag1[abs(diag1) < tol] = 0.0
-        print('diag',diag1)
+        #print('diag',diag1)
 
         U_total = U_temp @ U_total 
 
     U_total[abs(U_total) < tol] = 0.0
     diag = np.round(abs(np.diag(U_total @ corr_init @ U_total.T.conj())))
-    print(diag)
+    #print(diag)
     init_state = diag[0::2]
-    print(init_state)
+    #print(init_state)
 
     average_blocksize = average_blocksize / nbr_iterations #divide by number of iterations in correlation matrix
-    print(nbr_gates)
+    #print(nbr_gates)
  
     with h5py.File(filename + "blockscaling_eps=" + str(epsilon) + ".hdf5", 'a') as f:
             hdf5_data = f['block_scaling']
