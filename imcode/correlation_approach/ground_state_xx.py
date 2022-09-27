@@ -42,7 +42,7 @@ for nsites in range(L_min,L_max):
     N_E = np.bmat([[eigenvecs_dressed1,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)), eigenvecs_dressed1.conj()]])
 
     Lambda_diag = np.zeros(H_XX.shape)
-    for i in range (2*nsites):
+    for i in range (nsites):
         Lambda_diag[i,i] = 1./(1+np.exp(-beta * eigenvals[i]))
         Lambda_diag[i+nsites,i+nsites] = 1./(1+np.exp(beta * eigenvals[i]))
 
