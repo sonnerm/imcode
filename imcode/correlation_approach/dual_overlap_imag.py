@@ -24,7 +24,7 @@ print(B.shape)
 print(B)
 
 
-# creating an empty array to store the reversed column matrix
+# creating an empty array to store the reversed matrix
 B = B[::-1,::-1]
 print(B)
 #reorder entries such that input at time zero becomes last entry:
@@ -58,7 +58,7 @@ for i in range (1,len_IM):#index goes through the elements of the wavefunction i
     if nbr_fermions%2 == 0:
         B_sub = np.array(pd.DataFrame(B).iloc[read_out_grid,read_out_grid]) #convert numpy array of B to grid such that we can extract submatrix by index, then convert back to numpy array
         coeffs[i] = pf.pfaffian(B_sub)#the wavefunction coefficients are given by the pfaffian of the submatrix
-  
+print(coeffs)
 """delta_t = 0.1
 E_d_up = -4. 
 E_d_down = E_d_up
@@ -116,33 +116,26 @@ gate = np.zeros((4,4),dtype=np.complex_)
 gate[0,0] = 1
 gate[2,1] = - alpha1
 gate[1,2] = alpha2
-gate[0,3] = - beta
-gate[3,0] = gamma
-gate[3,3] = - omega 
+gate[0,3] = - beta 
+gate[3,0] = - gamma 
+gate[3,3] = omega 
 
-#account for ordering or Grassmanns for 'bra' (the columns that add an odd number of grassmann pairs to the state)
-#this relies on the fact that the IM is even, such that only even components of impurity gate contribute. If this is not the case, sign must be changed on level of full many body wavefcuntion (uncomment factor for coeffs_left)
-#multiply each row by exp(i * pi/2 * n), where n is the number of Grassmann variables for the down spin.
-#one down Grassmanns:
-gate[[1,2],:] *= np.exp(1.j * np.pi/2)
-#two down Grassmanns:
-gate[3,:] *= np.exp(1.j * np.pi)
-
-#print(gate)
+print(gate)
 #antiperiodic bc, no operator
 gate_boundary = gate.copy()
 gate_boundary[1,:] *= -1.
 gate_boundary[3,:] *= -1.
 gate_boundary[:,1] *= -1.
 gate_boundary[:,3] *= -1.
-#print(gate_boundary)
+print(gate_boundary)
 
 gate_big = gate_boundary
 for i in range (dim_B//2-1):
     gate_big = np.kron(gate,gate_big)
 Z = np.einsum('i,ij,j->',coeffs,gate_big,coeffs, optimize=True) 
 print('Z',Z)
-
+print('big_trace_up',gate_big @ coeffs  )
+print('big_trace_down',coeffs  @ gate_big)
 
 #store expoent for benchmark 
 with h5py.File(filename + "_ED.hdf5", 'w') as f:
@@ -151,14 +144,14 @@ with h5py.File(filename + "_ED.hdf5", 'w') as f:
 
 #spin up propagator
 gate_boundary_cdag_up = np.zeros((4,4),dtype=np.complex_)
-gate_boundary_cdag_up[0,1] = 1
+gate_boundary_cdag_up[0,1] = 1  
 gate_boundary_cdag_up[3,1] = np.exp(-E_d_up) 
 
 gate_c_up= np.zeros((4,4),dtype=np.complex_)
-gate_c_up[0,2] = np.exp(-E_d_up)
-gate_c_up[3,2] = -np.exp(-(2*E_d_up))
+gate_c_up[0,2] = np.exp(-E_d_up)  
+gate_c_up[3,2] = -np.exp(-(2*E_d_up)) 
 
-print(coeffs.shape)
+print('coeffs',coeffs)
 for tau in range (dim_B//2-1):
     print('tau',tau)
     gate_big = gate_boundary_cdag_up
@@ -173,7 +166,7 @@ for tau in range (dim_B//2-1):
         gate_big = np.kron(gate,gate_big)
 
     #print(coeffs.shape)
-    #print(gate_big.shape)
+    print('big_up',gate_big @ coeffs)
     G = np.einsum('i,ij,j->',coeffs,gate_big,coeffs, optimize=True) 
     print('propag_up',G/Z)
     with h5py.File(filename + "_ED.hdf5", 'a') as f:
@@ -182,26 +175,28 @@ for tau in range (dim_B//2-1):
 
 #spin down propagator
 gate_boundary_cdag_down = np.zeros((4,4),dtype=np.complex_)
-gate_boundary_cdag_down[1,0] = -1.j
-gate_boundary_cdag_down[1,3] = -1.j * np.exp(-E_d_down) 
+gate_boundary_cdag_down[1,0] = -1 
+gate_boundary_cdag_down[1,3] = -1 * np.exp(-E_d_down) 
 
 gate_c_down= np.zeros((4,4),dtype=np.complex_)
-gate_c_down[2,0] = -1.j* np.exp(-E_d_down)
-gate_c_down[2,3] = 1.j * np.exp(-(2*E_d_down))
+gate_c_down[2,0] = -1.* np.exp(-E_d_down) 
+gate_c_down[2,3] = 1. * np.exp(-(2*E_d_down)) 
 
-print(coeffs.shape)
 for tau in range (dim_B//2-1):
     print('tau',tau)
     gate_big = gate_boundary_cdag_down
     for i in range (dim_B//2-1 - tau - 1):
         print('1',i,gate_big.shape)
         gate_big = np.kron(gate,gate_big)
+
     gate_big = np.kron(gate_c_down,gate_big)
     print('2',gate_big.shape)
     for i in range (tau):
         print(i)
         print('3',i,gate_big.shape)
         gate_big = np.kron(gate,gate_big)
+    
+    print('big_down',coeffs@gate_big )
 
     #print(coeffs.shape)
     #print(gate_big.shape)

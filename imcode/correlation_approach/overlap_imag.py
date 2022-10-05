@@ -22,14 +22,14 @@ Gamma = 1.
 delta_t = 0.1
 t = 0.# * delta_t#-3*0.5*delta_t#-100#4 * delta_t # hopping between spin species, factor 2 to match Michael's spin convention
 
-dim_B = 14
+dim_B = 12
 
-"""B = np.zeros((dim_B,dim_B),dtype=np.complex_)
-for i in range (dim_B):
-    for j in range (dim_B):
-        B[i,j] = np.tan(3.2*i+2.2*j)"""
 
 B = np.random.rand(dim_B,dim_B) + 1.j * np.random.rand(dim_B,dim_B) 
+#B = np.zeros((dim_B,dim_B),dtype=np.complex_)
+#B[0,1] += 1
+#B[2,3] += 1
+
 B -= B.T#this is twice the exponent matrix
 print(B)
 exponent = np.zeros((4*dim_B, 4*dim_B), dtype=np.complex_)#this exponent will contain the exponents of both spin species as well as the impurity dynamics
@@ -107,8 +107,10 @@ with h5py.File(filename + ".hdf5", 'w') as f:
     dset_propag = f.create_dataset('propag', ((2,dim_B//2)),dtype=np.complex_)
 
     for tau in range (1,dim_B//2):
-        dset_propag[0,tau] = exponent_inv[0,3*dim_B -1 -2*tau]
+        dset_propag[0,tau] = - exponent_inv[0,3*dim_B -1 -2*tau]
         print('up',dset_propag[0,tau])
+    
         dset_propag[1,tau] = exponent_inv[3*dim_B,2*dim_B -1 -2*tau]
         print('down',dset_propag[1,tau])
+       
 
