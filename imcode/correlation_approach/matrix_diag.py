@@ -49,56 +49,36 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, order, Jx=0, Jy=0, g=0):
         U_eff[1] = expm(-1.j * G_XY_even) @ expm(G_1) @ expm(-1.j * G_XY_odd)  @ expm(-1.j*G_g)   # backward branch
         
 
-
-
-    #print( 'U_E[0] = expm(1j*G_g) @ U_E[0]')
-    #print( U_E[0] )
-    #print( U_E[1] )
-    #print( 'U_E[1] = expm(1j*G_g) @ U_E[1]')
     
     # generator of environment (always unitary)
     G_eff_E = -1j * linalg.logm(U_E)
-    #print('G_eff_E')
-    #print(G_eff_E)
-   
+ 
     # G_eff is equivalent to generator for composed map (in principle obtainable through Baker-Campbell-Hausdorff)
     G_eff = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     G_eff[0] = -1j * linalg.logm(U_eff[0])
     G_eff[1] = +1j * linalg.logm(U_eff[1])
-
-    evol_imag_time = expm(-G_1) @ expm(-G_g) @ expm(-G_XY_even) @ expm(-G_XY_odd)   
-    G_eff_imag_time = -linalg.logm(evol_imag_time)
-    #print('G_eff_E')
-    #print(G_eff[0])
-    #print('G_eff_b')
-    #print(G_eff[1]-G_eff[0])
-   
-
+    
     
     # add small random part to G_eff to lift degenaracies, such that numerical diagnoalization is more stable
-    rand_magn = 1.e-7
+    rand_magn = 0#1.e-11
     rand_A = (np.random.rand(nsites,nsites) + 1.j * np.random.rand(nsites,nsites)) * rand_magn
     rand_B = add_cmplx_random_antisym(np.zeros((nsites,nsites), dtype=np.complex_), rand_magn)
     rand_C = add_cmplx_random_antisym(np.zeros((nsites,nsites), dtype=np.complex_), rand_magn)
     random_part = np.bmat([[rand_A,rand_B], [rand_C, -rand_A.T]])
 
     
-    #G_eff_E += random_part
-    G_eff[0] += random_part
-    G_eff[1] += random_part
+    if Jx != Jy:
+        G_eff[0] += random_part
+        G_eff[1] += random_part
     
 
 
     # compute eigensystem of G_eff. Set of eigenvectors "eigenvectors_G_eff_fw/bw" diagnonalizes G_eff_fw/bw
     # first dimension: foward branch (index 0) and backward branch (index 1)
     eigenvalues_G_eff = np.zeros((2, 2 * nsites), dtype=np.complex_)
-    #eigenvalues_G_eff_bw = np.zeros(2 * nsites, dtype=np.complex_)
-    # no need for seperate forward and backward branch since F_E is always unitary, time evolution is equivalent on both branches
-    #eigenvalues_G_eff_E = np.zeros(2 * nsites, dtype=np.complex_)
     # first dimension: foward branch (index 0) and backward branch (index 1)
     eigenvectors_G_eff = np.zeros(
         (2, 2 * nsites, 2 * nsites), dtype=np.complex_)
-    #eigenvectors_G_eff_bw = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
     eigenvectors_G_eff_E = np.zeros(
         (2 * nsites, 2 * nsites), dtype=np.complex_)
 
@@ -112,87 +92,48 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, order, Jx=0, Jy=0, g=0):
         # take superposition with hermitian conjugate to stabilize numerical diagonalization (works only in unitary case, e.g. Ising-type coupling)
         eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eigh(
             0.5 * (G_eff_E + G_eff_E.conj().T))
-        
-        eigenvalues_imagtime, eigenvectors_imagtime = linalg.eig( G_eff_imag_time )
-    
+      
     else:
         eigenvalues_G_eff[0], eigenvectors_G_eff[0] = linalg.eig(G_eff[0])
         eigenvalues_G_eff[1], eigenvectors_G_eff[1] = linalg.eig(G_eff[1])
-        #eigenvalues_G_eff_bw, eigenvectors_G_eff_bw = linalg.eig(G_eff_bw)
-
+       
         eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eigh( G_eff_E + random_part + random_part.T.conj())
-        eigenvalues_imagtime, eigenvectors_imagtime = linalg.eig( G_eff_imag_time )
-        #eigenvalues_G_eff_E, eigenvectors_G_eff_E = linalg.eig(U_E)
-    #print('simple')
-    #eigvals_a, eigvecs_a = linalg.eigh(evol_imag_time)
-    #print(linalg.inv(eigenvectors_imagtime) @ G_eff_imag_time  @ eigenvectors_imagtime )
-    #print(G_eff_imag_time - G_eff_imag_time.T.conj())
+       
     # check if found eigenvectors indeed fulfill eigenvector equation (trivial check)
     eigenvector_check = 0
-    #eigenvector_check_bw = 0
+
     eigenvector_check_E = 0
     for branch in range(0, 2):
         for i in range(nsites):
             eigenvector_check += linalg.norm(np.dot(G_eff[branch], eigenvectors_G_eff[branch, :, i]) - np.dot(
                 eigenvalues_G_eff[branch, i], eigenvectors_G_eff[branch, :, i]))
-        #eigenvector_check_bw += linalg.norm(np.dot(G_eff_bw, eigenvectors_G_eff_bw[:, i]) - np.dot(eigenvalues_G_eff_bw[i], eigenvectors_G_eff_bw[:, i]))
     for i in range(nsites):
         eigenvector_check_E += linalg.norm(np.dot(G_eff_E, eigenvectors_G_eff_E[:, i]) - np.dot(
             eigenvalues_G_eff_E[i], eigenvectors_G_eff_E[:, i]))
     print('eigenvector_check (f/b/E)',
           eigenvector_check, '/', eigenvector_check_E)
 
-    #print('forward eigenvalues')
-    #print(eigenvalues_G_eff[0])
-
-    #print('backward eigenvalues')
-    #print(eigenvalues_G_eff[1])
-
-    #print('environment eigenvalues')
-    #print(eigenvalues_G_eff_E)
-
+  
     # sort eigenvectors such that first half are the ones with positive real part of eigenvalues and second half the corresponding negative ones
     argsort_fw = np.argsort(- np.real(eigenvalues_G_eff[0]))
     argsort_bw = np.argsort(- np.real(eigenvalues_G_eff[1]))
     #argsort_bw = np.argsort(- np.real(eigenvalues_G_eff_bw))
     argsort_E = np.argsort(- eigenvalues_G_eff_E)
-    argsort_imagtime = np.argsort(- eigenvalues_imagtime)
 
-    
-    #argsort_E = np.argsort(1.j*np.log(eigenvalues_G_eff_E))
-
-    #eigenvalues_G_eff[0] = eigenvalues_G_eff[0,argsort_fw[:]]
-    #eigenvalues_G_eff[1] = eigenvalues_G_eff[1,argsort_bw[:]]
-    #eigenvalues_G_eff_E = eigenvalues_G_eff_E[argsort_E[:]]
-    #print(eigenvalues_G_eff[0])
-    #print(eigenvalues_G_eff[1])
-    #print(eigenvalues_G_eff_E)
 
     M = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     M_imagtime = np.zeros(( 2 * nsites, 2 * nsites), dtype=np.complex_)
 
-    #M_bw = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
-    #M_E = np.zeros((2 * nsites, 2 * nsites), dtype=np.complex_)
+    
     for i in range(nsites):  # sort eigenvectors and eigenvalues such that the first half are the ones with positive real part, and the second half have negative real parts
         M[0, :, i] = eigenvectors_G_eff[0, :, argsort_fw[i]]
         M[0, :, 2 * nsites - 1 - i] = eigenvectors_G_eff[0, :, argsort_fw[i + nsites]]
         M[1, :, i] = eigenvectors_G_eff[1, :, argsort_bw[i]]
         M[1, :, 2 * nsites - 1 - i] = eigenvectors_G_eff[1, :, argsort_bw[i + nsites]]
 
-        M_imagtime[:, i] = eigenvectors_imagtime[:, argsort_imagtime[i]]
-        M_imagtime[:, 2 * nsites - 1 - i] = eigenvectors_imagtime[:, argsort_imagtime[i + nsites]]
-        #M_E[:, i] = eigenvectors_G_eff_E[:, argsort_E[i]]
-        #M_E[:, 2 * nsites - 1 - i] = eigenvectors_G_eff_E[:, argsort_E[i + nsites]]
     M_E =  np.block([[eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]].conj(), eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]]],[eigenvectors_G_eff_E[0:nsites,argsort_E[:nsites]].conj(),eigenvectors_G_eff_E[nsites:2*nsites,argsort_E[:nsites]]]]) 
-    #M_imagtime = eigenvectors_imagtime
-    #print('diagonal imag_time')
-    #print(linalg.inv(M_imagtime) @ G_eff_imag_time @ M_imagtime)
-    #M1_inv = linalg.inv(M[1])
-    #M0_inv = linalg.inv(M[0])
+   
 
-    #M_w = np.bmat([[M1_inv[:,nsites:2*nsites],M1_inv[:,:nsites]]])
-    #print(M_w.shape)
-    #print(M_w - M1_inv.T.conj())
     """
     fig, ax = plt.subplots(2)
     plt.subplots_adjust(hspace=0.1)
@@ -304,30 +245,18 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, order, Jx=0, Jy=0, g=0):
     plt.show()
     """
 
-    #print ('M0', M[0]@M[0].T.conj())
-    #M[0] = reorder_eigenvecs(M[0], nsites)
-    #M_E = reorder_eigenvecs(M_E, nsites)
-    #M[1] = reorder_eigenvecs(M[1], nsites)
-    #print('M_forward')
-    #print(M[0])  # matrix that diagonalizes G_eff_fw
-    #print(M[1])
-    #print('M_backward')
-    #print(M[1])  # matrix that diagonalizes G_eff_bw
-    #print('M_environment')
-    #print(M_E)  # matrix that diagonalizes G_eff_E
-    #print(M_E @ M_E.T.conj()) 
+    
     
     M_inverse = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     # diagonalize G_eff with eigenvectors to check:
     M_inverse[0] = linalg.inv(M[0])
     M_inverse[1] = linalg.inv(M[1])
-    #M_E_inverse = linalg.inv(M_E)
+   
 
     D = np.zeros((2, 2 * nsites, 2 * nsites), dtype=np.complex_)
     for branch in range(2):
         D[branch] = M_inverse[branch] @ G_eff[branch] @ M[branch]
-        #print(M[(branch+1)%2].T.conj() @ G_eff[branch] @ M_inverse[(branch+1)%2].T.conj())
-        #print(branch, '\n',D[branch])
+      
         # this is the diagonal matrix with eigenvalues of G_eff on the diagonal
         # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
         eigenvalues_G_eff[branch] = D[branch].diagonal()
@@ -336,14 +265,7 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, order, Jx=0, Jy=0, g=0):
     # this is the diagonal matrix with eigenvalues of G_eff on the diagonal
     # this makes sure that the order of the eigenvalues corresponds to the order of the eigenvectors in the matrix M
     eigenvalues_G_eff_E =np.concatenate((eigenvalues_G_eff_E[argsort_E[2*nsites-1:nsites-1:-1]],eigenvalues_G_eff_E[argsort_E[:nsites]]))
-    #print(eigenvalues_G_eff_E)
-    #D_E = M_E.T.conj() @ G_eff_E @ M_E
-    #print(D_E)
-    #print( linalg.inv(M_E)  - M_E.T.conj())
-    #eigenvalues_G_eff_E = D_E.diagonal()
-    #print(np.real(eigenvalues_G_eff_E))
-    #eigenvalues_G_eff_E, M_E = linalg.eig(U_E)
-    #print(np.real(-1.j*np.log(eigenvalues_G_eff_E)))
+
     """
     #ax[1].plot(k_vals,eigenvalues_G_eff_E[0:nsites],color='C0')
     #ax[1].plot(k_vals,eigenvalues_G_eff_E[nsites:2*nsites],color='C0')
@@ -406,21 +328,28 @@ def matrix_diag(nsites, G_XY_even, G_XY_odd, G_g, G_1, order, Jx=0, Jy=0, g=0):
         f += abs(M_E[0, k])**2 - abs(M_E[nsites, k])**2 + \
             2j * imag(M_E[0, k]*M_E[nsites, k].conj())
     print ('f', f)"""
-    #eigenvalues_G_eff = ews_sorted
-    #print('eigenvalues of G_eff_fw: ')
-    #print(eigenvalues_G_eff[0])
-
-    #print('eigenvalues of G_eff_bw: ')
-    #print(eigenvalues_G_eff[1])
-
-    #print ('eigenvalues of G_eff_bw: ')
-    # print(eigenvalues_G_eff_bw)
-
-    #print('eigenvalues of G_eff_E: ')
-    #print(eigenvalues_G_eff_E)
-
+  
     print('Diagonalization of generators completed..')
     
-    # return M_fw, M_fw_inverse, M_bw, M_bw_inverse,  eigenvalues_G_eff_fw, eigenvalues_G_eff_bw, f
+
+    if Jx == Jy:
+        print('diagonalizing at Jx = Jy')
+        eigvals_E, eigvecs_E = linalg.eigh(G_eff_E[:nsites,:nsites])
+        M_E = np.bmat([[eigvecs_E,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)), eigvecs_E.conj()]])
+        eigenvalues_G_eff_E = np.concatenate((eigvals_E,-eigvals_E))
+
+
+        eigvals_fw, eigvecs_fw = linalg.eig(G_eff[0][:nsites,:nsites])
+        M_fw = np.bmat([[eigvecs_fw,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)), linalg.inv(eigvecs_fw).T]])
+        eigvals_fw = np.concatenate((eigvals_fw,-eigvals_fw))
+
+        eigvals_bw, eigvecs_bw = linalg.eig(G_eff[1][:nsites,:nsites])
+        M_bw = np.bmat([[eigvecs_bw,np.zeros((nsites,nsites))],[np.zeros((nsites,nsites)), linalg.inv(eigvecs_bw).T]])
+        eigvals_bw = np.concatenate((eigvals_bw,-eigvals_bw))
+        M[0] = M_fw
+        M[1] = M_bw
+        eigenvalues_G_eff[0] = eigvals_fw
+        eigenvalues_G_eff[1] = eigvals_bw
+      
     
-    return M, M_E, eigenvalues_G_eff, eigenvalues_G_eff_E
+    return M, M_E, eigenvalues_G_eff, eigenvalues_G_eff_E, G_eff_E
