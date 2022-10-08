@@ -44,13 +44,13 @@ np.set_printoptions(linewidth=np.nan, precision=1, suppress=True)
 
 # define fixed parameters:
 # step sizes for total times t
-time_0 = 2
-max_time1 = 49
-max_time2 = 59
-stepsize1 = 1
-stepsize2 = 1
+time_0 = 10
+max_time1 =390
+max_time2 = 401
+stepsize1 = 50
+stepsize2 = 5
 
-time_array = np.append(np.arange(time_0, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2))
+time_array = np.concatenate((np.arange(time_0, max_time1, stepsize1) , np.arange(max_time1, max_time2, stepsize2)))
 print(time_array)
 
 mode =  sys.argv[1] # 'G': compute temporal entanglement entropy from Grassmann approach, 'C': compute temporal entanglement entropy from correlation approach, 'L': compute Lohschmidt echo
@@ -67,14 +67,18 @@ beta = float(sys.argv[9])#0.4  # temperature
 mu_initial_state_left = float(sys.argv[10])
 mu_initial_state_right = float(sys.argv[11])
 
-Jx_coupling = Jx *0.5
-Jy_coupling = Jy *0.5
+Jx_coupling_right = Jx *0.3162
+Jy_coupling_right = Jy *0.3162
+Jx_coupling_left = Jx *0.3162
+Jy_coupling_left = Jy *0.3162
 
 Jp = (Jx + Jy)
 Jm = (Jy - Jx)
 
-Jp_coupling = (Jx_coupling + Jy_coupling)
-Jm_coupling = (Jy_coupling - Jx_coupling)
+Jp_coupling_right = (Jx_coupling_right + Jy_coupling_right)
+Jm_coupling_right = (Jy_coupling_right - Jx_coupling_right)
+Jp_coupling_left = (Jx_coupling_left + Jy_coupling_left)
+Jm_coupling_left = (Jy_coupling_left - Jx_coupling_left)
 
 print('mode', mode)
 print('write_mode', write_mode)
@@ -151,10 +155,10 @@ n_k_right.fill(.5)
 
 
 Lambda_right = np.diag(n_k_right)
-potentials = [.0]
+potentials = [0.0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.07,0.08,0.1,0.2,0.3,0.5]
 for mu in potentials:
-    mu_initial_state_left = -mu/2
-    mu_initial_state_right = mu/2
+    mu_initial_state_left = -mu/2 
+    mu_initial_state_right = mu/2 
     print(mu_initial_state_left, mu_initial_state_right, beta)
     if init_state == 2:
         print('creating finite temperature/voltage data')
@@ -168,12 +172,17 @@ for mu in potentials:
             n_k_right[nsites_right+k] =1./(1. + np.exp(beta * (eigenvals_dressed_right[k] - mu_initial_state_right ))) """
         print('mu',mu)
         for k in range (nsites_left):
-            n_k_left[k] =  1./(1. + np.exp(beta * (eigenvals_dressed_left[k] - eigenvals_dressed_left[k+nsites_left]  - mu_initial_state_left  ))) 
-            n_k_left[nsites_left+k] = 1./(1. + np.exp( -beta * (eigenvals_dressed_left[k] - eigenvals_dressed_left[k+nsites_left] - mu_initial_state_left ))) 
+            n_k_left[k] = np.heaviside(eigenvals_dressed_left[k]   - mu_initial_state_left , 0.)
+            n_k_left[k + nsites_left] = 1. -  np.heaviside(eigenvals_dressed_left[k]   - mu_initial_state_left , 0.)
+
+            n_k_left[k] =  1./(1. + np.exp(-beta * (eigenvals_dressed_left[k]   - mu_initial_state_left  ))) 
+            n_k_left[nsites_left+k] = 1./(1. + np.exp( beta * (eigenvals_dressed_left[k]  - mu_initial_state_left ))) 
        
         for k in range (nsites_right):
-            n_k_right[k] = 1./(1. + np.exp(beta * (eigenvals_dressed_right[k] - eigenvals_dressed_right[k+nsites_right]- mu_initial_state_right ))) 
-            n_k_right[nsites_right+k] =1./(1. + np.exp(- beta * (eigenvals_dressed_right[k] - eigenvals_dressed_right[k+nsites_right] - mu_initial_state_right )))
+            n_k_right[k] = np.heaviside(eigenvals_dressed_right[k]   - mu_initial_state_right , 0.)
+            n_k_right[k + nsites_right] = 1. -  np.heaviside(eigenvals_dressed_right[k]   - mu_initial_state_right , 0.)
+            n_k_right[k] = 1./(1. + np.exp(-beta * (eigenvals_dressed_right[k] - mu_initial_state_right ))) 
+            n_k_right[nsites_right+k] =1./(1. + np.exp(beta * (eigenvals_dressed_right[k]  - mu_initial_state_right )))
 
         Lambda_left = np.einsum('ij,j,jk->ik',N_left, n_k_left, N_left.T.conj(),optimize=True)
         Lambda_right = np.einsum('ij,j,jk->ik',N_right, n_k_right, N_right.T.conj(),optimize=True)
@@ -195,23 +204,23 @@ for mu in potentials:
     #single-species evolution
     G_XY_even, G_XY_odd, G_g, G_1 = compute_generators(nsites, Jx, Jy, g, beta_tilde)
     #adapt coupling to impurity
-    G_XY_even[nsites//2, nsites//2 + 1] =  +Jp_coupling
-    G_XY_even[nsites//2 + 1, nsites//2] =  +Jp_coupling
-    G_XY_even[nsites//2, nsites//2 + nsites + 1] =  - Jm_coupling
-    G_XY_even[nsites//2 + 1, nsites//2 + nsites] = + Jm_coupling
-    G_XY_even[nsites//2 + nsites, nsites//2 + 1] = + Jm_coupling
-    G_XY_even[nsites//2 + nsites + 1, nsites//2] = - Jm_coupling
-    G_XY_even[nsites//2 + nsites, nsites//2 + nsites + 1] = - Jp_coupling
-    G_XY_even[nsites//2 + nsites + 1, nsites//2 + nsites] = - Jp_coupling
+    G_XY_even[nsites//2, nsites//2 + 1] =  +Jp_coupling_right
+    G_XY_even[nsites//2 + 1, nsites//2] =  +Jp_coupling_right
+    G_XY_even[nsites//2, nsites//2 + nsites + 1] =  - Jm_coupling_right
+    G_XY_even[nsites//2 + 1, nsites//2 + nsites] = + Jm_coupling_right
+    G_XY_even[nsites//2 + nsites, nsites//2 + 1] = + Jm_coupling_right
+    G_XY_even[nsites//2 + nsites + 1, nsites//2] = - Jm_coupling_right
+    G_XY_even[nsites//2 + nsites, nsites//2 + nsites + 1] = - Jp_coupling_right
+    G_XY_even[nsites//2 + nsites + 1, nsites//2 + nsites] = - Jp_coupling_right
 
-    G_XY_odd[(nsites//2-1), (nsites//2-1) + 1] = + Jp_coupling
-    G_XY_odd[(nsites//2-1) + 1, (nsites//2-1)] = + Jp_coupling
-    G_XY_odd[(nsites//2-1), (nsites//2-1) + nsites + 1] = - Jm_coupling
-    G_XY_odd[(nsites//2-1) + 1, (nsites//2-1) + nsites] = + Jm_coupling
-    G_XY_odd[(nsites//2-1) + nsites, (nsites//2-1) + 1] = + Jm_coupling
-    G_XY_odd[(nsites//2-1) + nsites + 1, (nsites//2-1)] = - Jm_coupling
-    G_XY_odd[(nsites//2-1) + nsites, (nsites//2-1) + nsites + 1] = - Jp_coupling
-    G_XY_odd[(nsites//2-1) + nsites + 1, (nsites//2-1) + nsites] = - Jp_coupling
+    G_XY_odd[(nsites//2-1), (nsites//2-1) + 1] = + Jp_coupling_left
+    G_XY_odd[(nsites//2-1) + 1, (nsites//2-1)] = + Jp_coupling_left
+    G_XY_odd[(nsites//2-1), (nsites//2-1) + nsites + 1] = - Jm_coupling_left
+    G_XY_odd[(nsites//2-1) + 1, (nsites//2-1) + nsites] = + Jm_coupling_left
+    G_XY_odd[(nsites//2-1) + nsites, (nsites//2-1) + 1] = + Jm_coupling_left
+    G_XY_odd[(nsites//2-1) + nsites + 1, (nsites//2-1)] = - Jm_coupling_left
+    G_XY_odd[(nsites//2-1) + nsites, (nsites//2-1) + nsites + 1] = - Jp_coupling_left
+    G_XY_odd[(nsites//2-1) + nsites + 1, (nsites//2-1) + nsites] = - Jp_coupling_left
 
     evol = (expm(1.j*G_XY_odd) @ expm(1.j*G_XY_even))
     evol_even = expm(1.j*G_XY_even)
@@ -235,16 +244,17 @@ for mu in potentials:
 
     filename = '/Users/julianthoenniss/Documents/PhD/data/test'
 
-    with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'w') as f:
-            dset_propag_IM = f.create_dataset('propag_exact', (30,),dtype=np.complex_)
-            dset_left_curr = f.create_dataset('current_left_exact', (30,),dtype=np.complex_)
-            dset_right_curr = f.create_dataset('current_right_exact', (30,),dtype=np.complex_)
-            dset_n_even = f.create_dataset('n_even', (30,),dtype=np.complex_)
-            dset_n_odd = f.create_dataset('n_odd', (30,),dtype=np.complex_)
-            dset_nimp_tot = f.create_dataset('n_imp_tot', (30,),dtype=np.complex_)
-            dset_nimp_even = f.create_dataset('n_imp_even', (30,),dtype=np.complex_)
-            dset_nimp_odd = f.create_dataset('n_imp_odd', (30,),dtype=np.complex_)
-            dset_n_expec = f.create_dataset('n_expec', (30,nsites),dtype=np.complex_)
+    with h5py.File(filename+'_spinfulpropag_mu{}'.format(mu) + ".hdf5", 'w') as f:
+            dset_propag_IM = f.create_dataset('propag_exact', (len(time_array),),dtype=np.complex_)
+            dset_left_curr = f.create_dataset('current_left_exact', (len(time_array),),dtype=np.complex_)
+            dset_right_curr = f.create_dataset('current_right_exact', (len(time_array),),dtype=np.complex_)
+            dset_n_even = f.create_dataset('n_even', (len(time_array),),dtype=np.complex_)
+            dset_n_odd = f.create_dataset('n_odd', (len(time_array),),dtype=np.complex_)
+            dset_nimp_tot = f.create_dataset('n_imp_tot', (len(time_array),),dtype=np.complex_)
+            dset_nimp_even = f.create_dataset('n_imp_even', (len(time_array),),dtype=np.complex_)
+            dset_nimp_odd = f.create_dataset('n_imp_odd', (len(time_array),),dtype=np.complex_)
+            dset_n_expec = f.create_dataset('n_expec', (len(time_array),nsites),dtype=np.complex_)
+            dset_times = f.create_dataset('times', (len(time_array),),dtype=np.float_)
 
 
     print (evol.shape,Lambda_tot.shape)
@@ -252,13 +262,15 @@ for mu in potentials:
         t_2=i
         t_1=0
         value = (matrix_power(evol_tot,t_2) @ Lambda_tot @ matrix_power(evol_tot.T.conj(),t_1))[nsites_left,nsites_left]
-        with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
+        with h5py.File(filename+'_spinfulpropag_mu{}'.format(mu)+ ".hdf5", 'a') as f:
             propag_data = f['propag_exact']
             propag_data[i] = value
 
         print(i, value)
 
-    for i in range (0,30):
+    iter = -1
+    for i in time_array:
+        iter += 1
         t_2=i
         t_1=0
         Lambda_tot_temp = (matrix_power(evol_tot,t_2) @ Lambda_tot @ matrix_power(evol_tot.T.conj(),t_2))
@@ -268,26 +280,28 @@ for mu in potentials:
         n_temp_even_R = np.diag(Lambda_tot_temp_even[1*nsites +nsites_left: 2*nsites, 1*nsites +nsites_left: 2*nsites] + Lambda_tot_temp_even[3*nsites +nsites_left: 4*nsites,3*nsites +nsites_left: 4*nsites])
         n_temp_even_L = np.diag(Lambda_tot_temp_even[1*nsites : 1*nsites + nsites_left+1, 1*nsites : 1*nsites + nsites_left+1] + Lambda_tot_temp_even[3*nsites : 3*nsites + nsites_left+1, 3*nsites : 3*nsites + nsites_left+1])
         n_temp_odd_L =  np.diag(Lambda_tot_temp_odd[1*nsites : 1*nsites + nsites_left+1, 1*nsites : 1*nsites + nsites_left+1] + Lambda_tot_temp_odd[3*nsites : 3*nsites + nsites_left+1, 3*nsites : 3*nsites + nsites_left+1])
-        with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'a') as f:
+        with h5py.File(filename+'_spinfulpropag_mu{}'.format(mu)+".hdf5", 'a') as f:
             curr_data_L = f['current_left_exact']
             curr_data_R = f['current_right_exact']
             n_imp_tot = f['n_imp_tot']
             n_imp_even = f['n_imp_even']
             n_imp_odd = f['n_imp_odd']
 
-            n_imp_tot [i] = Lambda_tot_temp[nsites + nsites_left, nsites + nsites_left] #+ Lambda_tot_temp[3*nsites + nsites_left, 3*nsites + nsites_left]
-            n_imp_even [i] = Lambda_tot_temp_even[nsites + nsites_left, nsites + nsites_left] #+ Lambda_tot_temp_even[3*nsites + nsites_left, 3*nsites + nsites_left]
-            n_imp_odd [i] = Lambda_tot_temp_odd[nsites + nsites_left, nsites + nsites_left] #+ Lambda_tot_temp_odd[3*nsites + nsites_left, 3*nsites + nsites_left]
-            curr_data_R[i] = (np.trace(Lambda_tot_temp_even[nsites + nsites_left +1 :,nsites + nsites_left +1 :]) - np.trace(Lambda_tot_temp[nsites + nsites_left +1 :,nsites + nsites_left +1 :])) / del_t
-            curr_data_L[i] = (np.trace(Lambda_tot_temp_odd[nsites :nsites+nsites_left,nsites :nsites+nsites_left]) - np.trace(Lambda_tot_temp_even[nsites :nsites+nsites_left,nsites :nsites+nsites_left])) / del_t
+            n_imp_tot [iter] = Lambda_tot_temp[nsites + nsites_left, nsites + nsites_left] #+ Lambda_tot_temp[3*nsites + nsites_left, 3*nsites + nsites_left]
+            n_imp_even [iter] = Lambda_tot_temp_even[nsites + nsites_left, nsites + nsites_left] #+ Lambda_tot_temp_even[3*nsites + nsites_left, 3*nsites + nsites_left]
+            n_imp_odd [iter] = Lambda_tot_temp_odd[nsites + nsites_left, nsites + nsites_left] #+ Lambda_tot_temp_odd[3*nsites + nsites_left, 3*nsites + nsites_left]
+            curr_data_R[iter] = (np.trace(Lambda_tot_temp_even[nsites + nsites_left +1 :,nsites + nsites_left +1 :]) - np.trace(Lambda_tot_temp[nsites + nsites_left +1 :,nsites + nsites_left +1 :])) / del_t
+            curr_data_L[iter] = (np.trace(Lambda_tot_temp_odd[nsites :nsites+nsites_left,nsites :nsites+nsites_left]) - np.trace(Lambda_tot_temp_even[nsites :nsites+nsites_left,nsites :nsites+nsites_left])) / del_t
             #n_even_data = f['n_even']
             #n_odd_data = f['n_odd']
             #n_even_data[i] = n_temp_even 
             #n_odd_data[i] = n_temp_odd 
 
             n_expec = f['n_expec']
-            n_expec[i,:] = np.diag(Lambda_tot_temp[nsites:2*nsites,nsites:2*nsites]) + np.diag(Lambda_tot_temp[3*nsites:4*nsites,3*nsites:4*nsites])
+            n_expec[iter,:] = np.diag(Lambda_tot_temp[nsites:2*nsites,nsites:2*nsites]) + np.diag(Lambda_tot_temp[3*nsites:4*nsites,3*nsites:4*nsites])
 
+            times = f['times']
+            times[iter] = i * del_t
             #print('left current',i, curr_data_R[i])
 
     #with h5py.File(filename+'_spinfulpropag' + ".hdf5", 'r') as f:
