@@ -12,8 +12,10 @@ from pfapack import pfaffian as pf
 #import exponent of IM
 
 filename = '/Users/julianthoenniss/Documents/PhD/data/B_imag'
+filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=G_o=1_Jx=0.0_Jy=0.0_g=0.0mu=0.0_del_t=1.0_beta=0.0_L=4_init=3_coupling=1.0_imag_GM'
+filename = '/Users/julianthoenniss/Documents/PhD/data/compmode=G_o=1_Jx=0j_Jy=0j_g=0jmu=0.0_del_t=1.0_beta=0.0_L=4_init=3_coupling=1.0_imag_GM'
 
-delta_t = 0.1
+delta_t = 1.0
 
 #if exponent B is read out
 with h5py.File(filename + '.hdf5', 'r') as f:
@@ -102,8 +104,8 @@ if sign_gm_order == -1:
 
 #Spin hopping
 t=0.0#1.3 * delta_t
-E_d_up =0.52# 0.3 * delta_t
-E_d_down =0.52# E_d_up 
+E_d_up = 0.52# 0.3 * delta_t
+E_d_down =0# E_d_up 
 
 alpha1 = -2.*np.tan(t/2)/(1 + np.tan(t/2)**2) * np.exp(-1. * E_d_up)
 alpha2 = -2.*np.tan(t/2)/(1 + np.tan(t/2)**2) * np.exp(-1. * E_d_down)
@@ -133,9 +135,9 @@ gate_big = gate_boundary
 for i in range (dim_B//2-1):
     gate_big = np.kron(gate,gate_big)
 Z = np.einsum('i,ij,j->',coeffs,gate_big,coeffs, optimize=True) 
-print('Z',Z)
-print('big_trace_up',gate_big @ coeffs  )
-print('big_trace_down',coeffs  @ gate_big)
+print('Z',Z/2.)
+#print('big_trace_up',gate_big @ coeffs  )
+#print('big_trace_down',coeffs  @ gate_big)
 
 #store expoent for benchmark 
 with h5py.File(filename + "_ED.hdf5", 'w') as f:
@@ -145,28 +147,28 @@ with h5py.File(filename + "_ED.hdf5", 'w') as f:
 #spin up propagator
 gate_boundary_cdag_up = np.zeros((4,4),dtype=np.complex_)
 gate_boundary_cdag_up[0,1] = 1  
-gate_boundary_cdag_up[3,1] = np.exp(-E_d_up) 
+gate_boundary_cdag_up[3,1] = np.exp(-E_d_down) 
 
 gate_c_up= np.zeros((4,4),dtype=np.complex_)
 gate_c_up[0,2] = np.exp(-E_d_up)  
-gate_c_up[3,2] = -np.exp(-(2*E_d_up)) 
+gate_c_up[3,2] = -np.exp(-(E_d_up + E_d_down )) 
 
-print('coeffs',coeffs)
+#print('coeffs',coeffs)
 for tau in range (dim_B//2-1):
-    print('tau',tau)
+    #print('tau',tau)
     gate_big = gate_boundary_cdag_up
     for i in range (dim_B//2-1 - tau - 1):
-        print('1',i,gate_big.shape)
+        #print('1',i,gate_big.shape)
         gate_big = np.kron(gate,gate_big)
     gate_big = np.kron(gate_c_up,gate_big)
     print('2',gate_big.shape)
     for i in range (tau):
-        print(i)
-        print('3',i,gate_big.shape)
+        #print(i)
+        #print('3',i,gate_big.shape)
         gate_big = np.kron(gate,gate_big)
 
     #print(coeffs.shape)
-    print('big_up',gate_big @ coeffs)
+    #print('big_up',gate_big @ coeffs)
     G = np.einsum('i,ij,j->',coeffs,gate_big,coeffs, optimize=True) 
     print('propag_up',G/Z)
     with h5py.File(filename + "_ED.hdf5", 'a') as f:
@@ -176,27 +178,27 @@ for tau in range (dim_B//2-1):
 #spin down propagator
 gate_boundary_cdag_down = np.zeros((4,4),dtype=np.complex_)
 gate_boundary_cdag_down[1,0] = -1 
-gate_boundary_cdag_down[1,3] = -1 * np.exp(-E_d_down) 
+gate_boundary_cdag_down[1,3] = -1 * np.exp(-E_d_up) 
 
 gate_c_down= np.zeros((4,4),dtype=np.complex_)
 gate_c_down[2,0] = -1.* np.exp(-E_d_down) 
-gate_c_down[2,3] = 1. * np.exp(-(2*E_d_down)) 
+gate_c_down[2,3] = 1. * np.exp(-(E_d_up + E_d_down)) 
 
 for tau in range (dim_B//2-1):
-    print('tau',tau)
+    #print('tau',tau)
     gate_big = gate_boundary_cdag_down
     for i in range (dim_B//2-1 - tau - 1):
-        print('1',i,gate_big.shape)
+        #print('1',i,gate_big.shape)
         gate_big = np.kron(gate,gate_big)
 
     gate_big = np.kron(gate_c_down,gate_big)
-    print('2',gate_big.shape)
+    #print('2',gate_big.shape)
     for i in range (tau):
-        print(i)
-        print('3',i,gate_big.shape)
+        #print(i)
+        #print('3',i,gate_big.shape)
         gate_big = np.kron(gate,gate_big)
     
-    print('big_down',coeffs@gate_big )
+    #print('big_down',coeffs@gate_big )
 
     #print(coeffs.shape)
     #print(gate_big.shape)
