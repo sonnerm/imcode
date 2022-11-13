@@ -22,13 +22,14 @@ np.set_printoptions(threshold=sys.maxsize, precision=6)
 filename_right = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/2809/current/finite_bias/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.2_del_t=0.1_beta=200.0_L=60_init=4_coupling=0.5'
 filename_left = '/Users/julianthoenniss/Documents/PhD/data/corr_mich/2809/current/finite_bias/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-0.2_del_t=0.1_beta=200.0_L=60_init=4_coupling=0.5'
 
-potentials = [0.0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.07]
+#potentials = [0.0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.07,0.08,0.1,0.2,0.3,0.5,0.7,0.9,1.2]
+potentials = [0.05]
 
 for potential in potentials:
     mu = potential /2
-    filename_right = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=' +str(mu) +'_del_t=0.025_beta=10000.0_L=300_init=4_coupling=0.3162'
-    filename_left = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-' +str(mu) +'_del_t=0.025_beta=10000.0_L=300_init=4_coupling=0.3162'
-    filename_output = '/Users/julianthoenniss/Documents/PhD/data/benchmark_GM_current_' + str(potential) + '_0.025'
+    filename_right = '/Users/julianthoenniss/Documents/PhD/data/impurity_benchmark/IM_current/0.009/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=' +str(mu) +'_del_t=0.009_beta=100000.0_L=1200_init=4_coupling=0.3162'
+    filename_left = '/Users/julianthoenniss/Documents/PhD/data/impurity_benchmark/IM_current/0.009/compmode=C_o=2_Jx=1.0_Jy=1.0_g=0.0mu=-' +str(mu) +'_del_t=0.009_beta=100000.0_L=1200_init=4_coupling=0.3162'
+    filename_output = '/Users/julianthoenniss/Documents/PhD/data/impurity_benchmark/IM_current/0.009/benchmark_GM_current_mu' + str(potential) + '_delt0.009'
 
     conv = 'J'
 
@@ -40,9 +41,9 @@ for potential in potentials:
         print('using Ms convention')
 
 
-    max_time =300
+    max_time =1000
     interval = 1
-    delta_t = 0.025
+    delta_t = 0.009
     mu = 0.
 
     with h5py.File(filename_output+'_spinfulpropag' + ".hdf5", 'w') as f:
@@ -51,10 +52,9 @@ for potential in potentials:
         dset_I_left = f.create_dataset('n_tot', (max_time,), dtype=np.complex_)
         dset_propag_exact = f.create_dataset('propag_times', (max_time,), dtype=np.float_)
 
-
     times = np.zeros(max_time,dtype=np.int_)
 
-    for iter in range(0,1,interval):
+    for iter in range(2,3,interval):
 
         iter_readout = iter
         with h5py.File(filename_left + '.hdf5', 'r') as f:
@@ -80,16 +80,16 @@ for potential in potentials:
                     dtype=np.complex_)
 
         with h5py.File(filename_left + '.hdf5', 'r') as f:
-            print(4*nbr_Floquet_layers, 4*nbr_Floquet_layers)
+            #print(4*nbr_Floquet_layers, 4*nbr_Floquet_layers)
             B_left = f['IM_exponent'][iter_readout, :4*nbr_Floquet_layers, :4*nbr_Floquet_layers]
         with h5py.File(filename_right + '.hdf5', 'r') as f:
-            print(4*nbr_Floquet_layers, 4*nbr_Floquet_layers)
+            #print(4*nbr_Floquet_layers, 4*nbr_Floquet_layers)
             B_right = f['IM_exponent'][iter_readout, :4*nbr_Floquet_layers, :4*nbr_Floquet_layers]
         
     
         dim_B = B_left.shape[0]
 
-        print('dim_b',dim_B)
+        #print('dim_b',dim_B)
         # rotate into Grassmann basis with input/output variables
 
         if conv == 'M':
@@ -123,7 +123,9 @@ for potential in potentials:
             B_right = rot.T @ S @ B_right @ S.T @ rot 
             print('Rotated from J basis to Grassmann basis')
 
-
+        print('antisym check 0', np.amax(B_right + B_right.T))
+        B_right = 0.5 * (B_right - B_right.T)
+        B_left = 0.5 * (B_left - B_left.T)
         #here, the matrix B is in the Grassmann convention
     
         exponent = np.zeros((4*dim_B, 4*dim_B), dtype=np.complex_)#this exponent will contain the exponents of both spin species as well as the impurity dynamics
@@ -153,7 +155,7 @@ for potential in potentials:
         exponent[dim_B + dim_B//2, dim_B + dim_B//2 - 1] -= np.exp(beta) *(-1.)
         
 
-
+        print('antisym check1', np.amax(exponent + exponent.T))
         
         # temporal boundary condition for measure (antiperiodic)
         # sign because substituted in such a way that all kernels are the same.
@@ -166,7 +168,7 @@ for potential in potentials:
         #hopping between spin species (gate is easily found by taking kernel of xy gate at isotropic parameters):
 
         for i in range(dim_B//4-1):
-            print(i, nbr_Floquet_layers,2 * dim_B + dim_B//2 - 2 - 2*i - 2*dim_B)
+            #print(i, nbr_Floquet_layers,2 * dim_B + dim_B//2 - 2 - 2*i - 2*dim_B)
             #minus signs *(-1.) behind lines come from overlap form
             #forward
             exponent[2 * dim_B + dim_B//2 - 2 - 2*i, dim_B + dim_B//2 - 2 - 2*i] += np.exp(1.j * mu) *(-1.)
@@ -181,7 +183,7 @@ for potential in potentials:
             # backward Transpose (antisymm)
             exponent[dim_B + dim_B//2 +1 + 2*i, 2 * dim_B + dim_B//2 -1 + 2*i] += np.exp(-1.j * mu) *(-1.)
             exponent[2 * dim_B + dim_B//2 + 2*i , dim_B + dim_B//2 +2 + 2*i] += np.exp(-1.j * mu) *(-1.)
-
+        print('antisym check2', np.amax(exponent + exponent.T))
         #last gate forward 
         exponent[2 * dim_B, dim_B ] += np.exp(1.j * mu) *(-1.)
         # forward Transpose (antisymm)
@@ -192,13 +194,16 @@ for potential in potentials:
         exponent[3*dim_B - 3,2 * dim_B -1 ] += -np.exp(1.j * mu) *(-1.)
 
         exponent_inv = linalg.inv(exponent)
+        print('antisym check3', np.amax(exponent_inv + exponent_inv.T))
 
+        exponent_inv = 0.5 * (exponent_inv - exponent_inv.T)
         with h5py.File(filename_output+'_spinfulpropag' + ".hdf5", 'a') as f:
             I_right = f['I_right']
             I_left = f['I_left']
             n_tot = f['n_tot']
-            tau0=0
-            for tau in range (tau0,nbr_Floquet_layers):
+            tau0=1
+            for tau in range (tau0,nbr_Floquet_layers-1):
+                print('computing current for time index ', tau)
                 n_before = - pf.pfaffian(np.array(pd.DataFrame(exponent_inv.T).iloc[[1*dim_B + dim_B//2 -1 - 2*tau,2*dim_B + dim_B//2 -1 - 2*tau], [1*dim_B + dim_B//2 -1 - 2*tau,2*dim_B + dim_B//2 -1 - 2*tau]]))
                 n_after_even = - pf.pfaffian(np.array(pd.DataFrame(exponent_inv.T).iloc[[2*dim_B + dim_B//2 -2 - 2*tau,1*dim_B + dim_B//2 -2 - 2*tau], [2*dim_B + dim_B//2 -2 - 2*tau,1*dim_B + dim_B//2 -2 - 2*tau]]))
                 n_after_odd = - pf.pfaffian(np.array(pd.DataFrame(exponent_inv.T).iloc[[1*dim_B + dim_B//2 -3 - 2*tau,2*dim_B + dim_B//2 -3 - 2*tau], [1*dim_B + dim_B//2 -3 - 2*tau,2*dim_B + dim_B//2 -3 - 2*tau]]))
@@ -207,8 +212,8 @@ for potential in potentials:
                 I_left[tau] = (n_after_odd - n_after_even)/delta_t
                 indices = [2*dim_B + dim_B//2 -2 - 2*tau,1*dim_B + dim_B//2 -2 - 2*tau]
                 n_tot[tau] = n_before
-                print(n_tot[tau])
-                print(I_left[tau])
+                #print(n_tot[tau])
+                #print(I_left[tau])
                 times_data = f['propag_times']
                 times_data[tau - tau0] = (tau -tau0)*delta_t #nbr_Floquet_layers
 
