@@ -217,7 +217,7 @@ def ising_embedded_evolution(iml,chs,imr,init=np.eye(2)/2):
     dm=np.einsum("abc,def,bge->cgf",iml.M[0],imr.M[0],vectorize_operator(init),optimize=True)
     pvalsl=ising_tracevalues(iml)
     pvalsr=ising_tracevalues(imr)
-    yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvalsl[0],pvalsr[0]),optimize=True)
+    yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvalsl[0],pvalsr[0],optimize=True))
     imml=iml.tomatrices_unchecked()[1:]
     immr=imr.tomatrices_unchecked()[1:]
     if isinstance(chs,np.ndarray) and len(chs.shape)==2:
