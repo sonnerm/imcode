@@ -11,17 +11,17 @@ np.set_printoptions(linewidth=np.nan, precision=6, suppress=True)
 
 #create B in Michael's basis
 
-min_time=300
-max_time=1201
-interval =300
+min_time=3
+max_time=4
+interval =1
 conv = 'M'
 time_scheme = ''#'ct'#'ct' is only needed for a single environment. Otherwise , the ct-convention is adopted be the join-method.
-int_lim_low = -12
-int_lim_up = 12
+int_lim_low = -12#for Cohen 2015, set this to -12
+int_lim_up = 12#for Cohen 2015, set this to 12
 
 filename_comp = '/Users/julianthoenniss/Documents/PhD/data/compmode=C_o=1_Jx=1.0_Jy=1.0_g=0.0mu=0.0_del_t=0.01_beta=0.0_L=100_init=2'
 #filename_comp = '/Users/julianthoenniss/Documents/PhD/data/Jx=0.1_Jy=0.1_g=0.0mu=0.0_del_t=1.0_L=200_FermiSea'
-filename = '/Users/julianthoenniss/Documents/PhD/data/Cohen2015_inchworm_deltat=0.01_shorttime_doublhyb_300-1200'
+filename = '/Users/julianthoenniss/Documents/PhD/data/Cohen2015_inchworm_deltat=0.005_shorttime_doublhyb_t=2.0'
 
 if conv == 'J':
     filename += '_my_conv' 
@@ -41,9 +41,9 @@ with h5py.File(filename + ".hdf5", 'w') as f:
 
 
 global_gamma = 1.
-delta_t = 0.01
-mu=0#-0.2 * global_gamma
-beta = 50./global_gamma
+delta_t = 0#0.005
+mu=0#for Cohen 2015, set this to 50./global_gamma
+beta = 50./global_gamma #for Cohen 2015, set this to 50./global_gamma
 def spec_dens(gamma,energy):
     e_c = 10.*gamma 
     nu = 10./gamma
@@ -61,45 +61,9 @@ def g_b_real(energy,beta,mu,t,t_prime):
 def g_b_imag(energy,beta,mu,t,t_prime):
     return np.imag((1./(1+np.exp(beta * (energy - mu))) - 1) * np.exp(-1.j* energy *(t-t_prime)))
 
-#print(integrate.quad(lambda x:  spec_dens(global_gamma,x) , int_lim_low, int_lim_up))
 
-#print(integrate.quad(lambda x: g_a(x,1./global_gamma,mu,0,0), int_lim_low, int_lim_up))
-#print(integrate.quad(lambda x: g_b(x,1./global_gamma,mu,0,0), int_lim_low, int_lim_up))
-#print(integrate.quad(lambda x: 1/(2*np.pi) * spec_dens(global_gamma,x) * g_a(x,1./global_gamma,mu,0,0), int_lim_low, int_lim_up))
 iter = 0
 for nbr_Floquet_layers in range (min_time,max_time,interval):
-
-    """
-    B_comp = np.zeros((4*(nbr_Floquet_layers),4*(nbr_Floquet_layers)), dtype=np.complex_)
-    with h5py.File(filename_comp + '.hdf5', 'r') as f:
-        B_comp = f['IM_exponent'][nbr_Floquet_layers-1,:4*(nbr_Floquet_layers),:4*(nbr_Floquet_layers)]
-
-    S = np.zeros(B_comp.shape,dtype=np.complex_)
-    for i in range (nbr_Floquet_layers):#order plus and minus next to each other
-        S [B_comp.shape[0] // 2 - (2 * i) - 2,4 * i] = 1
-        S [B_comp.shape[0] // 2 - (2 * i) - 1,4 * i + 2] = 1
-        S [B_comp.shape[0] // 2 + (2 * i) ,4 * i + 1] = 1
-        S [B_comp.shape[0] // 2 + (2 * i) + 1,4 * i + 3] = 1
-    
-    B_comp = S @ B_comp @ S.T
-
-    #the following two transformation bring it into in/out- basis (not theta, zeta)
-    rot = np.zeros(B_comp.shape)
-    for i in range(0,B_comp.shape[0], 2):#go from bar, nonbar to zeta, theta
-        rot[i,i] = 1./np.sqrt(2)
-        rot[i,i+1] = 1./np.sqrt(2)
-        rot[i+1,i] = - 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
-        rot[i+1,i+1] = 1./np.sqrt(2) * np.sign(2*nbr_Floquet_layers - i-1)
-    B_comp = rot.T @ B_comp @ rot
-
-    U = np.zeros(B_comp.shape)#order in the way specified in pdf for him (forward,backward,forward,backward,...)
-    for i in range (nbr_Floquet_layers):
-        U[4*i, B_comp.shape[0] //2 - (2*i) -1] = 1
-        U[4*i + 1, B_comp.shape[0] //2 + (2*i)] = 1
-        U[4*i + 2, B_comp.shape[0] //2 - (2*i) -2] = 1
-        U[4*i + 3, B_comp.shape[0] //2 + (2*i) + 1] = 1
-    B_comp = U @ B_comp @ U.T 
-    """    
     print('computing B..')
     B = np.zeros((4*nbr_Floquet_layers,4*nbr_Floquet_layers),dtype=np.complex_)
 
@@ -164,7 +128,6 @@ for nbr_Floquet_layers in range (min_time,max_time,interval):
             U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
         B = U.T @ B @ U
         
-        
         print('Rotated from M basis to Grassmann basis')
 
         #here, the matrix B is in the Grassmann convention
@@ -220,4 +183,3 @@ for nbr_Floquet_layers in range (min_time,max_time,interval):
     print(np.real(linalg.eigvals(correlation_block)))
 
     iter += 1
-#print(B)
