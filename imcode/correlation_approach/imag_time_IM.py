@@ -12,14 +12,11 @@ global_gamma = 1.#global energyscale -> set to 1
 beta = 4./global_gamma# here, twice the value than Benedikt (?)
 Gamma = 1.
 
-#spin hopping parameter (set to 0 for Anderson impurity model)
-t = 0
-#local (spin-dependent) onsite_energies
-mu_up =0.
-mu_down =0.
 
-nbr_steps = 5
-T_ren = 50#specify how many "substeps" should be included in one time-step of the environment evolution. This is only meaningful for method "a", i.e. for successive environment-impurity evolution
+
+nbr_steps = 4#this is the number of Floquet steps that are performed on the level of MPS
+T_ren = 36#this is the number of "substeps" into which one time-step of the environment evolution is subdivided. The result becomes the exact continuous-time result when this parameters is large. This is only meaningful for method "a", i.e. for successive environment-impurity evolution
+
 dim_B = 2 * nbr_steps # Size of exponent matrix in the IF. The variable dim_B is equal to 2*nbr_Floquet_layers
 dim_B_temp = dim_B * T_ren
 delta_t = beta / (dim_B_temp/2 )#timestep
@@ -37,6 +34,12 @@ if trotter_convention == 'b':#for simultaneous evolution, set alpha = 1
     T_ren = 1
     dim_B_temp = dim_B
     delta_t = beta / (dim_B_temp/2 )#timestep
+
+#spin hopping parameter (set to 0 for Anderson impurity model)
+t = 0. * (beta / nbr_steps)
+#local (spin-dependent) onsite_energies
+mu_up =0.3 * (beta / nbr_steps)
+mu_down =0.5 * (beta / nbr_steps)
 
 ###################COMPUTE INFLUENCE FUNCTIONAL AND ITS CORRELATION MATRIX########################################
 
@@ -223,7 +226,8 @@ with h5py.File(filename + "_propag_GM_steps={}_trotter_{}_T_ren={}.hdf5".format(
             dset_propag[0,tau] = pf.pfaffian(np.array(pd.DataFrame(exponent_inv.T).iloc[[0,3*dim_B -1 -2*tau], [0,3*dim_B -1 -2*tau]]))
             #spin down
             dset_propag[1,tau] = pf.pfaffian(np.array(pd.DataFrame(exponent_inv.T).iloc[[2*dim_B -1 -2*tau,3*dim_B], [2*dim_B -1 -2*tau,3*dim_B]]))
-
+            print('up',dset_propag[0,tau])
+            print('down',dset_propag[1,tau])
         elif trotter_convention == 'b':#for simultaneous impurity-bath evolution
             #spin up
             dset_propag[0,tau] = pf.pfaffian(np.array(pd.DataFrame(exponent_inv.T).iloc[[0,dim_B -1 -2*tau], [0,dim_B -1 -2*tau]]))
