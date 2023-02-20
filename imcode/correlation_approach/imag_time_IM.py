@@ -57,26 +57,26 @@ for m in range (B_spec_dens.shape[0]//2):
     B_spec_dens[2*m, 2*m + 1] += - 1. #constant from overlap at m=n
     
 B_spec_dens -= B_spec_dens.T#antisymmetrize. This is twice the exponent matrix (this is assumed for later part in the code)
+B_comp = B_spec_dens.copy()
 
-
-"""#___________________for IF defined from a hybridization function (given as vector____________________
+#___________________for IF defined from a hybridization function (given as vector____________________
 B_spec_dens = np.zeros((dim_B_temp,dim_B_temp))
 #here, as an example we reproduce the example of the spectral density-result by first defining the hybridization vector:
 hyb = np.zeros(dim_B_temp//2)#this vector is the vector coming out of the DMFT loop with hyb[0] corresponding to tau=0, hyb[1] corresponding to tau=1, and so on 
 
 #for our example, initialize hyb[] with the bath greens function as derived in the notes
 for n in range (2):
-    hyb[n] = - delta_t**2*integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(T_ren*nbr_steps + (n-1-alpha))*delta_t, 0), int_lim_low, int_lim_up)[0]
+    hyb[n] = delta_t**2*integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(T_ren*nbr_steps + (n-1-alpha))*delta_t, 0), int_lim_low, int_lim_up)[0]
 for n in range (2,dim_B_temp//2):
-    hyb[n] = delta_t**2*integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(n-1-alpha)*delta_t, 0), int_lim_low, int_lim_up)[0]
+    hyb[n] = - delta_t**2*integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(n-1-alpha)*delta_t, 0), int_lim_low, int_lim_up)[0]
 hyb = np.append(hyb[1:],-hyb[0])#reshuffle first element to last position with negative sign, such that matrix an be initialized easier
 
 for m in range (B_spec_dens.shape[0]//2):
-    B_spec_dens[2*m,2*m+1::2] = hyb[:len(hyb)-m]
-    B_spec_dens[2*m+1,2*m+2::2] = hyb[len(hyb)-1:m:-1]
+    B_spec_dens[2*m,2*m+1::2] = - hyb[:len(hyb)-m]
+    B_spec_dens[2*m+1,2*m+2::2] = - hyb[len(hyb)-1:m:-1]
     B_spec_dens[2*m, 2*m + 1] += - 1. #constant from overlap at m=n
 B_spec_dens -= B_spec_dens.T#antisymmetrize. This is twice the exponent matrix (this is assumed for later part in the code)
-"""
+print(np.amax(B_comp -B_spec_dens))
 
 if trotter_convention == 'a' and T_ren > 1: 
     #add intermediate integration measure to integrate out internal legs
