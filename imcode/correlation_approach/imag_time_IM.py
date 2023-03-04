@@ -5,17 +5,21 @@ import pandas as pd
 import scipy.integrate as integrate
 from pfapack import pfaffian as pf
 from imag_time_IM_funcs import g_lesser, g_greater, spec_dens, create_correlation_matrix
+def pend(y, t, b, c):
+    theta, omega = y
+    dydt = [omega, -b*omega - c*np.sin(theta)]
+    return dydt
 np.set_printoptions(suppress=False, linewidth=np.nan)
 
 #___________Set parameters_______________________________________________________________________________________
 global_gamma = 1.#global energyscale -> set to 1 
-beta = 4./global_gamma# here, twice the value than Benedikt (?)
+beta = 0.3/global_gamma# here, twice the value than Benedikt (?)
 Gamma = 1.
 
 
 
-nbr_steps = 2#this is the number of Floquet steps that are performed on the level of MPS
-T_ren = 4#this is the number of "substeps" into which one time-step of the environment evolution is subdivided. The result becomes the exact continuous-time result when this parameters is large. This is only meaningful for method "a", i.e. for successive environment-impurity evolution
+nbr_steps =7#this is the number of Floquet steps that are performed on the level of MPS
+T_ren = 100#this is the number of "substeps" into which one time-step of the environment evolution is subdivided. The result becomes the exact continuous-time result when this parameters is large. This is only meaningful for method "a", i.e. for successive environment-impurity evolution
 
 dim_B = 2 * nbr_steps # Size of exponent matrix in the IF. The variable dim_B is equal to 2*nbr_Floquet_layers
 dim_B_temp = dim_B * T_ren
@@ -38,8 +42,8 @@ if trotter_convention == 'b':#for simultaneous evolution, set alpha = 1
 #spin hopping parameter (set to 0 for Anderson impurity model)
 t = 0. * (beta / nbr_steps)
 #local (spin-dependent) onsite_energies
-mu_up =0.3 * (beta / nbr_steps)
-mu_down =0.5 * (beta / nbr_steps)
+mu_up =0#0.3 * (beta / nbr_steps)
+mu_down =0#0.5 * (beta / nbr_steps)
 
 ###################COMPUTE INFLUENCE FUNCTIONAL AND ITS CORRELATION MATRIX########################################
 
@@ -57,40 +61,112 @@ for m in range (B_spec_dens.shape[0]//2):
     B_spec_dens[2*m, 2*m + 1] += - 1. #constant from overlap at m=n
     
 B_spec_dens -= B_spec_dens.T#antisymmetrize. This is twice the exponent matrix (this is assumed for later part in the code)
-B_comp = B_spec_dens.copy()
 
-#___________________for IF defined from a hybridization function (given as vector____________________
+
+
+#****************************************Use analtically exact continuous-time IF****************************************
+"""
+#----------#array that contains the non-interacting impurity GF --------
+#___!!!!!!!!!!!!!!!__The array needs to be filled_____!!!!!!!!!!!!!!!
+g = np.zeros((nbr_steps),dtype=np.complex_)#into this array, insert the Fourier transform of the non-interacting impurity GF, evaluated at the discrete time-grid points: tau = 0, delta, 2* delta,...,beta-delta
+
+
+# here (as an example) initialized with the analytical non-interacting GF gf() for the single-mode environment
+t_hop = np.sqrt(0.8)#hopping amplitude between bath and single environment mode
+def gf(t_hop,tau):
+    return -(np.exp(-t_hop * tau)/2 + np.sinh(t_hop * tau)*1/(1+np.exp(t_hop * beta)))#analytical solution of non-interacting greens function for single-mode environment with E_k = 0
+for i in range (nbr_steps):
+    g[i] = gf(t_hop, i*beta/nbr_steps) 
+#-------------------------------------------------------------------------
+
+#-------The part below takes the array g[] and spits out the exponent of the IF, i.e. the same object we computed previously via integrating out intermediate legs------
+#Create array G with values of g[]. From this array, we will extract certain submatrices of which we compute the determinants, yielding the components of the IF
+#the matrix G is constructed as
+# [[g[0], g[delta], g[2],...,-g[0]],
+#  [-g[M-1], g[0], g[1],...g[M-1]],
+#  [-g[M-2], -g[M-1], g[0],...,g[M-2]]
+G = np.zeros((nbr_steps+1,nbr_steps+1),dtype=np.complex_)
+G[0,:] = np.append(g[:],g[0])
+for i in range (1,nbr_steps+1):
+    G[i,:] = np.append(-g[nbr_steps-i:nbr_steps],g[:nbr_steps-i+1])
+
+Z = -1/linalg.det(G[:-1,:-1])#partition sum, with minus sign included in such a way to cancel the minus sign of the entries in B_tau
+
+#by evaluating the determinant of certain submatrices of G, compute the elements of the IF. 
+B_tau = np.zeros(nbr_steps,dtype=np.complex_)#only nbr_steps evaluations are necessary. They are stored in the arrax B_tau, from which we later construct the exponent of the IF. 
+for m in range(nbr_steps-1):
+    arr_bar = list(np.append(m+1,(np.delete(np.arange(1,nbr_steps),m))))#columns of G, corresponding to barred Grassmann variables in the multipoint correlation function
+    arr_nobar = list(np.delete(np.arange(nbr_steps),m+1))#rows of G, corresponding to non-barred Grassmann variables in the multipoint correlation function
+    G_det = np.array(pd.DataFrame(G).iloc[arr_nobar,arr_bar])#first array: bars, second array: non-bar
+    B_tau[m] = Z * linalg.det(G_det)# multiply the determinant with the partition sum to obtain elements of IF.
+
+#repeat the same procedure with slight modification for the element between maximally separated variables.
+arr_bar = list(np.append(nbr_steps,np.arange(1,nbr_steps)))
+arr_nobar = list(np.arange(nbr_steps))
+G_det = np.array(pd.DataFrame(G).iloc[arr_nobar,arr_bar])#first array: bars, second array: non-bar
+B_tau[-1] =  - Z * linalg.det(G_det)# minus sign becase the sign in the determinant does not fully cancel the ones from GF because there is one GF more than before
+
+#construct IF-exponent B_spec_dens_cont from vector B_tau:
+B_spec_dens_cont = np.zeros((dim_B,dim_B),dtype=np.complex_)#exponent of IF (times 2, as previously). 
+for m in range (nbr_steps):
+    for n in range(nbr_steps):
+        if m > n-1:
+            B_spec_dens_cont[2*m+1,2*n] = B_tau[m-n]
+        else: 
+            B_spec_dens_cont[2*m+1,2*n] = -B_tau[nbr_steps + m-n]
+B_spec_dens_cont -= B_spec_dens_cont.T
+#The matrix B_spec_dens_cont is the large-T_ren-limit of the matrix B_spec_dens, obtained by integrating out intermediate legs
+print('first column of exact-continuum-IF', B_spec_dens_cont[1::2,0])
+
+#---------As a benchmark, compute the IF as previously, explicitly for a single-mode environment with E_k = 0. In this case, B_spec_dens is initialized as follows (where we then integrate out intermediate legs as before)
+B_spec_dens = np.zeros((dim_B_temp,dim_B_temp),dtype=np.complex_)
+#this block below initialized the fine IF with T_ren, which is used to benchmark our exact continuous-time solution against the previous procedure
+#___________________for IF defined from a spectral density____________________
+for m in range (B_spec_dens.shape[0]//2):
+    tau = m * delta_t
+    for n in range (m+1,B_spec_dens.shape[0]//2):
+        tau_p = n * delta_t
+        B_spec_dens[2*m, 2*n + 1] += - (-1.) * delta_t**2 *t_hop**2* g_greater(0,beta,tau_p,tau+delta_t* alpha)#this is the element in lowest order (delta\tau) for the single mode environment: the spectral density corresponds to a delta function at w=0
+        B_spec_dens[2*m+1, 2*n ] += - delta_t**2*t_hop**2 *g_lesser(0,beta,tau,tau_p+delta_t* alpha)
+    B_spec_dens[2*m, 2*m + 1] += - (-1.) * delta_t**2*t_hop**2*g_lesser(0,beta,tau,tau+delta_t* alpha)
+    B_spec_dens[2*m, 2*m + 1] += - 1. #constant from overlap at m=n
+B_spec_dens -= B_spec_dens.T#antisymmetrize. This is twice the exponent matrix (this is assumed for later part in the code)
+"""
+#*****************************************************************************************************************************
+
+"""
+#___________________for IF defined from a hybridization function (given as vector). This relies on integrating out intermediate legs to obtain the Trotter limit of the IF.____________________
 B_spec_dens = np.zeros((dim_B_temp,dim_B_temp))
 #here, as an example we reproduce the example of the spectral density-result by first defining the hybridization vector:
 hyb = np.zeros(dim_B_temp//2)#this vector is the vector coming out of the DMFT loop with hyb[0] corresponding to tau=0, hyb[1] corresponding to tau=1, and so on 
 
 #for our example, initialize hyb[] with the bath greens function as derived in the notes
 for n in range (2):
-    hyb[n] = delta_t**2*integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(T_ren*nbr_steps + (n-1-alpha))*delta_t, 0), int_lim_low, int_lim_up)[0]
+    hyb[n] = integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(T_ren*nbr_steps + (n-1-alpha))*delta_t, 0), int_lim_low, int_lim_up)[0]
 for n in range (2,dim_B_temp//2):
-    hyb[n] = - delta_t**2*integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(n-1-alpha)*delta_t, 0), int_lim_low, int_lim_up)[0]
+    hyb[n] = - integrate.quad(lambda x: 1./(2*np.pi) * spec_dens(global_gamma,x) * g_greater(x,beta,(n-1-alpha)*delta_t, 0), int_lim_low, int_lim_up)[0]
 hyb = np.append(hyb[1:],-hyb[0])#reshuffle first element to last position with negative sign, such that matrix an be initialized easier
 
 for m in range (B_spec_dens.shape[0]//2):
-    B_spec_dens[2*m,2*m+1::2] = - hyb[:len(hyb)-m]
-    B_spec_dens[2*m+1,2*m+2::2] = - hyb[len(hyb)-1:m:-1]
+    B_spec_dens[2*m,2*m+1::2] = - delta_t**2hyb[:len(hyb)-m]
+    B_spec_dens[2*m+1,2*m+2::2] = - delta_t**2hyb[len(hyb)-1:m:-1]
     B_spec_dens[2*m, 2*m + 1] += - 1. #constant from overlap at m=n
 B_spec_dens -= B_spec_dens.T#antisymmetrize. This is twice the exponent matrix (this is assumed for later part in the code)
-print(np.amax(B_comp -B_spec_dens))
-
+"""
+#print(B_spec_dens)
 if trotter_convention == 'a' and T_ren > 1: 
     #add intermediate integration measure to integrate out internal legs
     for i in range (dim_B//2 ):
         for j in range (T_ren-1):
             B_spec_dens[2*i*T_ren + 1 + 2*j,2*i*T_ren+2+ 2*j] += -1  
             B_spec_dens[2*i*T_ren+2+ 2*j,2*i*T_ren + 1 + 2*j] += 1  
-
+   
     #select submatrix that contains all intermediate times that are integrated out
     B_spec_dens_sub =  np.zeros((dim_B_temp - dim_B, dim_B_temp - dim_B),dtype=np.complex_)
     for i in range (dim_B//2 ):
         for j in range (dim_B//2 ):
             B_spec_dens_sub[i*(2*T_ren-2):i*(2*T_ren-2 )+2*T_ren-2,j*(2*T_ren-2):j*(2*T_ren-2 )+2*T_ren-2] = B_spec_dens[2*i*T_ren+1:2*(i*T_ren + T_ren)-1,2*j*T_ren+1:2*(j*T_ren + T_ren)-1]
-
+   
     #matrix coupling external legs to integrated (internal) legs
     B_spec_dens_coupl =  np.zeros((dim_B_temp - dim_B,dim_B),dtype=np.complex_)
     for i in range (dim_B//2 ):
@@ -107,9 +183,11 @@ if trotter_convention == 'a' and T_ren > 1:
             B_spec_dens_ext[2*i,2*j+1] = B_spec_dens[2*i*T_ren,2*(j+1)*T_ren-1]
             B_spec_dens_ext[2*i+1,2*j+1] = B_spec_dens[2*(i+1)*T_ren-1,2*(j+1)*T_ren-1]
 
+   
     B_spec_dens = B_spec_dens_ext + B_spec_dens_coupl.T @ linalg.inv(B_spec_dens_sub) @ B_spec_dens_coupl
 
-
+    #print first column of exponent matrix. can be used to compare exact continuous-time solution to previous procedure.
+    print('first column of IF, obtained by integrating intermediate legs',B_spec_dens[1::2,0])
 
 elif trotter_convention == 'b':#for simultaneous impurity-bath evolution. Note that the input here is the matrix B_specdens, computed with successive-application-trotter-scheme  
     #remove overlap, it will be included in the impurity gates
