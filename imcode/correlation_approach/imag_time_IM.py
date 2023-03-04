@@ -18,8 +18,8 @@ Gamma = 1.
 
 
 
-nbr_steps =7#this is the number of Floquet steps that are performed on the level of MPS
-T_ren = 100#this is the number of "substeps" into which one time-step of the environment evolution is subdivided. The result becomes the exact continuous-time result when this parameters is large. This is only meaningful for method "a", i.e. for successive environment-impurity evolution
+nbr_steps =4#this is the number of Floquet steps that are performed on the level of MPS
+T_ren = 1000#this is the number of "substeps" into which one time-step of the environment evolution is subdivided. The result becomes the exact continuous-time result when this parameters is large. This is only meaningful for method "a", i.e. for successive environment-impurity evolution
 
 dim_B = 2 * nbr_steps # Size of exponent matrix in the IF. The variable dim_B is equal to 2*nbr_Floquet_layers
 dim_B_temp = dim_B * T_ren
@@ -68,27 +68,28 @@ B_spec_dens -= B_spec_dens.T#antisymmetrize. This is twice the exponent matrix (
 """
 #----------#array that contains the non-interacting impurity GF --------
 #___!!!!!!!!!!!!!!!__The array needs to be filled_____!!!!!!!!!!!!!!!
-g = np.zeros((nbr_steps),dtype=np.complex_)#into this array, insert the Fourier transform of the non-interacting impurity GF, evaluated at the discrete time-grid points: tau = 0, delta, 2* delta,...,beta-delta
+g = np.zeros((nbr_steps+1),dtype=np.complex_)#into this array, insert the Fourier transform of the non-interacting impurity GF, evaluated at the discrete time-grid points: tau = 0, delta, 2* delta,...,beta-delta, beta
 
 
 # here (as an example) initialized with the analytical non-interacting GF gf() for the single-mode environment
 t_hop = np.sqrt(0.8)#hopping amplitude between bath and single environment mode
 def gf(t_hop,tau):
     return -(np.exp(-t_hop * tau)/2 + np.sinh(t_hop * tau)*1/(1+np.exp(t_hop * beta)))#analytical solution of non-interacting greens function for single-mode environment with E_k = 0
-for i in range (nbr_steps):
+for i in range (nbr_steps+1):
     g[i] = gf(t_hop, i*beta/nbr_steps) 
 #-------------------------------------------------------------------------
 
 #-------The part below takes the array g[] and spits out the exponent of the IF, i.e. the same object we computed previously via integrating out intermediate legs------
 #Create array G with values of g[]. From this array, we will extract certain submatrices of which we compute the determinants, yielding the components of the IF
 #the matrix G is constructed as
-# [[g[0], g[delta], g[2],...,-g[0]],
+# [[g[0], g[delta], g[2],...,g[M]],
 #  [-g[M-1], g[0], g[1],...g[M-1]],
 #  [-g[M-2], -g[M-1], g[0],...,g[M-2]]
+# ...
 G = np.zeros((nbr_steps+1,nbr_steps+1),dtype=np.complex_)
-G[0,:] = np.append(g[:],g[0])
-for i in range (1,nbr_steps+1):
+for i in range (nbr_steps):
     G[i,:] = np.append(-g[nbr_steps-i:nbr_steps],g[:nbr_steps-i+1])
+G[nbr_steps,:] = np.append(-g[:nbr_steps],g[0])
 
 Z = -1/linalg.det(G[:-1,:-1])#partition sum, with minus sign included in such a way to cancel the minus sign of the entries in B_tau
 
