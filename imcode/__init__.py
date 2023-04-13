@@ -14,4 +14,5 @@ from .obs import zoz_boundary_evolution,zoz_embedded_evolution
 from .io import savehdf5,loadhdf5
 from .channel import unitary_channel,vectorize_operator,unvectorize_operator
 from .norm import ising_norm,brickwork_norm
-from .fermions import brickwork_fermi_to_spin
+from .fermions import brickwork_fermi_to_spin,fermiexp_to_fermicorr,fermicorr_to_circuit,circuit_to_mps
+from .fermions_rt import spectral_density_to_fermiexp_realtime
