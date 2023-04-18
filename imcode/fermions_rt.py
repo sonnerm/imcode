@@ -1,7 +1,11 @@
 import numpy as np
 import numpy.linalg as la
 import scipy.integrate as integrate
-def spectral_density_to_fermiexp_realtime(spectral_density,int_min,int_max, beta, mu, tmax, nsteps,nsubsteps):
+def cquad(f,lo,hi):
+    imag=integrate.quad(lambda x:f(x).imag,lo,hi)[0]
+    real=integrate.quad(lambda x:f(x).real,lo,hi)[0]
+    return real+1.0j*imag
+def spectral_density_to_fermiexp(spectral_density,int_min,int_max, beta, mu, tmax, nsteps,nsubsteps):
     def g_a(energy,beta,mu,t):
         return 1./(1+np.exp(beta * (energy - mu))) * np.exp(-1.j* energy *t)
     def g_b(energy,beta,mu,t):
@@ -14,8 +18,8 @@ def spectral_density_to_fermiexp_realtime(spectral_density,int_min,int_max, beta
             
             t = i * delta_t
             t_prime = j * delta_t
-            integ_a = 1./(2*np.pi)*integrate.quad(lambda x:spectral_density(x) * g_a(x,beta,mu,t-t_prime),int_min,int_max)[0]
-            integ_b = 1./(2*np.pi)*integrate.quad(lambda x:spectral_density(x) * g_b(x,beta,mu,t-t_prime),int_min,int_max)[0]
+            integ_a = 1./(2*np.pi)*cquad(lambda x:spectral_density(x) * g_a(x,beta,mu,t-t_prime),int_min,int_max)
+            integ_b = 1./(2*np.pi)*cquad(lambda x:spectral_density(x) * g_b(x,beta,mu,t-t_prime),int_min,int_max)
             
             B[4*i,4*j+1] = - np.conj(integ_b) * delta_t**2
             B[4*i,4*j+2] = - np.conj(integ_a) * delta_t**2
@@ -28,9 +32,9 @@ def spectral_density_to_fermiexp_realtime(spectral_density,int_min,int_max, beta
             
 
         #for equal time
-        integ_a = 1./(2*np.pi) * integrate.quad(lambda x:spectral_density(x) * g_a(x,beta,mu,0.0),int_min,int_max)[0]
+        integ_a = 1./(2*np.pi) * cquad(lambda x:spectral_density(x) * g_a(x,beta,mu,0.0),int_min,int_max)
         
-        integ_b = 1./(2*np.pi) * integrate.quad(lambda x:spectral_density(x) * g_b(x,beta,mu,0.0),int_min,int_max)[0]
+        integ_b = 1./(2*np.pi) * cquad(lambda x:spectral_density(x) * g_b(x,beta,mu,0.0),int_min,int_max)
 
         
         B[4*j+1,4*j] =  integ_b * delta_t**2
