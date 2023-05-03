@@ -95,5 +95,5 @@ def fermicorr_to_circuit(corr,nbcutoff=1e-10):
     return freeferm.real.corr_to_circuit(corr,nbcutoff)
 def circuit_to_mps(circuit,t,chi=128,svdcutoff=1e-10):
     import freeferm
-    return freeferm.apply_circuit_to_mps(freeferm.mps_vac(4*t,cluster=((16,),)*t),circuit,chi=128,cutoff=1e-12)
+    return freeferm.apply_circuit_to_mps(freeferm.mps_vac(4*t,cluster=((16,),)*t),circuit,chi,svdcutoff)
 
