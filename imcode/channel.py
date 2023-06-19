@@ -51,7 +51,7 @@ def unvectorize_operator(state):
         return np.asarray(ret,like=state)
     if len(state.shape)==3:
         L=int(math.log2(state.shape[1]))//2
-        ret=tt.asslice(ret,cluster=((4,),)*L)
+        ret=tt.asslice(state,cluster=((4,),)*L)
         ret=tt.frommatrices_slice([o.reshape((o.shape[0],2,2,o.shape[-1])) for o in ret.tomatrices_unchecked()])
         return np.asarray(ret,like=state)
     else:

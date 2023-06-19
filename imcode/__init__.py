@@ -1,6 +1,6 @@
 import numpy as np
 SX=np.array([[0,1],[1,0]])
-SY=np.array([[0,1j],[-1j,0]])
+SY=np.array([[0,-1j],[1j,0]])
 SZ=np.array([[1,0],[0,-1]])
 ID=np.array([[1,0],[0,1]])
 ZE=np.array([[0,0],[0,0]])

@@ -61,9 +61,7 @@ def brickwork_Te(t, chs):
     Te=Te.recluster(((4,1),(1,4))*(2*len(dual)-2)) #TODO: fix in ttarray
     Te=Te.recluster(((16,16),)*(len(dual)-1))
     return Te
-def brickwork_open_boundary_im(t):
-    return brickwork_La(t).asarray()
-def interleave_brickwork(ima,imb):
+def interleave_brickwork(lhs,rhs):
     res=[]
     for l,r in zip(lhs,rhs):
         l=l.reshape((l.shape[0],4,4,l.shape[-1]))
