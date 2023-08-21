@@ -14,7 +14,8 @@ def _get_mat(even,odd):
 _FERMI_A=_get_mat([1,1],[1,1])
 _FERMI_B=_get_mat([1,-1],[1,1])
 
-
+def apply_im(im,state,ind_im,ind_ap,fermi_inds=None,fermi_op=None,count=1):
+    pass
 def zoz_tracevalues(im):
     return ising_tracevalues(im) # i think that is correct
 

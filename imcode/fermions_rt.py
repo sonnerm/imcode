@@ -5,21 +5,34 @@ def cquad(f,lo,hi):
     imag=integrate.quad(lambda x:f(x).imag,lo,hi)[0]
     real=integrate.quad(lambda x:f(x).real,lo,hi)[0]
     return real+1.0j*imag
+def wideband_fermiexp(beta,mu,tmax,nsteps,nsubsteps):
+    def rtdens_a(beta,mu,t):
+        pass
+    def rtdens_b(beta,mu,t):
+        pass
+    return rtdens_to_fermiexp(rtdens_a,rtdens_b,tmax,nsteps,nsubsteps)
+
 def spectral_density_to_fermiexp(spectral_density,int_min,int_max, beta, mu, tmax, nsteps,nsubsteps):
-    def g_a(energy,beta,mu,t):
-        return 1./(1+np.exp(beta * (energy - mu))) * np.exp(-1.j* energy *t)
-    def g_b(energy,beta,mu,t):
-        return (1./(1+np.exp(beta * (energy - mu))) - 1) * np.exp(-1.j* energy *t)
+    def rtdens_a(t):
+        def g_a(energy,beta,mu,t):
+            return 1./(1+np.exp(beta * (energy - mu))) * np.exp(-1.j* energy *t)
+        return 1./(2*np.pi)*cquad(lambda x:spectral_density(x) * g_a(x,beta,mu,t),int_min,int_max)
+    def rtdens_b(t):
+        def g_b(energy,beta,mu,t):
+            return (1./(1+np.exp(beta * (energy - mu))) - 1) * np.exp(-1.j* energy *t)
+        return 1./(2*np.pi)*cquad(lambda x:spectral_density(x) * g_b(x,beta,mu,t),int_min,int_max)
+    return rtdens_to_fermiexp(rtdens_a,rtdens_b,tmax,nsteps,nsubsteps)
+
+def rtdens_to_fermiexp(rtdens_a,rtdens_b,tmax,nsteps,nsubsteps):
     delta_t=tmax/nsteps/nsubsteps
     B = np.zeros((4*nsteps*nsubsteps,4*nsteps*nsubsteps),dtype=np.complex_)
-
     for j in range (nsteps*nsubsteps):
         for i in range (j+1,nsteps*nsubsteps):
             
             t = i * delta_t
             t_prime = j * delta_t
-            integ_a = 1./(2*np.pi)*cquad(lambda x:spectral_density(x) * g_a(x,beta,mu,t-t_prime),int_min,int_max)
-            integ_b = 1./(2*np.pi)*cquad(lambda x:spectral_density(x) * g_b(x,beta,mu,t-t_prime),int_min,int_max)
+            integ_a = rtdens_a(t-t_prime) 
+            integ_b = rtdens_b(t-t_prime)
             
             B[4*i,4*j+1] = - np.conj(integ_b) * delta_t**2
             B[4*i,4*j+2] = - np.conj(integ_a) * delta_t**2
@@ -32,10 +45,8 @@ def spectral_density_to_fermiexp(spectral_density,int_min,int_max, beta, mu, tma
             
 
         #for equal time
-        integ_a = 1./(2*np.pi) * cquad(lambda x:spectral_density(x) * g_a(x,beta,mu,0.0),int_min,int_max)
-        
-        integ_b = 1./(2*np.pi) * cquad(lambda x:spectral_density(x) * g_b(x,beta,mu,0.0),int_min,int_max)
-
+        integ_a = rtdens_a(0.0)
+        integ_b = rtdens_b(0.0)
         
         B[4*j+1,4*j] =  integ_b * delta_t**2
         B[4*j+2,4*j] =  integ_b * delta_t**2
@@ -97,41 +108,3 @@ def spectral_density_to_fermiexp(spectral_density,int_min,int_max, beta, mu, tma
             U[4*i + 3, B.shape[0] //2 + (2*i) + 1] = 1
         B = U @ B @ U.T#rotate from Grassmann basis to folded basis: (in-fw, in-bw, out-fw, out-bw,...)
     return B
-
-def fermi_tracevalues(im):
-    im=im.tomatrices_unchecked()
-    itens=np.array([[1,0,0,1],[0,0,0,0],[0,0,0,0],[1,0,0,1]]).ravel()
-    postval=[np.array([1.0])]
-    for m in im[::-1]:
-        postval.append(np.einsum("d,abcd,b,c->a",postval[-1],m.reshape((m.shape[0],16,16,m.shape[-1])),itens,itens,optimize=True))
-    return postval[::-1]
-def fermi_embedded_evolution(t,orb,iml,chs,imr,init=np.eye(2)/2):
-    # dm=imcode.vectorize_operator(init).reshape((16,1,1))
-    dm=init.reshape((256,1,1))
-    iml.recluster(((256,),)*(2*t))
-    imr.recluster(((256,),)*(2*t))
-    pvl=fermi_tracevalues(iml)[::2]
-    pvr=fermi_tracevalues(imr)[::2]
-    iml.recluster(((16,),)*(4*t))
-    imr.recluster(((16,),)*(4*t))
-    for i in range(t):
-        dm=np.einsum("abc,ad->dbc",dm,imp_mpo.M[2*i].reshape((256,256)),optimize=True)
-        yield np.einsum("abc,b,c->a",dm,pvl[i],pvr[i],optimize=True)
-        dm=dm.reshape((4,4,4,4,dm.shape[1],dm.shape[2]))
-        dm=np.einsum("afghbc,bade->dfghec",dm,iml.M[4*i].reshape((iml.M[4*i].shape[0],4,4,iml.M[4*i].shape[-1])),optimize=True)
-        dm=np.einsum("afghbc,bfde->adghec",dm,iml.M[4*i+1].reshape((iml.M[4*i+1].shape[0],4,4,iml.M[4*i+1].shape[-1])),optimize=True)
-        dm=np.einsum("afghbc,bgde->afdhec",dm,iml.M[4*i+2].reshape((iml.M[4*i+2].shape[0],4,4,iml.M[4*i+2].shape[-1])),optimize=True)
-        dm=np.einsum("afghbc,bhde->afgdec",dm,iml.M[4*i+3].reshape((iml.M[4*i+3].shape[0],4,4,iml.M[4*i+3].shape[-1])),optimize=True)
-        dm=dm.reshape((256,dm.shape[-2],dm.shape[-1]))
-        yield np.einsum("abc,b,c->a",dm,pvl[i+1],pvr[i],optimize=True)
-        dm=np.einsum("abc,da->dbc",dm,imp_mpo.M[2*i+1].reshape((256,256)),optimize=True)
-        yield np.einsum("abc,b,c->a",dm,pvl[i+1],pvr[i],optimize=True)
-        dm=dm.reshape((4,4,4,4,dm.shape[1],dm.shape[2]))
-        dm=np.einsum("afghbc,cade->dfghbe",dm,imr.M[4*i].reshape((imr.M[4*i].shape[0],4,4,imr.M[4*i].shape[-1])),optimize=True)
-        dm=np.einsum("afghbc,cfde->adghbe",dm,imr.M[4*i+1].reshape((imr.M[4*i+1].shape[0],4,4,imr.M[4*i+1].shape[-1])),optimize=True)
-        dm=np.einsum("afghbc,cgde->afdhbe",dm,imr.M[4*i+2].reshape((imr.M[4*i+2].shape[0],4,4,imr.M[4*i+2].shape[-1])),optimize=True)
-        dm=np.einsum("afghbc,chde->afgdbe",dm,imr.M[4*i+3].reshape((imr.M[4*i+3].shape[0],4,4,imr.M[4*i+3].shape[-1])),optimize=True)
-        dm=dm.reshape((256,dm.shape[-2],dm.shape[-1]))
-        yield np.einsum("abc,b,c->a",dm,pvl[i+1],pvr[i+1],optimize=True)
-    dm=np.einsum("abc,ad->dbc",dm,imp_mpo.M[-1].reshape((256,256)),optimize=True)
-    yield np.einsum("abc,b,c->a",dm,pvl[-1],pvr[-1],optimize=True)

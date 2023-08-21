@@ -40,6 +40,9 @@ def brickwork_H(L,gates):
 
 
 def brickwork_To(t, chs):
+    '''
+        Returns the transfer matrix for the odd layers of a brickwork circuit
+    '''
     chs=np.asarray(chs)
     if len(chs.shape)==2:
         chs=[chs for _ in range(t)]
@@ -51,6 +54,9 @@ def brickwork_To(t, chs):
     return To
 
 def brickwork_Te(t, chs):
+    '''
+        Returns the transfer matrix for the even layers of a brickwork circuit
+    '''
     chs=np.asarray(chs)
     if len(chs.shape)==2:
         chs=[chs for _ in range(t)]
@@ -61,10 +67,3 @@ def brickwork_Te(t, chs):
     Te=Te.recluster(((4,1),(1,4))*(2*len(dual)-2)) #TODO: fix in ttarray
     Te=Te.recluster(((16,16),)*(len(dual)-1))
     return Te
-def interleave_brickwork(lhs,rhs):
-    res=[]
-    for l,r in zip(lhs,rhs):
-        l=l.reshape((l.shape[0],4,4,l.shape[-1]))
-        r=r.reshape((r.shape[0],4,4,r.shape[-1]))
-        res.append(np.einsum("abcd,ecfg->aebfdg",l,r).reshape(l.shape[0]*r.shape[0],16,l.shape[-1]*r.shape[-1]))
-    return res

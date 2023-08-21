@@ -13,7 +13,13 @@ def _get_mat(even,odd):
     return ret
 _FERMI_A=_get_mat([1,1],[1,1])
 _FERMI_B=_get_mat([1,-1],[1,1])
-def brickwork_fermi_to_spin(im,truncate=True):
+def fermi_to_spin(im,truncate=True):
+    '''
+        Converts the IM from fermionic to spin-chain form or vice versa. This
+        effectively changes the Jordan Wigner order of the fermions from along the
+        MPS order to along the Keldysh contour.
+        
+    '''
     t=int(math.log2(im.shape[0])/4)
     Omps=tt.frommatrices([_FERMI_A[0,...][None,...]]+[_FERMI_B,_FERMI_A]*(t*2-1)+[_FERMI_B[...,0][...,None]])
     cprev=im.chi
@@ -23,6 +29,10 @@ def brickwork_fermi_to_spin(im,truncate=True):
     return im
 
 def fermiexp_to_fermicorr(B):
+    '''
+        Computes the correlation matrix from a fermionic exponent. Might be
+        delegated to freeferm in the future
+    '''
     dim_B = B.shape[0]
     B_large = np.zeros((4*dim_B, 4*dim_B), dtype=np.complex_)
     B_large[:dim_B, :dim_B] = B.T.conj()*0.5
@@ -60,8 +70,18 @@ def fermiexp_to_fermicorr(B):
     jcorrf[:,3::4]=-jcorrf[:,3::4]
     return jcorrf
 def fermicorr_to_circuit(corr,nbcutoff=1e-10):
+    '''
+        Computes the quantum circuit which converts the vacuum into the
+        gaussian state defined by the correlation matrix corr using the
+        extended Fishman-White algorithm. Thin wrapper around
+        freeferm.real.corr_to_circuit.
+    '''
     import freeferm
     return freeferm.real.corr_to_circuit(corr,nbcutoff)
 def circuit_to_mps(circuit,t,chi=128,svdcutoff=1e-10):
+    '''
+        Applies a quantum circuit to the vacuum MPS. Thin wrapper around
+        freeferm.apply_circuit_to_mps.
+    '''
     import freeferm
     return freeferm.apply_circuit_to_mps(freeferm.mps_vac(4*t,cluster=((16,),)*t),circuit,chi,svdcutoff)
