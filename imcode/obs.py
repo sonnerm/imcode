@@ -146,6 +146,8 @@ def brickwork_embedded_evolution(iml,chs,imr,init=np.eye(2)/2,fermionic=False,no
         yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvla,pvra,optimize=True))
         dm=dm.reshape((dm.shape[0],4,dm.shape[1]//4,dm.shape[2]))
         dm=np.einsum("baxc,bane->enxc",dm,ml.reshape((ml.shape[0],4,4,ml.shape[-1])),optimize=True)
+        dm=dm.reshape((dm.shape[0],dm.shape[1]*4,dm.shape[3]))
+        yield unvectorize_operator(np.einsum("bac,b,c->a",dm,pvlb,pvra,optimize=True))
         dm=dm.reshape((dm.shape[0],dm.shape[2],4,dm.shape[3]))
         dm=np.einsum("bxac,cane->bxne",dm,mr.reshape((mr.shape[0],4,4,mr.shape[-1])),optimize=True)
         dm=dm.reshape((dm.shape[0],dm.shape[1]*4,dm.shape[3]))
