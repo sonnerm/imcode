@@ -26,7 +26,7 @@ def interleave(lhs,rhs,coarse_grain=False,fermionic=False,truncate=True):
         else:
             res.append(np.einsum("abd,ef->aebdf",l,np.eye(r.shape[0]),optimize=True).reshape(l.shape[0]*r.shape[0],16,l.shape[-1]*r.shape[0]))
             res.append(np.einsum("abd,ef->eabfd",r,np.eye(l.shape[-1]),optimize=True).reshape(l.shape[-1]*r.shape[0],16,l.shape[-1]*r.shape[-1]))
-    res=tt.frommatrices(res)
+    res=tt.TensorTrainArray.frommatrices_unchecked(res)
     if fermionic:
         Omps=tt.frommatrices([_INTER_A[0,...][None,...]]+[_INTER_A]*3+([_INTER_B]*4+[_INTER_A]*4)*(min(lhs.L,rhs.L)-1)+[_INTER_B]*3+[_INTER_B[...,0][...,None]])
         chi=max(res.chi)
