@@ -25,7 +25,7 @@ def spectral_density_to_fermiexp(spectral_density,int_min,int_max, beta, mu, tma
 
 def rtdens_to_fermiexp(rtdens_a,rtdens_b,tmax,nsteps,nsubsteps):
     delta_t=tmax/nsteps/nsubsteps
-    B = np.zeros((4*nsteps*nsubsteps,4*nsteps*nsubsteps),dtype=np.complex_)
+    B = np.zeros((4*nsteps*nsubsteps,4*nsteps*nsubsteps),dtype=np.complex128)
     for j in range (nsteps*nsubsteps):
         for i in range (j+1,nsteps*nsubsteps):
             
@@ -78,20 +78,20 @@ def rtdens_to_fermiexp(rtdens_a,rtdens_b,tmax,nsteps,nsubsteps):
                 B[2*i*nsubsteps+2+ 2*j,2*i*nsubsteps + 1 + 2*j] += -1  
 
         #select submatrix that contains all intermediate times that are integrated out
-        B_sub =  np.zeros((4*nsteps*(nsubsteps-1) , 4*nsteps*(nsubsteps-1)),dtype=np.complex_)
+        B_sub =  np.zeros((4*nsteps*(nsubsteps-1) , 4*nsteps*(nsubsteps-1)),dtype=np.complex128)
         for i in range (2*nsteps):
             for j in range (2*nsteps):
                 B_sub[i*(2*nsubsteps-2):i*(2*nsubsteps-2 )+2*nsubsteps-2,j*(2*nsubsteps-2):j*(2*nsubsteps-2 )+2*nsubsteps-2] = B[2*i*nsubsteps+1:2*(i*nsubsteps + nsubsteps)-1,2*j*nsubsteps+1:2*(j*nsubsteps + nsubsteps)-1]
 
         #matrix coupling external legs to integrated (internal) legs
-        B_coupl =  np.zeros((4*(nsubsteps-1)*nsteps,4*nsteps),dtype=np.complex_)
+        B_coupl =  np.zeros((4*(nsubsteps-1)*nsteps,4*nsteps),dtype=np.complex128)
         for i in range (2*nsteps):
             for j in range (2*nsteps):
                 B_coupl[i*(2*nsubsteps-2):i*(2*nsubsteps-2 )+2*nsubsteps-2,2*j] = B[2*i*nsubsteps+1:2*(i*nsubsteps + nsubsteps)-1,2*j*nsubsteps]
                 B_coupl[i*(2*nsubsteps-2):i*(2*nsubsteps-2 )+2*nsubsteps-2,2*j+1] = B[2*i*nsubsteps+1:2*(i*nsubsteps + nsubsteps)-1,2*(j+1)*nsubsteps-1]
 
         #part of matriy that is neither integrated nor coupled to integrated variables
-        B_ext = np.zeros((4*nsteps,4*nsteps),dtype=np.complex_)
+        B_ext = np.zeros((4*nsteps,4*nsteps),dtype=np.complex128)
         for i in range (2*nsteps):
             for j in range (2*nsteps):
                 B_ext[2*i,2*j] = B[2*i*nsubsteps,2*j*nsubsteps]

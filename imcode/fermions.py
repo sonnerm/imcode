@@ -34,7 +34,7 @@ def fermiexp_to_fermicorr(B):
         delegated to freeferm in the future
     '''
     dim_B = B.shape[0]
-    B_large = np.zeros((4*dim_B, 4*dim_B), dtype=np.complex_)
+    B_large = np.zeros((4*dim_B, 4*dim_B), dtype=np.complex128)
     B_large[:dim_B, :dim_B] = B.T.conj()*0.5
     B_large[3*dim_B:, 3*dim_B:] = 0.5*B
 
@@ -44,7 +44,7 @@ def fermiexp_to_fermicorr(B):
         B_large[i_n-dim_B:i_n, i_n:i_n+dim_B] = 0.5 * np.eye(dim_B)
 
     B_large_inv = la.inv(B_large)
-    corr_pfaff = np.zeros((2*dim_B,2*dim_B),dtype=np.complex_)
+    corr_pfaff = np.zeros((2*dim_B,2*dim_B),dtype=np.complex128)
     corr_pfaff[:dim_B,:dim_B] = np.eye(dim_B)
     for i in range (dim_B):
         for j in range (dim_B):
@@ -53,7 +53,7 @@ def fermiexp_to_fermicorr(B):
             corr_pfaff[i,j+dim_B] += 0.5 *pf.pfaffian(B_large_inv.T[np.ix_([i+2*dim_B,j+2*dim_B], [i+2*dim_B,j+2*dim_B])])
             corr_pfaff[i+dim_B,j] += 0.5 *pf.pfaffian(B_large_inv.T[np.ix_([i+dim_B,j+dim_B], [i+dim_B,j+dim_B])])
     jcorr = corr_pfaff   
-    # double_R = np.bmat([[R, np.zeros((dim_B, dim_B),dtype=np.complex_)],[np.zeros((dim_B, dim_B),dtype=np.complex_), R.conj()]])
+    # double_R = np.bmat([[R, np.zeros((dim_B, dim_B),dtype=np.complex128)],[np.zeros((dim_B, dim_B),dtype=np.complex128), R.conj()]])
     # jcorr = np.array(double_R @ corr_block_diag @ double_R.T.conj())#rotate correlation block back from diagonal basis to original fermion basis
     L=jcorr.shape[0]//2
     jcorrn=np.zeros_like(jcorr)

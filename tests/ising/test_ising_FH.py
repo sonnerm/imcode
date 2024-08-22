@@ -27,7 +27,7 @@ def test_ising_F(seed_rng):
     h = np.random.normal(size=L)
     miF=imcode.ising_F(L,J,g,h)
     diF=np.array(miF)
-    assert diF.dtype==np.complex_
+    assert diF.dtype==np.complex128
     assert simple_ising_F(L, J, g, h) == pytest.approx(diF)
 
 def test_ising_F_trotter(seed_rng):
@@ -48,7 +48,7 @@ def test_ising_H(seed_rng):
     h = np.random.normal(size=L) + 1.0j * np.random.normal(size=L)
     miH=imcode.ising_H(L,J, g, h)
     ret=simple_ising_H(L,J,g,h)
-    assert miH.dtype==np.complex_
+    assert miH.dtype==np.complex128
     assert isinstance(miH,tt.TensorTrainArray)
     assert np.array(miH)==pytest.approx(ret)
     # Real coefficients <=> Real Hermitian operator
