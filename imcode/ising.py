@@ -49,7 +49,6 @@ def ising_zoz(J,g,h):
     ret=np.einsum("ab,bc,bd->abcd",Wh,Wg,WJ)
     return np.einsum("abcd,efgh->aebfcgdh",ret,ret.conj()).reshape((4,4,4,4))
 
-
 def ising_T(t,J,g,h):
     J=np.asarray(J)
     g=np.asarray(g)
